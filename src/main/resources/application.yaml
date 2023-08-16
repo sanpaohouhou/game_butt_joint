@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: tgGame
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/game_butt_joint?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  flyway:
+    enabled: true
+  redis:
+    host: 127.0.0.1
+    database: 9
+  cache:
+    redis:
+      time-to-live: 5m
+      key-prefix: ${spring.application.name}
+    type: redis
+
+server:
+  port: 8081
+
+  messages:
+    basename: i18n/messages/messages
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+security:
+  key: U81msjdw0v486i+ol8pko+0_(m0ck-p6%om!wbkmg0_(.34&1
+  token-expire: 24h
+logging:
+  level:
+    com.tl.tgGame: DEBUG
+
+
+game_api:
+  addMember: /AddMember #新增用户
+  login: /Login #登录
+  kickOut: /KickOut #踢出玩家用户
+  kickOutAll: /KickoutAll #踢出所有玩家用户
+  getPlayReport: /GetPlayerReport #取得玩家报表
+  getOnlineMember: /GetOnlineMember #获取所有在线用户
+  getMemberGameReport: /GetMemberGameReport #每日会员游戏报表
+  searchMember: /SearchMember #查询玩家基本信息
+  setPoints: /SetPoints #玩家钱包充提
+  getSingleBill: /GetSingleBill  #交易纪录单笔查询
+  getRecordList: /GetRecordList  #取得游戏纪录列表
+
