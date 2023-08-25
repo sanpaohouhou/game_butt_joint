@@ -84,38 +84,35 @@ public class FcGameSchedule {
 
 
 
-    public void fcCommissionPenny(){
-        String lockKey = "fcCommissionPenny:lock";
-        RLock lock = redisLock.getLock(lockKey);
-        if (lock.tryLock()) {
-            try {
-                log.info("fc佣金分成开始-----");
-                List<Bet> bets = betService.list(new LambdaQueryWrapper<Bet>().eq(Bet::getHasSettled, false));
-                if (CollectionUtils.isEmpty(bets)) {
-                    return;
-                }
-                for (Bet bet : bets) {
-                    //winlose大于0 代表用户赢钱 系统输钱
-                    User user = userService.queryByMemberAccount(bet.getGameAccount());
-                    try {
-                        if (bet.getWinLose().compareTo(BigDecimal.ZERO) > 0) {
+//    public void fcCommissionPenny(){
+//        String lockKey = "fcCommissionPenny:lock";
+//        RLock lock = redisLock.getLock(lockKey);
+//        if (lock.tryLock()) {
+//            try {
+//                log.info("fc佣金分成开始-----");
+//                List<Bet> bets = betService.list(new LambdaQueryWrapper<Bet>().eq(Bet::getHasSettled, false));
+//                if (CollectionUtils.isEmpty(bets)) {
+//                    return;
+//                }
+//                for (Bet bet : bets) {
+//                    //winlose大于0 代表用户赢钱 系统输钱
+//                    User user = userService.queryByMemberAccount(bet.getGameAccount());
+//                    try {
+//                        if (bet.getWinLose().compareTo(BigDecimal.ZERO) > 0) {
+//
+//                        } else {
+//                            agentService.newUserWin(gameRecord, user);
+//                        }
+//                    } catch (Exception e) {
+//                        log.info("fc佣金分成系统异常exception:{},recordId:{}", e, bet.getRecordId());
+//                    }
+//                }
+//            } finally {
+//                lock.forceUnlock();
+//            }
+//        }
 
-                        } else {
-                            agentService.newUserWin(gameRecord, user);
-                        }
-                    } catch (Exception e) {
-                        log.info("fc佣金分成系统异常exception:{},recordId:{}", e, bet.getRecordId());
-                    }
-                }
-            } finally {
-                lock.forceUnlock();
-            }
-        }
-
-
-
-
-    }
+//    }
 
 
 }
