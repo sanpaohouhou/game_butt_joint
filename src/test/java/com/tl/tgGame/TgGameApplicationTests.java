@@ -70,7 +70,7 @@ class TgGameApplicationTests {
 //		Boolean aBoolean = betService.addBet(recordList);
 //		System.out.println(recordList);
 //		System.out.println(aBoolean);
-		fcGameSchedule.insertGameRecord();
+//		fcGameSchedule.insertGameRecord();
 	}
 
 	@Autowired
