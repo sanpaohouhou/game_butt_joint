@@ -1,8 +1,12 @@
 package com.tl.tgGame.project.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tl.tgGame.project.dto.ApiGameRecordListDTO;
 import com.tl.tgGame.project.entity.Bet;
-import com.tl.tgGame.project.entity.GameBet;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @version 1.0
@@ -12,4 +16,12 @@ import com.tl.tgGame.project.entity.GameBet;
 public interface BetService extends IService<Bet> {
 
     Boolean bet(Long userId,Bet bet);
+
+    Boolean addBet(List<ApiGameRecordListDTO> result);
+
+    BigDecimal sumAmount(Long userId,Boolean hasSettled);
+
+    BigDecimal sumBetAmount(Long userId, LocalDateTime startTime,LocalDateTime endTime);
+
+    BigDecimal sumWinLose(Long userId,LocalDateTime startTime,LocalDateTime endTime,Boolean hasWinLose);
 }

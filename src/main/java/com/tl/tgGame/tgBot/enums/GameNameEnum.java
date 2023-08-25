@@ -78,11 +78,11 @@ public enum GameNameEnum {
         this.gameName = gameName;
     }
 
-    public static GameNameEnum of(String gameId){
+    public static String of(String gameId){
         GameNameEnum[] values = values();
         for (GameNameEnum nameEnum: values) {
             if(nameEnum.getGameId().equals(gameId)){
-                return nameEnum;
+                return nameEnum.getGameName();
             }
         }
         return null;

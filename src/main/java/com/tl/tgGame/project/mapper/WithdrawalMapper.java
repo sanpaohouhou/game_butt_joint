@@ -7,6 +7,8 @@ import com.tl.tgGame.project.entity.Withdrawal;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.math.BigDecimal;
+
 /**
  * <p>
  * usdt提现记录 Mapper 接口
@@ -20,4 +22,7 @@ public interface WithdrawalMapper extends BaseMapper<Withdrawal> {
             "market_merchant AS merchant ON usdt.uid = merchant.id ${ew.customSqlSegment}")
     int count(@Param(Constants.WRAPPER) Wrapper<Withdrawal> wrapper);
 
+
+    @Select("SELECT IFNULL(SUM(`amount`),0) FROM `withdrawal` ${ew.customSqlSegment}")
+    BigDecimal sumWithdrawal(@Param(Constants.WRAPPER) Wrapper<Withdrawal> wrapper);
 }

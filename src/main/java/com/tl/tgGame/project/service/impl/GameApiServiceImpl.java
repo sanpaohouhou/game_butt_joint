@@ -103,7 +103,7 @@ public class GameApiServiceImpl implements GameApiService {
                 return new GameApiResponse("203","玩家余额不足");
             }
 
-            boolean save = betService.save(buildBet(user.getId(), gameBetAndResultReq));
+//            boolean save = betService.save(buildBet(user.getId(), gameBetAndResultReq));
 
             return new GameApiResponse("0",currency.getRemain().doubleValue());
         } catch (Exception e) {
@@ -143,30 +143,30 @@ public class GameApiServiceImpl implements GameApiService {
         return false;
     }
 
-    private Bet buildBet(Long userId,ApiGameBetAndResultReq req){
-        return Bet.builder()
-                .bet(req.getBet())
-                .gameId(req.getGameID())
-                .jpBet(req.getJPBet())
-                .allBackWaterAmount(BigDecimal.ZERO)
-                .backWaterAmount(BigDecimal.ZERO)
-                .bankId(req.getBankID())
-                .gameDate(req.getGameDate())
-                .gameName(GameNameEnum.of(req.getGameID()).getGameName())
-                .gameType(req.getGameType())
-                .createDate(req.getCreateDate())
-                .hasBackWater(false)
-                .hasSettled(false)
-                .isBuyFeature(req.getIsBuyFeature())
-                .currency(req.getCurrency())
-                .jpPrize(req.getJPPrize())
-                .memberAccount(req.getMemberAccount())
-                .netWin(req.getNetWin())
-                .createTime(LocalDateTime.now())
-                .recordId(req.getRecordID())
-                .requireAmt(req.getRequireAmt())
-                .topCommission(BigDecimal.ZERO)
-                .ts(req.getTs())
-                .userId(userId).build();
-    }
+//    private Bet buildBet(Long userId,ApiGameBetAndResultReq req){
+//        return Bet.builder()
+//                .bet(req.getBet())
+//                .gameId(req.getGameID())
+//                .jpBet(req.getJPBet())
+//                .allBackWaterAmount(BigDecimal.ZERO)
+//                .backWaterAmount(BigDecimal.ZERO)
+//                .bankId(req.getBankID())
+//                .gameDate(req.getGameDate())
+//                .gameName(GameNameEnum.of(req.getGameID()).getGameName())
+//                .gameType(req.getGameType())
+//                .createDate(req.getCreateDate())
+//                .hasBackWater(false)
+//                .hasSettled(false)
+//                .isBuyFeature(req.getIsBuyFeature())
+//                .currency(req.getCurrency())
+//                .jpPrize(req.getJPPrize())
+//                .memberAccount(req.getMemberAccount())
+//                .netWin(req.getNetWin())
+//                .createTime(LocalDateTime.now())
+//                .recordId(req.getRecordID())
+//                .requireAmt(req.getRequireAmt())
+//                .topCommission(BigDecimal.ZERO)
+//                .ts(req.getTs())
+//                .userId(userId).build();
+//    }
 }

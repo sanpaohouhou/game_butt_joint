@@ -1,12 +1,15 @@
 package com.tl.tgGame.project.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import com.tl.tgGame.blockchain.UsdtContractAdapter;
 import com.tl.tgGame.common.lock.RedisLock;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.entity.Currency;
+import com.tl.tgGame.project.entity.Wallet;
 import com.tl.tgGame.project.entity.Withdrawal;
 import com.tl.tgGame.project.enums.BusinessEnum;
 import com.tl.tgGame.project.enums.Network;
@@ -14,12 +17,14 @@ import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.enums.WithdrawStatus;
 import com.tl.tgGame.project.mapper.WithdrawalMapper;
 import com.tl.tgGame.project.service.CurrencyService;
+import com.tl.tgGame.project.service.WalletService;
 import com.tl.tgGame.project.service.WithdrawalService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.CompareUtil;
 import com.tl.tgGame.util.RedisKeyGenerator;
 import com.tl.tgGame.util.TimeUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +32,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -40,14 +46,17 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
     private RedisKeyGenerator redisKeyGenerator;
     @Resource
     private CurrencyService currencyService;
-//    @Resource
-//    private WalletService walletService;
-//    @Resource
-//    private UsdtContractAdapter usdtContractAdapter;
+    @Resource
+    private WalletService walletService;
+    @Resource
+    private UsdtContractAdapter usdtContractAdapter;
 //    @Resource
 //    private HeatPurseRecordService heatPurseRecordService;
     @Resource
     private DefaultIdentifierGenerator defaultIdentifierGenerator;
+
+    @Autowired
+    private WithdrawalMapper withdrawalMapper;
 
     @Override
     public Withdrawal addWithdrawal(Long uid, BigDecimal amount, UserType userType, String fromAddress, String toAddress, String hash, Network network, String screen, String note) {
@@ -102,13 +111,13 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
                 ErrorEnum.WITHDRAW_FAIL.throwException("提现金额必须大于手续费");
             }
             WithdrawStatus status = WithdrawStatus.created;
-//            Wallet wallet = walletService.getNormalWallet();
+            Wallet wallet = walletService.getNormalWallet();
 
             String fromAddress = null;
             if (network.equals(Network.TRC20)) {
-//                fromAddress = wallet.getTronAddress();
+                fromAddress = wallet.getTronAddress();
             } else {
-//                fromAddress = wallet.getEthAddress();
+                fromAddress = wallet.getEthAddress();
             }
             BigDecimal actualAmount = amount.subtract(fixedFee);
             long id = defaultIdentifierGenerator.nextId(null);
@@ -197,7 +206,7 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
             withdrawal.setStatus(WithdrawStatus.withdrawing);
             updateById(withdrawal);
         };
-//        usdtContractAdapter.transfer(withdrawal.getNetwork(), withdrawal.getToAddress(), withdrawal.getActualAmount(), consumer);
+        usdtContractAdapter.transfer(withdrawal.getNetwork(), withdrawal.getToAddress(), withdrawal.getActualAmount(), consumer);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -227,5 +236,17 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
 //                .createTime(LocalDateTime.now())
 //                .recordType(withdrawal.getUserType().equals(UserType.USER) ? RecordType.user_withdrawal : RecordType.partner_withdrawal)
 //                .build());
+    }
+
+    @Override
+    public BigDecimal allWithdrawalAmount(Long userId, UserType userType, List<WithdrawStatus> statuses, LocalDateTime startTime,LocalDateTime endTime) {
+        LambdaQueryWrapper<Withdrawal> wrapper =
+                new LambdaQueryWrapper<Withdrawal>()
+                        .eq(Withdrawal::getUid, userId)
+                        .eq(Withdrawal::getUserType, userType)
+                        .in(Withdrawal::getStatus,statuses)
+                        .ge(Objects.nonNull(startTime),Withdrawal::getCreateTime,startTime)
+                        .le(Objects.nonNull(endTime),Withdrawal::getCreateTime,endTime);;
+        return withdrawalMapper.sumWithdrawal(wrapper);
     }
 }

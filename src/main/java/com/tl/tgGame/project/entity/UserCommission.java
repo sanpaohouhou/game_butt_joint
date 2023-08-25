@@ -4,52 +4,48 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.tl.tgGame.project.enums.UserCommissionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * @version 1.0
  * @auther w
- * @date 2023/8/4 , 17:40
+ * @date 2023/8/18 , 10:45
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class UserCommission {
 
     @TableId(value = "id",type = IdType.ASSIGN_ID)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
-    private String firstName;
+    private Long userId;
 
-    private String lastName;
+    private Long fromUserId;
 
-    private String username;
+    private Long gameId;
 
-    private Long inviteUser;
+    private String gameName;
+    //利润类型,佣金,返水
+    private UserCommissionType type;
 
-    private LocalDateTime joinedTime;
+    //游戏类型 目前有FC电子,瓦力,EG
+    private String gameBusiness;
 
-    private Boolean isBot;
+    private BigDecimal profit;
 
-    private Long partnerId;
+    private BigDecimal rate;
 
-    private Long tgId;
+    private BigDecimal actualAmount;
 
-    private String tgGroup;
-
-    private String country;
-
-    private String gameAccount;
-
-    //ture有效,还在群里,false无效,未在群里
-    private Boolean hasGroup;
-
-    private String withdrawalUrl;
+    private LocalDateTime createTime;
 }

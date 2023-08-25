@@ -89,4 +89,8 @@ public class ConfigConstants {
      */
     public static final String TG_BOT_NAME_TWO = "tg_bot_name_two";
 
+    /**
+     * 发财电子 返水比例
+     */
+
 }

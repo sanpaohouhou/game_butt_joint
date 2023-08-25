@@ -10,6 +10,7 @@ import com.tl.tgGame.project.enums.UserType;
 
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -43,5 +44,7 @@ public interface RechargeService extends IService<Recharge> {
      * @param tx 链上记录
      */
     void bscTxHandle(BscBep20Tx tx);
+
+    BigDecimal sumRecharge(Long userId, UserType userType, LocalDateTime startTime,LocalDateTime endTime);
 
 }

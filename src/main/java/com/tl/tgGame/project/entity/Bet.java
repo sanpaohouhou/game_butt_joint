@@ -3,6 +3,7 @@ package com.tl.tgGame.project.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
@@ -24,144 +25,111 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Bet {
 
-    //    @TableId(value = "id",type = IdType.ASSIGN_ID)
-//    @JsonSerialize(using = ToStringSerializer.class)
-//    private Long id;
-//
-//    /**
-//     * 游戏名
-//     */
-//    private String gameName;
-//    /**
-//     * 金额
-//     */
-//    private BigDecimal amount;
-//    /**
-//     * 返水金额
-//     */
-//    private BigDecimal backWaterAmount;
-//    /**
-//     * 上级返佣
-//     */
-//    private BigDecimal topCommission;
-//    /**
-//     * 总返水金额
-//     */
-//    private BigDecimal allBackWaterAmount;
-//    /**
-//     * 是否返水
-//     */
-//    private Boolean hasBackWater;
-//    /**
-//     * 用户id
-//     */
-//    private Long userId;
-//    /**
-//     * 创建时间
-//     */
-//    private LocalDateTime createTime;
-//    /**
-//     * 更新时间
-//     */
-//    private LocalDateTime updateTime;
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
-
-    /**
-     * 玩家账号
-     */
-    private String memberAccount;
-    /**
-     * 币别
-     */
-    private String currency;
-    /**
-     * 游戏编号
-     */
-    private String gameId;
-    /**
-     * 发送请求当下的时间
-     */
-    private Long ts;
 
     /**
      * 游戏记录编号(唯一码,长度24码)
      */
     private String recordId;
+
     /**
-     * 下注编号(唯一码,长度24码)
+     * 玩家账号
      */
-    private String bankId;
+    private String gameAccount;
+    /**
+     * 游戏编号
+     */
+    private Integer gameId;
+
     /**
      * 游戏类型
      */
     private Integer gameType;
+
+    private String gameName;
+    /**
+     * 下注金额
+     */
+    private BigDecimal bet;
+    /**
+     * 净输赢
+     */
+    private BigDecimal winLose;
+    /**
+     * 赢分
+     */
+    private BigDecimal prize;
+    /**
+     * 退还金额
+     */
+    private BigDecimal refund;
+    /**
+     * 有效投注
+     */
+    private BigDecimal validBet;
+
+    /**
+     * 抽水金额
+     */
+    private BigDecimal commission;
+    /**
+     * Jackpot 种类
+     */
+    private Integer jpMode;
+    /**
+     * Jackpot 中奖金额
+     */
+    private BigDecimal jpPoints;
+    /**
+     * Jackpot 抽水 (支持到小数第六位)
+     */
+    private BigDecimal jpTax;
+    /**
+     * 下注前点数
+     */
+    private BigDecimal befores;
+    /**
+     * 下注后点数
+     */
+    private BigDecimal afters;
+    /**
+     * 建立事件
+     */
+    private LocalDateTime bDate;
     /**
      * 是否购买免费游戏
      */
     private Boolean isBuyFeature;
     /**
-     * 押注金额
+     * 用户id
      */
-    private Double bet;
-    /**
-     * 游戏赢分
-     */
-    private Double win;
-    /**
-     * 彩金押注金额
-     */
-    private Double jpBet;
-    /**
-     * 彩金赢分
-     */
-    private Double jpPrize;
-    /**
-     * 总输赢
-     */
-    private Double netWin;
-    /**
-     * 实际押注金额
-     */
-    private Double requireAmt;
-    /**
-     * 游戏时间 (年-月-日 时:分:秒)
-     */
-    private LocalDateTime gameDate;
-    /**
-     * 交易建立时间(年-月-日 时:分:秒)
-     */
-    private LocalDateTime createDate;
-
-    /**
-     * 是否结算,true已结算,false未结算
-     */
-    private Boolean hasSettled;
-
     private Long userId;
     /**
-     * 是否返水
+     * 是否结算
      */
-    private Boolean hasBackWater;
-
-    private LocalDateTime createTime;
-
-    private LocalDateTime updateTime;
-
-    private String gameName;
-
-
+    private Boolean hasSettled;
     /**
      * 返水金额
      */
-    @TableField(exist = false)
     private BigDecimal backWaterAmount;
     /**
      * 上级返佣
      */
-    @TableField(exist = false)
     private BigDecimal topCommission;
+    /**
+     * 创建事件
+     */
+    private LocalDateTime createTime;
+    /**
+     * 更新事件
+     */
+    private LocalDateTime updateTime;
+    /**
+     * 记录拉取事件
+     */
+    private LocalDateTime pullTime;
     /**
      * 总返水金额
      */

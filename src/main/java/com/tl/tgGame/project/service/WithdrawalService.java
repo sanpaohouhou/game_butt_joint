@@ -6,8 +6,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tl.tgGame.project.entity.Withdrawal;
 import com.tl.tgGame.project.enums.Network;
 import com.tl.tgGame.project.enums.UserType;
+import com.tl.tgGame.project.enums.WithdrawStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public interface WithdrawalService extends IService<Withdrawal> {
 
@@ -64,5 +67,10 @@ public interface WithdrawalService extends IService<Withdrawal> {
     void transferFail(Withdrawal withdrawal);
 
     void transferSuccess(Withdrawal withdrawal);
+
+    /**
+     * 根据状态查询用户总提现金额
+     */
+    BigDecimal allWithdrawalAmount(Long userId, UserType userType, List<WithdrawStatus> statuses, LocalDateTime startTime, LocalDateTime endTime);
 
 }

@@ -2,6 +2,7 @@ package com.tl.tgGame.project.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
+import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.Game;
 import com.tl.tgGame.project.mapper.GameMapper;
@@ -13,7 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -81,22 +84,23 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
 
     @Override
     public String login(ApiLoginReq req) {
+        Map<String, Object> params = null;
+        String body = null;
         try {
             String json = new Gson().toJson(req);
             String aesEncrypt = AesGameUtil.aesEncrypt(json, AGENT_KEY);
             String sign = Md5Util.MD5(json, 32);
-            Map<String, Object> params = buildParam(aesEncrypt, sign);
-            log.info("params:{}", params);
-            String body = HttpUtil.doPost(URL + "/Login", params, "UTF-8", "multipart/form-data");
+            params = buildParam(aesEncrypt, sign);
+            body = HttpUtil.doPost(URL + "/Login", params, "UTF-8", "multipart/form-data");
             if (body != null) {
-                System.out.println(body);
                 ApiLoginRes apiLoginRes = new Gson().fromJson(body, ApiLoginRes.class);
-                if (apiLoginRes.getResult().equals("0")) {
-                    return apiLoginRes.getUrl();
+                if (!apiLoginRes.getResult().equals("0")) {
+                    ErrorEnum.INTERNAL_ERROR.throwException(apiLoginRes.getResult());
                 }
+                return apiLoginRes.getUrl();
             }
         } catch (Exception e) {
-            log.error("获取游戏登录链接失败Exception:{},gameId:{}", e, req.getGameID());
+            log.error("FC获取游戏登录链接失败Exception:{},request:{},params:{},response:{}", e, req.toString(), params, body);
         }
         return null;
     }
@@ -143,18 +147,20 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
     }
 
     @Override
-    public void setPoints(ApiSetPointReq req) {
+    public ApiSetPointRes setPoints(ApiSetPointReq req) {
+        Map<String, Object> params = null;
+        String body = null;
         try {
             String json = new Gson().toJson(req);
             String aesEncrypt = AesGameUtil.aesEncrypt(json, AGENT_KEY);
             String sign = Md5Util.MD5(json, 32);
-            Map<String, Object> params = buildParam(aesEncrypt, sign);
-            String body = HttpUtil.doPost(URL + setPoints, params, "UTF-8", "multipart/form-data");
-            System.out.println(body);
-
+            params = buildParam(aesEncrypt, sign);
+            body = HttpUtil.doPost(URL + setPoints, params, "UTF-8", "multipart/form-data");
+            return new Gson().fromJson(body, ApiSetPointRes.class);
         } catch (Exception e) {
-
+            log.error("FC冲提失败Exception:{},request:{},params:{},response:{}", e, req.toString(), params, body);
         }
+        return null;
     }
 
     @Override
@@ -186,18 +192,27 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
     }
 
     @Override
-    public void getRecordList(ApiRecordListReq req) {
+    public List<ApiGameRecordListDTO> getRecordList(ApiRecordListReq req) {
+        List<ApiGameRecordListDTO> results = new ArrayList<>();
+        Map<String, Object> params = null;
+        String body = null;
         try {
             String json = new Gson().toJson(req);
             String aesEncrypt = AesGameUtil.aesEncrypt(json, AGENT_KEY);
             String sign = Md5Util.MD5(json, 32);
-            Map<String, Object> params = buildParam(aesEncrypt, sign);
-            String body = HttpUtil.doPost(URL + getRecordList, params,"UTF-8","multipart/form-data");
-            System.out.println(body);
-
+            params = buildParam(aesEncrypt, sign);
+            log.info("params:{}",params);
+            body = HttpUtil.doPost(URL + getRecordList, params, "UTF-8", "multipart/form-data");
+            ApiGameRecordListRes apiGameRecordListRes = new Gson().fromJson(body, ApiGameRecordListRes.class);
+            if (apiGameRecordListRes.getResult().equals(0)) {
+                return apiGameRecordListRes.getRecords();
+            }
+            ErrorEnum.FC_GET_RECORD_LIST_FAIL.throwException();
         } catch (Exception e) {
-
+            log.error("FC查询游戏记录异常exception:{},request:{},params:{},response:{}", e, req.toString(), params, body);
+            ErrorEnum.FC_GET_RECORD_LIST_FAIL.throwException();
         }
+        return results;
     }
 
     @Override

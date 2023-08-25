@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.Game;
 
+import java.util.List;
+
 /**
  * @version 1.0
  * @auther w
@@ -49,7 +51,7 @@ public interface GameService extends IService<Game> {
      *
      * @param req
      */
-    void setPoints(ApiSetPointReq req);
+    ApiSetPointRes setPoints(ApiSetPointReq req);
 
     /**交易记录单笔查询
      *
@@ -68,7 +70,7 @@ public interface GameService extends IService<Game> {
      * 每次查询时间范围最多为 15 分钟。
      * 仅能查询 2 小时以內的游戏纪录。
      */
-    void getRecordList(ApiRecordListReq req);
+    List<ApiGameRecordListDTO> getRecordList(ApiRecordListReq req);
 
     /**签名验证测试
      *

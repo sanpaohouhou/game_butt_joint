@@ -26,6 +26,8 @@ public class UserExtend {
 
     private String gameAccount;
 
+    private Integer extendNumber;
+
     private String extendUrl;
 
     private LocalDateTime createTime;

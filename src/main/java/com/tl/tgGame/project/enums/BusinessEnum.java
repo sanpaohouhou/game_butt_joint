@@ -8,4 +8,8 @@ public enum BusinessEnum {
     BET,  // 下注
     COMMISSION,  // 返佣
     EXCHANGE,//兑换钻石
+
+    FC_RECHARGE,//fc游戏充值
+
+    FC_WITHDRAWAL,//fc游戏提现
 }

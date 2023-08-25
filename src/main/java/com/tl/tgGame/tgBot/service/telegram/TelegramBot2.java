@@ -1,19 +1,25 @@
 package com.tl.tgGame.tgBot.service.telegram;
 
 import com.tl.tgGame.exception.ErrorEnum;
+import com.tl.tgGame.project.dto.BotExtendStatisticsInfo;
+import com.tl.tgGame.project.dto.BotGameStatisticsInfo;
+import com.tl.tgGame.project.dto.BotPersonInfo;
+import com.tl.tgGame.project.dto.GameBusinessStatisticsInfo;
+import com.tl.tgGame.project.enums.GameBusiness;
+import com.tl.tgGame.project.service.CurrencyService;
+import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.system.mapper.Config;
 import com.tl.tgGame.tgBot.entity.UserBot;
 import com.tl.tgGame.tgBot.service.UserBotRepository;
 import com.tl.tgGame.util.NumberUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.CallbackGame;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -93,6 +99,12 @@ public class TelegramBot2 extends TelegramLongPollingBot {
     @Autowired
     private ConfigService configService;
 
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
+    private UserService userService;
+
 
     private static final List<String> KEYS = Arrays.asList("开始游戏", "个人资料", "游戏报表"
             , "获利查询", "推广链接", "推广数据", "/start", "USDT充值", "USDT提现", "绑定地址");
@@ -100,12 +112,13 @@ public class TelegramBot2 extends TelegramLongPollingBot {
     public void sendCallBackQuery(Update update) {
         CallbackQuery callbackQuery = update.getCallbackQuery();
         try {
-            if (callbackQuery.getData().equals("USDT充值:转账金额确认")) {
+            if (callbackQuery.getData().contains("USDT充值:转账金额确认")) {
+                String[] split = callbackQuery.getData().split("\\.");
                 StringBuilder append = new StringBuilder()
                         .append("充值地址: ").append("TE2kinqr93ZeWGLUAvw33JCq4sMVA4oPfJ").append("\r\n")
-                        .append("充值分数: ").append("1").append("\r\n")
-                        .append("付款金额: ").append("11").append("\r\n")
-                        .append("充值有效时长: ").append("11").append("\r\n")
+                        .append("充值分数: ").append(split[0]).append("\r\n")
+                        .append("付款金额: ").append(split[1]).append("\r\n")
+                        .append("充值有效时长: ").append("30分钟").append("\r\n")
                         .append("尊贵的用户，充值地址与付款金额，单击即可复制，请务必复制! 付款完成后请务必截图，请点击下方“唯一充提财务”按钮，发送财务确认后到账").append("\r\n");
                 InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder().url("https://t.me/shanpao_test_bot").text("唯一充提财务").build();
                 List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
@@ -130,12 +143,12 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                             .text("提现待审核,请稍等~~~").build();
                     execute(message);
                 }
-
             }
         } catch (TelegramApiException e) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
     }
+
 
     public void sendMsg(Update update) {
         List<KeyboardRow> list = new ArrayList<>();
@@ -182,8 +195,15 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             if (KEYS.contains(text)) {
                 buildState(update, false);
             }
+            Message messages = update.getMessage();
+            User from = messages.getFrom();
+            Chat chat = messages.getChat();
+            com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+            if (user == null) {
+                user = userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(), from.getIsBot(), from.getId(), chat.getId().toString());
+            }
             if (text.equals("开始游戏")) {
-                InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().url("https://t.me/shanpao_test_bot").text("\uD83D\uDC9E游戏大厅").build();
+                InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().url("https://t.me/+-pyYcS7upcg2Njc1").text("\uD83D\uDC9E游戏大厅").build();
                 List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
                 inlineKeyboardButtons.add(inlineKeyboardButton1);
                 InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons).build();
@@ -192,17 +212,18 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(sendMessage);
             }
             if (text.equals("个人资料")) {
+                BotPersonInfo botPersonInfo = userService.getbotPersonInfo(user);
                 StringBuilder builder = new StringBuilder();
-                StringBuilder append = builder.append("游戏账号: ").append("username").append("\r\n")
-                        .append("提现地址: ").append("withdrawal").append("\r\n")
-                        .append("充值金额: ").append("withdrawalAmount").append("\r\n")
-                        .append("总充值: ").append("allRecharge").append("\r\n")
-                        .append("总提现: ").append("allWithdrawal").append("\r\n")
-                        .append("总返水: ").append("allBackWater").append("\r\n")
-                        .append("待返水: ").append("waitBackWater").append("\r\n")
-                        .append("总佣金: ").append("allCommission").append("\r\n")
-                        .append("总彩金: ").append("allProfit").append("\r\n")
-                        .append("提现待审核: ").append("waitAuthWithdrawal").append("\r\n")
+                StringBuilder append = builder.append("游戏账号: ").append(botPersonInfo.getGameAccount()).append("\r\n")
+                        .append("提现地址: ").append(botPersonInfo.getWithdrawalUrl()).append("\r\n")
+                        .append("充值金额: ").append(botPersonInfo.getBalance()).append("\r\n")
+                        .append("总充值: ").append(botPersonInfo.getAllRecharge()).append("\r\n")
+                        .append("总提现: ").append(botPersonInfo.getAllWithdrawal()).append("\r\n")
+                        .append("总返水: ").append(botPersonInfo.getAllBackWater()).append("\r\n")
+                        .append("待返水: ").append(botPersonInfo.getWaitBackWater()).append("\r\n")
+                        .append("总佣金: ").append(botPersonInfo.getAllCommission()).append("\r\n")
+                        .append("总彩金: ").append(botPersonInfo.getAllProfit()).append("\r\n")
+                        .append("提现待审核: ").append(botPersonInfo.getWaitAuthWithdrawal()).append("\r\n")
                         .append("\r\n")
                         .append(" 用户返水及推广佣金会因不同游戏设置不同比例，详情请点击“获利查询”查看详况 ").append("\r\n");
                 SendMessage message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
@@ -210,23 +231,24 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message);
             }
             if (text.equals("游戏报表")) {
+                BotGameStatisticsInfo gameStatisticsInfo = userService.getGameStatisticsInfo(user);
                 StringBuilder append1 = new StringBuilder()
                         .append("-------当日报表--------").append("\r\n")
-                        .append("总下注: ").append("0").append("\r\n")
-                        .append("总派彩: ").append("0").append("\r\n")
-                        .append("总盈利: ").append("0").append("\r\n")
+                        .append("总下注: ").append(gameStatisticsInfo.getDayBet()).append("\r\n")
+                        .append("总派彩: ").append(gameStatisticsInfo.getDayFestoon()).append("\r\n")
+                        .append("总盈利: ").append(gameStatisticsInfo.getDayProfit()).append("\r\n")
                         .append("\r\n")
 
                         .append("-------当周报表--------").append("\r\n")
-                        .append("总下注: ").append("0").append("\r\n")
-                        .append("总派彩: ").append("0").append("\r\n")
-                        .append("总盈利: ").append("0").append("\r\n")
+                        .append("总下注: ").append(gameStatisticsInfo.getWeekBet()).append("\r\n")
+                        .append("总派彩: ").append(gameStatisticsInfo.getWeekFestoon()).append("\r\n")
+                        .append("总盈利: ").append(gameStatisticsInfo.getWeekProfit()).append("\r\n")
                         .append("\r\n")
 
                         .append("-------当月报表--------").append("\r\n")
-                        .append("总下注: ").append("0").append("\r\n")
-                        .append("总派彩: ").append("0").append("\r\n")
-                        .append("总盈利: ").append("0").append("\r\n");
+                        .append("总下注: ").append(gameStatisticsInfo.getMonthBet()).append("\r\n")
+                        .append("总派彩: ").append(gameStatisticsInfo.getMonthFestoon()).append("\r\n")
+                        .append("总盈利: ").append(gameStatisticsInfo.getMonthProfit()).append("\r\n");
 
                 SendMessage message1 = SendMessage.builder().chatId(update.getMessage().getChatId().toString()).text(append1.toString()).build();
                 execute(message1);
@@ -250,14 +272,15 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message2);
             }
             if (text.equals("\uD83D\uDC44FC电子")) {
+                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.FC.getKey());
                 StringBuilder append2 = new StringBuilder()
                         .append("\uD83D\uDC44FC电子")
-                        .append("游戏名称: ").append("\uD83D\uDC44FC电子").append("\r\n")
-                        .append("返水比例: ").append("1").append("\r\n")
-                        .append("已返水: ").append("1").append("\r\n")
-                        .append("待返水: ").append("1").append("\r\n")
-                        .append("下级佣金比例: ").append("1").append("\r\n")
-                        .append("下级佣金: ").append("1").append("\r\n");
+                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
                 SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                         .text(append2.toString()).build();
                 execute(message4);
@@ -290,15 +313,15 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                                 .text("尊贵的用户，最低充值：100USDT").replyMarkup(inlineKeyboardMarkup1).build();
                     } else {
                         StringBuilder append3 = new StringBuilder()
-                                .append("名称: ").append("11").append("\r\n")
-                                .append("充值分数: ").append("1").append("\r\n")
-                                .append("付款金额: ").append("1").append("\r\n")
+                                .append("名称: ").append(user.getGameAccount()).append("\r\n")
+                                .append("充值分数: ").append(text).append("\r\n")
+                                .append("付款金额: ").append(text).append("\r\n")
                                 .append("尊贵的用户，请确认转账金额，如果无法正确转入系统指定付款金额，将无法完成游戏分数的充值。" +
                                         "劳您再次确认，确认无误后请点击下方“转账金额确认”按钮。").append("\r\n");
                         List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
 
                         InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder()
-                                .text("转账金额确认").callbackData("USDT充值:转账金额确认").build();
+                                .text("转账金额确认").callbackData("USDT充值:转账金额确认." + text + "." + text).build();
                         inlineKeyboardButtons.add(inlineKeyboardButton);
                         lists.add(inlineKeyboardButtons1);
                         lists.add(inlineKeyboardButtons);
@@ -340,9 +363,8 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             }
 
             if (text.equals("绑定地址")) {
-                // TODO: 2023/8/4 查询用户是否绑定地址
                 SendMessage message = null;
-                if (!false) {
+                if (StringUtils.isEmpty(user.getWithdrawalUrl())) {
                     buildState(update, true);
                     message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                             .text("尊贵的用户，请输入TRC-20地址进行提现绑定").build();
@@ -363,19 +385,20 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message);
             }
             if (text.equals("推广数据")) {
+                BotExtendStatisticsInfo extendStatistics = userService.getExtendStatistics(user);
                 StringBuilder append3 = new StringBuilder()
                         .append("-------下级用户--------").append("\r\n")
-                        .append("人数: ").append("111").append("\r\n")
-                        .append("当日转码: ").append("1").append("\r\n")
-                        .append("当月转码: ").append("1").append("\r\n")
-                        .append("已结佣金: ").append("1").append("\r\n")
-                        .append("当日总存款: ").append("1").append("\r\n")
-                        .append("当月总存款: ").append("1").append("\r\n")
-                        .append("当日总提款: ").append("1").append("\r\n")
-                        .append("当月总提款: ").append("1").append("\r\n")
-                        .append("当日总返水: ").append("1").append("\r\n")
-                        .append("当日总彩金: ").append("1").append("\r\n")
-                        .append("当月总彩金: ").append("1").append("\r\n");
+                        .append("人数: ").append(extendStatistics.getPeopleNumber()).append("\r\n")
+                        .append("当日转码: ").append(extendStatistics.getTodayJoinGroup()).append("\r\n")
+                        .append("当月转码: ").append(extendStatistics.getMonthJoinGroup()).append("\r\n")
+                        .append("已结佣金: ").append(extendStatistics.getSettledCommission()).append("\r\n")
+                        .append("当日总存款: ").append(extendStatistics.getTodayAllRecharge()).append("\r\n")
+                        .append("当月总存款: ").append(extendStatistics.getMonthAllRecharge()).append("\r\n")
+                        .append("当日总提款: ").append(extendStatistics.getTodayAllWithdrawal()).append("\r\n")
+                        .append("当月总提款: ").append(extendStatistics.getMonthALlWithdrawal()).append("\r\n")
+                        .append("当日总返水: ").append(extendStatistics.getTodayAllBackWater()).append("\r\n")
+                        .append("当日总彩金: ").append(extendStatistics.getTodayAllProfit()).append("\r\n")
+                        .append("当月总彩金: ").append(extendStatistics.getMonthAllProfit()).append("\r\n");
                 SendMessage message7 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                         .text(append3.toString()).build();
                 execute(message7);

@@ -1,5 +1,7 @@
 package com.tl.tgGame.project.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
@@ -22,6 +24,7 @@ import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.mapper.RechargeMapper;
 import com.tl.tgGame.project.service.CurrencyService;
 import com.tl.tgGame.project.service.RechargeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +60,9 @@ public class RechargeServiceImpl extends ServiceImpl<RechargeMapper, Recharge> i
     private AddressService addressService;
     @Resource
     private AddressBalanceService addressBalanceService;
+
+    @Autowired
+    private RechargeMapper rechargeMapper;
 
     @Override
     public Recharge addRecharge(Long uid, BigDecimal amount, UserType userType, String fromAddress, String toAddress, String hash, Network network, String screen, String note) {
@@ -115,6 +121,17 @@ public class RechargeServiceImpl extends ServiceImpl<RechargeMapper, Recharge> i
         Address address = addressService.getByBscAddress(tx.getTo());
         if (Objects.isNull(address)) return;
         txHandle(address.getUid(), tx.getFrom(), tx.getTo(), Network.BEP20, tx.getHash(), tx.getValue());
+    }
+
+    @Override
+    public BigDecimal sumRecharge(Long userId,UserType userType, LocalDateTime startTime,LocalDateTime endTime) {
+        LambdaQueryWrapper<Recharge> wrapper =
+                new LambdaQueryWrapper<Recharge>()
+                        .eq(Recharge::getUserId, userId)
+                        .eq(Recharge::getUserType, userType)
+                        .ge(Objects.nonNull(startTime),Recharge::getCreateTime,startTime)
+                        .le(Objects.nonNull(endTime),Recharge::getCreateTime,endTime);;
+        return rechargeMapper.amountSum(wrapper);
     }
 
     private void txHandle(long uid, String from, String to, Network network, String hash, BigInteger txVal) {
