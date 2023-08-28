@@ -21,7 +21,7 @@ spring:
     type: redis
 
 server:
-  port: 8081
+  port: 8080
 
   messages:
     basename: i18n/messages/messages
