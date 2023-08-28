@@ -24,7 +24,7 @@ jobs:
           access_key_id: AKIAXO26WTLFLOYNMXFB
           secret_access_key: "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"
           account_id: "512910334666"
-          repo: tgGame
+          repo: tg_game
           region: ap-northeast-1
           tags: dev
           create_repo: true
