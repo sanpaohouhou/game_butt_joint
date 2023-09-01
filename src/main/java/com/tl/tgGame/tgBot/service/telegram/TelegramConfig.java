@@ -25,10 +25,10 @@ public class TelegramConfig {
             if (StringUtils.isEmpty(tele_config)){
                 return new TelegramBot();
             }
-//            telegram_token = configService.getOrDefault(ConfigConstants.TG_BOT_TOKEN, "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A");
-//            telegram_username = configService.getOrDefault(ConfigConstants.TG_BOT_NAME, "shanpao_test_bot");
-            telegram_token = "6646772888:AAEeHK75cYImtPlTmVRE5ibCQ1clXwm7DW8";
-            telegram_username = "fc_test_game";
+            telegram_token = configService.getOrDefault(ConfigConstants.TG_BOT_TOKEN, "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A");
+            telegram_username = configService.getOrDefault(ConfigConstants.TG_BOT_NAME, "shanpao_test_bot");
+//            telegram_token = "6646772888:AAEeHK75cYImtPlTmVRE5ibCQ1clXwm7DW8";
+//            telegram_username = "fc_test_game";
         } catch (Exception e) {
             telegram_token = "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A";
             telegram_username = "shanpao_test_bot";

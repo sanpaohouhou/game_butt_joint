@@ -90,7 +90,59 @@ public class ConfigConstants {
     public static final String TG_BOT_NAME_TWO = "tg_bot_name_two";
 
     /**
-     * 发财电子 返水比例
+     * 发财电子密钥code
      */
+    public static final String FC_AGENT_CODE = "fc_agent_code";
+    /**
+     * fc请求域名
+     */
+    public static final String FC_HOST = "fc_host";
+    /**
+     * fc请求渠道key
+     */
+    public static final String FC_AGENT_KEY = "fc_agent_key";
+    /**
+     * eg密钥code
+     */
+    public static final String EG_AGENT_CODE = "eg_agent_code";
+    /**
+     * eg请求域名
+     */
+    public static final String EG_HOST = "eg_host";
+    /**
+     * eg_hmac_sha256_key
+     */
+    public static final String EG_HASH_KEY = "eg_hash_key";
+    /**
+     * eg平台value
+     */
+    public static final String EG_PLATFORM = "eg_platform";
+    /**
+     * eg_游戏列表
+     */
+    public static final String EG_GAME_LIST = "eg_game_list";
+
+    /**
+     * wl请求域名
+     */
+    public static final String WL_HOST = "wl_host";
+    /**
+     * wl参数加密key
+     */
+    public static final String WL_PARAM_KEY = "wl_param_key";
+    /**
+     * wl平台value
+     */
+    public static final String WL_REQ_KEY = "wl_req_key";
+    /**
+     * wl平台account
+     */
+    public static final String WL_ACCOUNT = "wl_account";
+    /**
+     * wl渠道id
+     */
+    public static final String WL_AGENT_ID = "wl_agent_id";
+
+
 
 }

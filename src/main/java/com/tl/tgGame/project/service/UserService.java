@@ -38,9 +38,9 @@ public interface UserService extends IService<User> {
 
     Boolean updateByHasGroup(Long tgId,String tgGroup,Boolean hasGroup);
 
-    Boolean fcGameRecharge(Long tgId);
+    Boolean gameRecharge(Long tgId,String gameType);
 
-    Boolean fcGameWithdrawal(Long tgId);
+    Boolean gameWithdrawal(Long tgId);
 
     List<User> queryByInviteUser(Long inviteUser, LocalDateTime startTime, LocalDateTime endTime);
 

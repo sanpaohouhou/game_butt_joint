@@ -6,6 +6,8 @@ import cn.hutool.core.date.DateUtil;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
+import java.util.Date;
 import java.util.TimeZone;
 
 public class TimeUtil {
@@ -50,11 +52,18 @@ public class TimeUtil {
     }
 
     public static void main(String[] args) {
-        LocalDateTime localDateTime = parseLocalDateTime("2023-08-23 21:48:57");
-        LocalDateTime localDateTime1 = parseLocalDateTime("2023-08-19 17:10:00");
-        String s = americaCharge(localDateTime);
-        String s1 = americaCharge(localDateTime1);
-        System.out.println(s);
-        System.out.println(localDateTime.plusSeconds(1));
+//        LocalDateTime localDateTime = parseLocalDateTime("2023-08-23 21:48:57");
+//        LocalDateTime localDateTime1 = parseLocalDateTime("2023-08-19 17:10:00");
+//        String s = americaCharge(localDateTime);
+//        String s1 = americaCharge(localDateTime1);
+//        System.out.println(s);
+//        System.out.println(localDateTime.plusSeconds(1));
+        Long aLong = nowTimeStamp();
+        System.out.println(aLong);
     }
+
+    public static Long nowTimeStamp() {
+        return LocalDateTime.now().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
+    }
+
 }

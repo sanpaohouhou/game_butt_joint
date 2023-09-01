@@ -1,7 +1,6 @@
 package com.tl.tgGame.project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tl.tgGame.common.lock.RedisLock;
 import com.tl.tgGame.exception.ErrorEnum;
@@ -11,10 +10,9 @@ import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.mapper.BetMapper;
 import com.tl.tgGame.project.service.BetService;
 import com.tl.tgGame.project.service.UserService;
-import com.tl.tgGame.tgBot.enums.GameNameEnum;
+import com.tl.tgGame.project.enums.FcGameName;
 import com.tl.tgGame.util.RedisKeyGenerator;
 import com.tl.tgGame.util.TimeUtil;
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,7 +127,7 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
                 .createTime(LocalDateTime.now())
                 .pullTime(TimeUtil.parseLocalDateTime(record.getBdate()).plusSeconds(1L))
                 .hasSettled(false)
-                .gameName(GameNameEnum.of(record.getGameID().toString()))
+                .gameName(FcGameName.of(record.getGameID().toString()))
                 .build();
 
 

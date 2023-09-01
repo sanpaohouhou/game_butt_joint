@@ -21,7 +21,7 @@ spring:
     type: redis
 
 server:
-  port: 8080
+  port: 8081
 
   messages:
     basename: i18n/messages/messages
@@ -48,4 +48,17 @@ game_api:
   setPoints: /SetPoints #玩家钱包充提
   getSingleBill: /GetSingleBill  #交易纪录单笔查询
   getRecordList: /GetRecordList  #取得游戏纪录列表
+  eg:
+    createUser: /createUser
+    deposit: /deposit
+    withdraw: /withdraw
+    gameList: /gameList
+    enterGame: /enterGame
+    roundRecordByTime: /roundRecordByTime
+  wl:
+    transferUrl: transferV3?
+    enterGameUrl: enterGame?
+    queryOrder: queryOrderV3?
+    userBalanceUrl: getBalance?
+    gameRecordUrl: getRecordV2?
 

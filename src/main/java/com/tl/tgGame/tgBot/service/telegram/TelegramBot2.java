@@ -1,18 +1,24 @@
 package com.tl.tgGame.tgBot.service.telegram;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.BotExtendStatisticsInfo;
 import com.tl.tgGame.project.dto.BotGameStatisticsInfo;
 import com.tl.tgGame.project.dto.BotPersonInfo;
 import com.tl.tgGame.project.dto.GameBusinessStatisticsInfo;
+import com.tl.tgGame.project.entity.Currency;
 import com.tl.tgGame.project.enums.GameBusiness;
+import com.tl.tgGame.project.enums.Network;
+import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.service.CurrencyService;
+import com.tl.tgGame.project.service.RechargeService;
 import com.tl.tgGame.project.service.UserService;
+import com.tl.tgGame.project.service.WithdrawalService;
 import com.tl.tgGame.system.ConfigService;
-import com.tl.tgGame.system.mapper.Config;
 import com.tl.tgGame.tgBot.entity.UserBot;
 import com.tl.tgGame.tgBot.service.UserBotRepository;
 import com.tl.tgGame.util.NumberUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +26,6 @@ import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.*;
-import org.telegram.telegrambots.meta.api.objects.games.CallbackGame;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -35,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 
 
+@Slf4j
 public class TelegramBot2 extends TelegramLongPollingBot {
 
     private String telegram_token;
@@ -105,6 +111,11 @@ public class TelegramBot2 extends TelegramLongPollingBot {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private WithdrawalService withdrawalService;
+
+    @Autowired
+    private RechargeService rechargeService;
 
     private static final List<String> KEYS = Arrays.asList("开始游戏", "个人资料", "游戏报表"
             , "获利查询", "推广链接", "推广数据", "/start", "USDT充值", "USDT提现", "绑定地址");
@@ -113,32 +124,40 @@ public class TelegramBot2 extends TelegramLongPollingBot {
         CallbackQuery callbackQuery = update.getCallbackQuery();
         try {
             if (callbackQuery.getData().contains("USDT充值:转账金额确认")) {
-                String[] split = callbackQuery.getData().split("\\.");
+                String[] split = callbackQuery.getData().split("\\|");
+                String[] texts = split[1].split("\\.");
                 StringBuilder append = new StringBuilder()
+                        // TODO: 2023/8/28 这个地址以后在进行更换
                         .append("充值地址: ").append("TE2kinqr93ZeWGLUAvw33JCq4sMVA4oPfJ").append("\r\n")
-                        .append("充值分数: ").append(split[0]).append("\r\n")
-                        .append("付款金额: ").append(split[1]).append("\r\n")
+                        .append("充值分数: ").append(texts[0]).append("\r\n")
+                        .append("付款金额: ").append(texts[1]).append("\r\n")
                         .append("充值有效时长: ").append("30分钟").append("\r\n")
                         .append("尊贵的用户，充值地址与付款金额，单击即可复制，请务必复制! 付款完成后请务必截图，请点击下方“唯一充提财务”按钮，发送财务确认后到账").append("\r\n");
-                InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder().url("https://t.me/shanpao_test_bot").text("唯一充提财务").build();
-                List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
-                inlineKeyboardButtons.add(inlineKeyboardButton);
-                InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons).build();
+                InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
+                List<InlineKeyboardButton> inlineKeyboardButtons1 = new ArrayList<>();
+                inlineKeyboardButtons1.add(inlineKeyboardButton1);
+                List<List<InlineKeyboardButton>> lists = new ArrayList<>();
+                lists.add(inlineKeyboardButtons1);
+                InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboard(lists).build();
                 SendMessage message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId())
                         .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
                 execute(message);
             }
+            if(callbackQuery.getData().equals("充值转账完成:请确认")){
+                // TODO: 2023/8/28  去链上拉数据,确认是否充值成功,然后进行充值
+            }
             if (callbackQuery.getData().equals("USDT提现:确认提现")) {
-                // TODO: 2023/8/4  判断余额
+                com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
+                Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
                 BigDecimal amount = BigDecimal.valueOf(100);
-                BigDecimal amount1 = BigDecimal.valueOf(10);
                 SendMessage message = null;
-                if (amount1.compareTo(BigDecimal.valueOf(20)) < 0) {
+                if (currency.getRemain().compareTo(BigDecimal.valueOf(20)) < 0) {
                     message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                             .text("尊敬的用户,可提现金额需大于20USDT").build();
                     execute(message);
                 }
                 if (amount.compareTo(BigDecimal.valueOf(20)) >= 0) {
+                    withdrawalService.withdraw(user.getId(),UserType.USER, Network.TRC20,user.getWithdrawalUrl(),currency.getRemain());
                     message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                             .text("提现待审核,请稍等~~~").build();
                     execute(message);
@@ -271,10 +290,10 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .build();
                 execute(message2);
             }
-            if (text.equals("\uD83D\uDC44FC电子")) {
+            if (text.equals("\uD83D\uDC9EFC电子")) {
                 GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.FC.getKey());
                 StringBuilder append2 = new StringBuilder()
-                        .append("\uD83D\uDC44FC电子")
+                        .append("\uD83D\uDC44FC电子").append("\r\n")
                         .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
                         .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
                         .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
@@ -300,9 +319,8 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                             .text("尊贵的用户，请输入充值金额").build();
                 } else {
                     List<List<InlineKeyboardButton>> lists = new ArrayList<>();
-
                     List<InlineKeyboardButton> inlineKeyboardButtons1 = new ArrayList<>();
-                    InlineKeyboardButton inlineKeyboardButton2 = InlineKeyboardButton.builder().url("https://t.me/shanpao_test_bot").text("唯一充提财务").build();
+                    InlineKeyboardButton inlineKeyboardButton2 = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
                     inlineKeyboardButtons1.add(inlineKeyboardButton2);
                     InlineKeyboardMarkup inlineKeyboardMarkup1 = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons1).build();
                     if (!NumberUtil.isParsable(update.getMessage().getText()) || !NumberUtil.isNumeric2(update.getMessage().getText())) {
@@ -321,7 +339,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
 
                         InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder()
-                                .text("转账金额确认").callbackData("USDT充值:转账金额确认." + text + "." + text).build();
+                                .text("转账金额确认").callbackData("USDT充值:转账金额确认|" + text + "." + text).build();
                         inlineKeyboardButtons.add(inlineKeyboardButton);
                         lists.add(inlineKeyboardButtons1);
                         lists.add(inlineKeyboardButtons);
@@ -335,16 +353,16 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             }
 
             if (text.equals("USDT提现")) {
-                // TODO: 2023/8/4 查询一下用户有没有绑定过
                 List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
-                InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder().url("https://t.me/shanpao_test_bot").text("唯一充提财务").build();
+                InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
                 inlineKeyboardButtons.add(inlineKeyboardButton);
                 SendMessage message = null;
-                if (!true) {
+                if (StringUtils.isEmpty(user.getWithdrawalUrl())) {
                     InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons).build();
                     message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                             .text("尊敬的用户，请绑定充值提现地址").replyMarkup(inlineKeyboardMarkup).build();
                 } else {
+                    Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
                     List<List<InlineKeyboardButton>> lists = new ArrayList<>();
                     InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().text("确认提现").callbackData("USDT提现:确认提现").build();
                     List<InlineKeyboardButton> inlineKeyboardButtonList = new ArrayList<>();
@@ -355,7 +373,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
 
                     InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboard(lists).build();
                     StringBuilder append = new StringBuilder()
-                            .append("可提现金额: ").append("0").append("\r\n");
+                            .append("可提现金额: ").append(currency.getRemain()).append("\r\n");
                     message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                             .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
                 }
@@ -379,6 +397,8 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                     message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                             .text("尊贵的用户，请输入正确的TRC-20地址。").build();
                 } else {
+                    userService.update(new LambdaUpdateWrapper<com.tl.tgGame.project.entity.User>()
+                            .set(com.tl.tgGame.project.entity.User::getWithdrawalUrl,text).eq(com.tl.tgGame.project.entity.User::getTgId,from.getId()));
                     message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                             .text("尊贵的用户，已绑定您的TRC-20地址").build();
                 }
@@ -420,9 +440,8 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .build();
                 execute(message3);
             }
-        } catch (
-                TelegramApiException e) {
-            throw new RuntimeException(e);
+        } catch (TelegramApiException e) {
+            log.error("个人中心机器人报错exception:{},输入文本text:{}",e,update.getMessage().getText());
         }
 
     }

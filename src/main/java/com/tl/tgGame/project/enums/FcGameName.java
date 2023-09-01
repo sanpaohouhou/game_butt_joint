@@ -1,11 +1,11 @@
-package com.tl.tgGame.tgBot.enums;
+package com.tl.tgGame.project.enums;
 
 /**
  * @version 1.0
  * @auther w
  * @date 2023/8/14 , 18:20
  */
-public enum GameNameEnum {
+public enum FcGameName {
 
     DSBY("21003","大圣捕鱼"),
     BCBY("21004","宝船捕鱼"),
@@ -57,7 +57,7 @@ public enum GameNameEnum {
     private String gameName;
 
 
-    GameNameEnum(String gameId,String gameName){
+    FcGameName(String gameId, String gameName){
         this.gameId = gameId;
         this.gameName = gameName;
     }
@@ -79,8 +79,8 @@ public enum GameNameEnum {
     }
 
     public static String of(String gameId){
-        GameNameEnum[] values = values();
-        for (GameNameEnum nameEnum: values) {
+        FcGameName[] values = values();
+        for (FcGameName nameEnum: values) {
             if(nameEnum.getGameId().equals(gameId)){
                 return nameEnum.getGameName();
             }

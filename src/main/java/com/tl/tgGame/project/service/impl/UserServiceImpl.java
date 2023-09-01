@@ -12,13 +12,19 @@ import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.enums.*;
 import com.tl.tgGame.project.mapper.UserMapper;
 import com.tl.tgGame.project.service.*;
+import com.tl.tgGame.system.ConfigConstants;
+import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.RedisKeyGenerator;
 import com.tl.tgGame.util.TimeUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -27,6 +33,7 @@ import java.util.*;
  * @auther w
  * @date 2023/8/4 , 17:40
  */
+@Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
@@ -54,6 +61,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private RedisKeyGenerator redisKeyGenerator;
+
+    @Autowired
+    private ConfigService configService;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public User insertUser(String firstName, String lastName, String username, Boolean isBot, Long tgId, String tgGroup) {
@@ -112,7 +125,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         BigDecimal waitBackWater = betService.sumAmount(user.getId(), false);
 
         return BotPersonInfo.builder()
-                .balance(currency.getBalance())
+                .balance(currency.getBalance().setScale(2, RoundingMode.DOWN))
                 .allCommission(allCommission)
                 .allBackWater(allBackWater)
                 .allRecharge(sumRecharge)
@@ -120,7 +133,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .allProfit(allCommission.add(allBackWater))
                 .waitAuthWithdrawal(withdrawalWaitAuth)
                 .waitBackWater(waitBackWater)
-                .withdrawalUrl(user.getWithdrawalUrl())
+                .withdrawalUrl(user.getWithdrawalUrl() == null ? "" : user.getWithdrawalUrl())
                 .gameAccount(user.getGameAccount()).build();
     }
 
@@ -192,14 +205,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //待返水
         BigDecimal waitBackWater = betService.sumAmount(user.getId(), false);
 
-        GameBusinessStatisticsInfo.builder()
+        return GameBusinessStatisticsInfo.builder()
                 .gameBusiness(GameBusiness.of(gameBusiness))
                 .backWaterRate(BigDecimal.valueOf(2) + "%")
                 .juniorCommissionRate(BigDecimal.valueOf(2) + "%")
                 .backWater(allBackWater)
                 .waitBackWater(waitBackWater)
-                .juniorCommission(allCommission);
-        return null;
+                .juniorCommission(allCommission).build();
     }
 
     @Override
@@ -261,8 +273,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Boolean fcGameRecharge(Long tgId) {
-        String key = redisKeyGenerator.generateKey("fcGameRecharge", tgId);
+    public Boolean gameRecharge(Long tgId,String gameType) {
+        String key = redisKeyGenerator.generateKey("gameRecharge", tgId);
         redisLock.redissonLock(key);
         try {
             User user = checkTgId(tgId);
@@ -270,28 +282,70 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 return false;
             }
             Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
-            ApiSetPointReq build = ApiSetPointReq.builder()
-                    .Points(currency.getRemain().doubleValue())
-                    .MemberAccount(user.getGameAccount())
-                    .build();
-            ApiSetPointRes apiSetPointRes = gameService.setPoints(build);
-            if (apiSetPointRes.getResult().equals(0)) {
-                currencyService.withdraw(user.getId(), UserType.USER, BusinessEnum.FC_RECHARGE, currency.getRemain(),
-                        apiSetPointRes.getTrsID(), "Fc电子充值:" + apiSetPointRes.getBankID());
-                return true;
+            if(currency.getRemain().compareTo(BigDecimal.ZERO) <= 0){
+                return false;
             }
-            return false;
-        } catch (Exception e) {
-            ErrorEnum.SYSTEM_BUSY.throwException(e.getMessage());
-        } finally {
+            currencyService.freeze(user.getId(),UserType.USER,
+                    BusinessEnum.FC_RECHARGE,currency.getRemain(),null, gameType + "电子用户充值暂冻");
+            switch (gameType){
+                case "FC":
+                    ApiSetPointReq build = ApiSetPointReq.builder()
+                            .Points(currency.getRemain().doubleValue())
+                            .MemberAccount(user.getGameAccount())
+                            .build();
+                    ApiSetPointRes apiSetPointRes = gameService.setPoints(build);
+                    if (apiSetPointRes.getResult().equals(0)) {
+                        try{
+                            currencyService.reduce(user.getId(),UserType.USER,
+                                    BusinessEnum.FC_RECHARGE,currency.getRemain(),apiSetPointRes.getTrsID(),
+                                    "FC发财电子用户充值AfterPoint:" +apiSetPointRes.getAfterPoint() + "|points:" + apiSetPointRes.getPoints());
+                            return true;
+                        }catch (Exception e){
+
+                        }
+                    }else {
+                        ErrorEnum.SYSTEM_ERROR.throwException();
+                    }
+                    break;
+                case "WL":
+                    ApiWlGameRes wlGameRes = gameService.wlPayOrder(user.getId(), currency.getRemain());
+                    if (wlGameRes.getCode() != 0 || (wlGameRes.getData() != null && !wlGameRes.getData().getReason().equals("ok"))) {
+                        String errMsg = wlGameRes.getData() == null ? wlGameRes.getMsg() : wlGameRes.getData().getReason();
+                        log.info("瓦力电子用户充值失败订单id:{},划转失败原因:{}",wlGameRes.getOrderId() ,errMsg);
+                        ErrorEnum.SYSTEM_ERROR.throwException(errMsg);
+                    }else {
+                        ApiWlGameOrderRes resData = wlGameRes.getData();
+                        currencyService.reduce(user.getId(),UserType.USER,
+                                BusinessEnum.WL_RECHARGE,currency.getRemain(),resData.getOrderId(),
+                                "瓦力电子用户充值Point:" +resData.getBalance());
+                        return true;
+                    }
+                    break;
+                case "EG":
+                    String merch = configService.get(ConfigConstants.EG_PLATFORM);
+                    String transactionId = UUID.randomUUID().toString();
+                    ApiEgDepositReq req = ApiEgDepositReq.builder().merch(merch)
+                            .playerId(user.getId().toString()).amount(currency.getRemain().toString()).transactionId(transactionId).build();
+                    ApiEgDepositRes apiEgDepositRes = gameService.egDeposit(req);
+                    if(StringUtils.isEmpty(apiEgDepositRes.getCode())){
+                        currencyService.reduce(user.getId(),UserType.USER,
+                                BusinessEnum.EG_RECHARGE,currency.getRemain(),transactionId,
+                                "EG电子用户充值AfterPoint:" +apiEgDepositRes.getBeforeBalance() + "|points:" + apiEgDepositRes.getAfterBalance());
+                        return true;
+                    }else {
+                        ErrorEnum.SYSTEM_ERROR.throwException();
+                    }
+                    break;
+            }
+        }finally {
             redisLock._redissonUnLock(key);
         }
-        return null;
+        return false;
     }
 
     @Override
-    public Boolean fcGameWithdrawal(Long tgId) {
-        String key = redisKeyGenerator.generateKey("fcGameWithdrawal", tgId);
+    public Boolean gameWithdrawal(Long tgId) {
+        String key = redisKeyGenerator.generateKey("gameWithdrawal", tgId);
         redisLock.redissonLock(key);
         try {
             User user = checkTgId(tgId);

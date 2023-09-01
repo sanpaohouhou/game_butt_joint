@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.Game;
 
+import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -72,10 +75,71 @@ public interface GameService extends IService<Game> {
      */
     List<ApiGameRecordListDTO> getRecordList(ApiRecordListReq req);
 
-    /**签名验证测试
-     *
-     * @param addMemberReq
+
+    /**
+     * 以下为EG接口
      */
-    void testSign(ApiAddMemberReq addMemberReq);
+    /**
+     * 创建账号
+     */
+    Boolean egCreateUser(ApiEgCreateUserReq req);
+
+    /**
+     * 玩家存款(充值)
+     */
+    ApiEgDepositRes egDeposit(ApiEgDepositReq req);
+
+    /**
+     * 玩家提款
+     */
+    ApiEgDepositRes egWithdraw(ApiEgWithdrawReq req);
+
+    /**
+     * 取得游戏列表
+     */
+    ApiEgGameListRes egGameList();
+
+    /**
+     * 进入游戏
+     */
+    String egEnterGame(ApiEgEnterGameReq req);
+
+    /**
+     * 根据时间钱包转移记录
+     */
+    void egTransferRecordByTime(ApiEgTransferRecordTimeReq req);
+
+    /**
+     * 根据时间捞取游戏记录
+     */
+    ApiEgRoundRecordRes egRoundRecordByTime(ApiEgRoundRecordTimeReq req);
+
+
+    /**
+     * 以下都是瓦力游戏接口
+     */
+
+    /**
+     * 获取用户游戏余额
+     * @return
+     */
+    ApiWlGameOrderRes wlGetUserBalance(Long userId);
+
+    /**
+     * 进入游戏
+     * @return
+     */
+    String wlEnterGame(Long userId,String gameId,HttpServletRequest request);
+
+    /**
+     * 划转订单
+     * @param
+     */
+    ApiWlGameRes wlPayOrder(Long userId,BigDecimal amount);
+
+    /**
+     * wl获取游戏记录列表
+     */
+    ApiWlGameResponse wlGameRecord(LocalDateTime startTime,LocalDateTime endTime);
 
 }

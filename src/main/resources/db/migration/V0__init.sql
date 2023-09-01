@@ -13,45 +13,48 @@ CREATE TABLE `currency`
 
 CREATE TABLE `currency_log`
 (
-    `id`          BIGINT         NOT NULL COMMENT '主键',
-    `uid`         BIGINT         NOT NULL COMMENT '用户id',
-    `type`        TINYINT(1) NOT NULL COMMENT '类型 0 用户余额 1 保证金',
-    `sn`          VARCHAR(50)    NOT NULL COMMENT '订单号',
-    `log_type`    VARCHAR(10)    NOT NULL COMMENT '记录类型',
-    `des`         VARCHAR(20)    NOT NULL COMMENT '余额变动描述',
-    `amount`      DECIMAL(16, 4) NOT NULL COMMENT '金额',
-    `create_time` DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `balance`     DECIMAL(16, 4) NOT NULL DEFAULT '0.0000' COMMENT '总余额	',
-    `freeze`      DECIMAL(16, 4) NOT NULL DEFAULT '0.0000' COMMENT '冻结余额',
-    `remain`      DECIMAL(16, 4) NOT NULL DEFAULT '0.0000' COMMENT '剩余余额',
+    `id`          bigint         NOT NULL COMMENT '主键',
+    `uid`         bigint         NOT NULL COMMENT '用户id',
+    `sn`          varchar(50)    NOT NULL COMMENT '订单号',
+    `log_type`    varchar(10)    NOT NULL COMMENT '记录类型',
+    `des`         varchar(1024)           DEFAULT NULL COMMENT '余额变动描述',
+    `amount`      decimal(16, 4) NOT NULL COMMENT '金额',
+    `create_time` datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `balance`     decimal(16, 4) NOT NULL DEFAULT '0.0000' COMMENT '总余额	',
+    `freeze`      decimal(16, 4) NOT NULL DEFAULT '0.0000' COMMENT '冻结余额',
+    `remain`      decimal(16, 4) NOT NULL DEFAULT '0.0000' COMMENT '剩余余额',
+    `user_type`   varchar(20)             DEFAULT NULL COMMENT '用户类型',
+    `business`    varchar(20)             DEFAULT NULL COMMENT '业务',
     PRIMARY KEY (`id`),
     KEY           `idx_user_id` (`uid`),
     KEY           `idx_sn` (`sn`)
-) COMMENT '余额变动记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='余额变动记录表';
 
 
 CREATE TABLE `user`
 (
-    `id`           BIGINT       NOT NULL COMMENT 'tg的id',
-    `first_name`   VARCHAR(255) NOT NULL COMMENT '姓氏',
-    `last_name`    VARCHAR(255)          DEFAULT NULL COMMENT '名字',
-    `username`     VARCHAR(255)          DEFAULT NULL COMMENT 'tg的username',
-    `invite_user`  BIGINT                DEFAULT NULL COMMENT '谁邀请进群的',
-    `joined_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '首次进群时间',
-    `is_bot`       TINYINT(1) NOT NULL DEFAULT '0' COMMENT '是否是机器人',
-    `partner_id`   BIGINT                DEFAULT NULL COMMENT '合伙人id',
-    `tg_id`        bigint                default null comment 'tg的id',
-    `tg_group`     varchar(255)          default null comment 'tg的群组id',
-    `game_account` varchar(64) null comment '游戏账号',
-    `country`      varchar(64) null comment '国家',
-    `has_group` tinyint(1) not null default 1 comment '是否在群组,1在 0不在',
+    `id`             BIGINT       NOT NULL COMMENT 'tg的id',
+    `first_name`     VARCHAR(255) NOT NULL COMMENT '姓氏',
+    `last_name`      VARCHAR(255)          DEFAULT NULL COMMENT '名字',
+    `username`       VARCHAR(255)          DEFAULT NULL COMMENT 'tg的username',
+    `invite_user`    BIGINT                DEFAULT NULL COMMENT '谁邀请进群的',
+    `joined_time`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '首次进群时间',
+    `is_bot`         TINYINT(1) NOT NULL DEFAULT '0' COMMENT '是否是机器人',
+    `partner_id`     BIGINT                DEFAULT NULL COMMENT '合伙人id',
+    `tg_id`          bigint                default null comment 'tg的id',
+    `tg_group`       varchar(255)          default null comment 'tg的群组id',
+    `game_account`   varchar(64) null comment '游戏账号',
+    `country`        varchar(64) null comment '国家',
+    `has_group`      tinyint(1) not null default 1 comment '是否在群组,1在 0不在',
     `withdrawal_url` varchar(64) null comment '提现地址',
+    `has_join_eg`    tinyint(1) not null default 0 comment '是否注册过eg,1注册过,0未注册',
+    `current_game` varchar(16) null  comment '当前在玩游戏,FC,WL,EG(如果当前在玩wl,那在进入下个游戏前.就从瓦力平台把钱提出来)',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_username` (`username`),
     UNIQUE KEY `uq_tg_id` (`tg_id`),
     UNIQUE KEY `uq_game_account` (`game_account`),
-    KEY            `idx_invite_user` (`invite_user`),
-    KEY            `idx_partner_id` (`partner_id`)
+    KEY              `idx_invite_user` (`invite_user`),
+    KEY              `idx_partner_id` (`partner_id`)
 ) COMMENT ='用户表';
 
 CREATE TABLE `config`
@@ -274,28 +277,6 @@ CREATE TABLE `tron_trc20_tx`
     KEY                   `idx_hash` (`hash`)
 ) COMMENT ='tron转账tx表';
 
-CREATE TABLE `withdrawal`
-(
-    `id`            bigint         NOT NULL COMMENT '主键',
-    `uid`           bigint         NOT NULL COMMENT '用户id',
-    `hash`          varchar(80)             DEFAULT NULL COMMENT '交易hash',
-    `network`       varchar(10)    NOT NULL COMMENT '交易网络',
-    `from_address`  varchar(60)    NOT NULL COMMENT '发送地址',
-    `to_address`    varchar(60)    NOT NULL COMMENT '充值地址',
-    `amount`        decimal(20, 6) NOT NULL DEFAULT '0.000000' COMMENT '金额',
-    `fee`           decimal(10, 6) NOT NULL DEFAULT '0.000000' COMMENT '手续费',
-    `actual_amount` decimal(20, 6) NOT NULL DEFAULT '0.000000' COMMENT '实际到账',
-    `status`        varchar(20)    NOT NULL DEFAULT '0' COMMENT '状态',
-    `create_time`   datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `complete_time` datetime                DEFAULT NULL COMMENT '完成时间',
-    `note`          varchar(1024)           DEFAULT NULL COMMENT '审核备注',
-    `currency_type` varchar(10)    NOT NULL DEFAULT 'USER' COMMENT '提现类型',
-    PRIMARY KEY (`id`),
-    KEY             `idx_hash` (`hash`),
-    KEY             `idx_to_address` (`to_address`),
-    KEY             `idx_uid` (`uid`)
-) COMMENT ='u币提现表';
-
 CREATE TABLE `heat_purse_record`
 (
     `id`           BIGINT         NOT NULL COMMENT '主键id',
@@ -425,6 +406,8 @@ create table `user_commission`
     `rate`          decimal(10, 4) not null default 0.00 comment '获利比例',
     `actual_amount` decimal(10, 4) not null default 0.00 comment '实际分钱金额',
     `create_time`   datetime       not null DEFAULT CURRENT_TIMESTAMP COMMENT '时间',
+    `bet_id`        bigint null comment '下注记录id',
+    `from_user_id`  bigint null comment '来自用户id',
     primary key (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户获利记录表';
 
@@ -470,3 +453,58 @@ create table `bet`
     unique key `uq_record_id` (`record_id`),
     key                 `idx_game_account` (`game_account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户下注表';
+
+create table `eg_bet`
+(
+    `id`                bigint         not null auto_increment comment '主键id',
+    `user_id`           bigint         not null comment '用户id',
+    `has_settled`       tinyint(1) not null default 0 comment '是否结算,1已结算,0未结算',
+    `back_water_amount` decimal(10, 4) not null default 0.00 comment '返水金额',
+    `top_commission`    decimal(10, 4) not null default 0.00 comment '上级返佣金额',
+    `round_id`          varchar(128)   not null comment '对局id',
+    `game_id`           varchar(32)    not null comment '游戏id',
+    `game_name`         varchar(32) null comment '游戏名',
+    `player_id`         varchar(64)    not null comment '玩家id(name)',
+    `bet_time`          varchar(32)    not null comment '下注时间',
+    `win_time`          varchar(32)    not null comment '赢时间',
+    `wp_time`           varchar(32)    not null comment 'wp时间',
+    `currency`          varchar(16)    not null comment '币种',
+    `bet_type`          varchar(32)    not null comment '下注类型0:非对赌 1庄家 2闲家',
+    `extra`             varchar(512)   not null comment '',
+    `bet`               varchar(32)    not null comment '下注金额',
+    `win`               varchar(32)    not null comment '赢的金额',
+    `net_win`           varchar(32)    not null comment '实际输赢金额',
+    `round_code`        varchar(32)    not null comment '对局code',
+    `before_balance`    varchar(32)    not null comment '下注前余额',
+    `after_balance`     varchar(32)    not null comment '下注后余额',
+    `create_time`       datetime       not null default current_timestamp comment '创建时间',
+    `update_time`       datetime null comment '更新时间',
+    `pull_time`         datetime null comment '拉取记录时间',
+    primary key (`id`),
+    UNIQUE KEY `unq_round_id` (`round_id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='eg游戏下注表';
+
+
+CREATE TABLE `wl_bet`
+(
+    `id`              bigint         NOT NULL AUTO_INCREMENT COMMENT '主键id',
+    `user_id`         bigint         NOT NULL COMMENT '用户id',
+    `game`            int            NOT NULL COMMENT '游戏类型',
+    `category`        int            NOT NULL COMMENT '游戏分类',
+    `profit`          decimal(10, 4) NOT NULL                                       DEFAULT '0.0000' COMMENT '系统实际盈利',
+    `balance`         decimal(10, 4) NOT NULL                                       DEFAULT '0.0000' COMMENT '结算时，用户最新余额',
+    `bet`             decimal(10, 4) NOT NULL                                       DEFAULT '0.0000' COMMENT '投注额',
+    `valid_bet`       decimal(10, 4) NOT NULL                                       DEFAULT '0.0000' COMMENT '有效投注额',
+    `tax`             decimal(10, 4) NOT NULL                                       DEFAULT '0.0000' COMMENT '游戏税收',
+    `game_start_time` datetime       NOT NULL COMMENT '游戏开始时间',
+    `record_time`     datetime       NOT NULL COMMENT '数据记录时间',
+    `game_id`         varchar(64)    NOT NULL COMMENT '投注单号',
+    `game_name`       varchar(32) NULL COMMENT '游戏名',
+    `record_id`       varchar(64)    NOT NULL COMMENT '记录全局唯一的id',
+    `detail_url`      varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '投注详情查询url',
+    `create_time`     datetime       NOT NULL,
+    `pull_time`       datetime       NOT NULL,
+    `has_settled`     tinyint(1) NOT NULL DEFAULT '0' COMMENT '该记录是否操作过分钱\n1操作过\n0未操作',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unq_record_id` (`record_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4930 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='游戏记录表';

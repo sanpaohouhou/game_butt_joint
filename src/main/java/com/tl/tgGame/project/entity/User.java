@@ -52,4 +52,6 @@ public class User {
     private Boolean hasGroup;
 
     private String withdrawalUrl;
+
+    private Boolean hasJoinEg;
 }

@@ -9,7 +9,7 @@ public enum GameBusiness {
 
 
 //    FC,WL,EG
-    FC("FC","\uD83D\uDC44FC电子"),
+    FC("FC","FC电子"),
     WL("WL","瓦力"),
     EG("EG","EG游戏"),;
     private String key;

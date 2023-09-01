@@ -1,5 +1,7 @@
 package com.tl.tgGame.util;
 
+import cn.hutool.crypto.SecureUtil;
+import cn.hutool.crypto.symmetric.AES;
 import lombok.extern.log4j.Log4j2;
 
 import javax.crypto.Cipher;
@@ -10,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 @Log4j2
 public class AESUtil {
@@ -103,6 +106,11 @@ public class AESUtil {
             log.info("生成加密秘钥异常！", ex);
         }
         return null;
+    }
+
+    public static String dex(String data,String key){
+        AES aes = SecureUtil.aes(Base64.getDecoder().decode(key));
+        return aes.decryptStr(data);
     }
 
     public static void main(String[] args) throws Exception {
