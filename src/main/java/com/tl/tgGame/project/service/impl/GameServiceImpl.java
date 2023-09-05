@@ -138,8 +138,8 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             String aesEncrypt = AesGameUtil.aesEncrypt(json, fcAgentKey);
             String sign = Md5Util.MD5(json, 32);
             params = buildParam(aesEncrypt, sign);
-            log.info("FC发财电子游戏登录请求接口:{}", params);
             body = HttpUtil.doPost(fcHost + "/Login", params, "UTF-8", "multipart/form-data");
+            log.info("FC发财电子游戏登录请求参数:{},返回结果:{}", params, body);
             if (body != null) {
                 ApiLoginRes apiLoginRes = new Gson().fromJson(body, ApiLoginRes.class);
                 if (!apiLoginRes.getResult().equals("0")) {
@@ -212,6 +212,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             String sign = Md5Util.MD5(json, 32);
             params = buildParam(aesEncrypt, sign);
             body = HttpUtil.doPost(fcHost + setPoints, params, "UTF-8", "multipart/form-data");
+            log.info("FC发财电子游戏充提请求参数:{},返回结果:{}", params, body);
             return new Gson().fromJson(body, ApiSetPointRes.class);
         } catch (Exception e) {
             log.error("FC发财电子充提失败Exception:{},request:{},params:{},response:{}", e, req.toString(), params, body);
@@ -264,6 +265,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             String sign = Md5Util.MD5(json, 32);
             params = buildParam(aesEncrypt, sign);
             body = HttpUtil.doPost(fcHost + getRecordList, params, "UTF-8", "multipart/form-data");
+            log.info("FC发财电子游戏获取下注记录请求参数:{},返回结果:{}", params, body);
             ApiGameRecordListRes apiGameRecordListRes = new Gson().fromJson(body, ApiGameRecordListRes.class);
             if (apiGameRecordListRes.getResult().equals(0)) {
                 return apiGameRecordListRes.getRecords();
@@ -278,7 +280,6 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
 
     @Override
     public Boolean egCreateUser(ApiEgCreateUserReq req) {
-        Map<String, Object> map = null;
         String body = null;
         try {
             String json = new Gson().toJson(req);
@@ -289,11 +290,12 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(egHost + egPlatform + egCreateUser + "?hash=" + hashValue)
                     .body(json).contentType("application/json").execute();
             body = execute.body();
+            log.info("EG电子游戏创建用户请求参数:{},hash:{},返回结果:{}", json, hashValue, body);
             if (StringUtils.isEmpty(body)) {
                 return true;
             }
         } catch (Exception e) {
-            log.error("EG电子游戏创建用户异常exception:{},request:{},params:{},response:{}", e, req, map, body);
+            log.error("EG电子游戏创建用户异常exception:{},request:{},response:{}", e, req, body);
         }
         return false;
     }
@@ -310,6 +312,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             String hash = Crypto.hmacToString(DigestFactory.createSHA256(), egHashKey, json.getBytes());
             url = egHost + egPlatform + egDeposit + "?hash=" + hash;
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(url).body(json).contentType("application/json").execute();
+            log.info("EG电子游戏充值请求参数:{},hash:{},返回结果:{}", json,hash,body);
             body = execute.body();
             return new Gson().fromJson(body, ApiEgDepositRes.class);
         } catch (Exception e) {
@@ -330,6 +333,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             hash = Crypto.hmacToString(DigestFactory.createSHA256(), egHashKey, json.getBytes());
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(egHost + egPlatform + egWithdraw + "?hash=" + hash)
                     .body(json).contentType("application/json").execute();
+            log.info("EG电子游戏提现请求参数:{},hash:{},返回结果:{}", json,hash,body);
             body = execute.body();
             return new Gson().fromJson(body, ApiEgDepositRes.class);
         } catch (Exception e) {
@@ -366,6 +370,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(egHost + egPlatform + egEnterGame + "?hash=" + hash)
                     .body(json).contentType("application/json").execute();
             body = execute.body();
+            log.info("EG电子游戏进入游戏请求参数:{},hash:{},返回结果:{}", json,hash,body);
             ApiEgEnterGameRes apiEgEnterGameRes = new Gson().fromJson(body, ApiEgEnterGameRes.class);
             if (StringUtils.isEmpty(apiEgEnterGameRes.getCode())) {
                 return apiEgEnterGameRes.getUrl();
@@ -434,17 +439,19 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
 
     @Override
     public String wlEnterGame(Long userId, String gameId, HttpServletRequest request) {
+        String quartet = null;
+        String res = null;
         try {
             String ip = ipTool.getIp();
             String param = null;
             if (gameId != null) {
-                param = String.format("uid=%s&ip=%s&game=%s" ,userId,ip,gameId);
+                param = String.format("uid=%s&ip=%s&game=%s", userId, ip, gameId);
             } else {
                 param = String.format("uid=%s&ip=" + ip, userId);
             }
             String wlHost = configService.get(ConfigConstants.WL_HOST);
-            String quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp(LocalDateTime.now())));
-            String res = HttpRequest.of(wlHost + wlEnterGameUrl + quartet, null).execute().body();
+            quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp(LocalDateTime.now())));
+            res = HttpRequest.of(wlHost + wlEnterGameUrl + quartet, null).execute().body();
             System.out.println(res);
             ApiWlGameRes gameRes = new Gson().fromJson(res, ApiWlGameRes.class);
             if (gameRes.getCode() != 0) {
@@ -454,7 +461,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             }
             return gameRes.getData().getGameUrl();
         } catch (Exception e) {
-
+            log.error("WL电子游戏进入游戏记录异常exception:{},request:{},response:{}", e, quartet, res);
         }
         return null;
     }
