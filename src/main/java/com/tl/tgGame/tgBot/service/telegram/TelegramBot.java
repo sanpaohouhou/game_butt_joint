@@ -3,12 +3,7 @@ package com.tl.tgGame.tgBot.service.telegram;
 import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.project.dto.ApiEgCreateUserReq;
 import com.tl.tgGame.project.dto.ApiLoginReq;
-import com.tl.tgGame.project.dto.ApiSetPointReq;
-import com.tl.tgGame.project.dto.ApiSetPointRes;
-import com.tl.tgGame.project.entity.Currency;
-import com.tl.tgGame.project.enums.BusinessEnum;
 import com.tl.tgGame.project.enums.GameBusiness;
-import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.service.CurrencyService;
 import com.tl.tgGame.project.service.GameService;
 import com.tl.tgGame.project.service.UserService;
@@ -27,8 +22,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendGame;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.CallbackGame;
-import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
-import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResultGame;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -37,7 +30,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -159,8 +151,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
                 Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.EG.getKey());
                 if (result) {
+                    String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                     AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                    answerCallbackQuery.setUrl("http://192.168.28.113:5173/#/home?token=" + token);
+                    answerCallbackQuery.setUrl(h5Url + "?token=" + token);
                     answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                     execute(answerCallbackQuery);
                 }

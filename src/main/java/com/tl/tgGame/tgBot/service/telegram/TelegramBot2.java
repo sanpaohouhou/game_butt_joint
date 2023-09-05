@@ -14,6 +14,7 @@ import com.tl.tgGame.project.service.CurrencyService;
 import com.tl.tgGame.project.service.RechargeService;
 import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.project.service.WithdrawalService;
+import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.tgBot.entity.UserBot;
 import com.tl.tgGame.tgBot.service.UserBotRepository;
@@ -143,7 +144,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
                 execute(message);
             }
-            if(callbackQuery.getData().equals("充值转账完成:请确认")){
+            if (callbackQuery.getData().equals("充值转账完成:请确认")) {
                 // TODO: 2023/8/28  去链上拉数据,确认是否充值成功,然后进行充值
             }
             if (callbackQuery.getData().equals("USDT提现:确认提现")) {
@@ -157,7 +158,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                     execute(message);
                 }
                 if (amount.compareTo(BigDecimal.valueOf(20)) >= 0) {
-                    withdrawalService.withdraw(user.getId(),UserType.USER, Network.TRC20,user.getWithdrawalUrl(),currency.getRemain());
+                    withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(), currency.getRemain());
                     message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                             .text("提现待审核,请稍等~~~").build();
                     execute(message);
@@ -221,7 +222,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             if (user == null) {
                 user = userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(), from.getIsBot(), from.getId(), chat.getId().toString());
             }
-            if(StringUtils.isEmpty(text)){
+            if (StringUtils.isEmpty(text)) {
                 SendMessage message3 = SendMessage.builder().text("\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25")
                         .replyMarkup(keyboardMarkup).chatId(update.getMessage().getChatId().toString())
                         .build();
@@ -281,12 +282,27 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             if (text.equals("获利查询")) {
                 List<KeyboardRow> list1 = new ArrayList<>();
                 KeyboardRow keyboardRow10 = new KeyboardRow();
+                KeyboardRow keyboardRow11 = new KeyboardRow();
                 KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC9EFC电子").build();
+                KeyboardButton keyboardButton12 = KeyboardButton.builder().text("\uD83C\uDFB0WL棋牌").build();
+                KeyboardButton keyboardButton13 = KeyboardButton.builder().text("\uD83D\uDC21EG电子").build();
+
+                KeyboardButton keyboardButton14 = KeyboardButton.builder().text("\uD83D\uDC9EWL百家乐").build();
+                KeyboardButton keyboardButton15 = KeyboardButton.builder().text("⚽\uFE0FWL体育").build();
                 KeyboardButton keyboardButton11 = KeyboardButton.builder().text("\uD83D\uDD3A返回上级\uD83D\uDD19").build();
 
                 keyboardRow10.add(keyboardButton10);
-                keyboardRow10.add(keyboardButton11);
+                keyboardRow10.add(keyboardButton12);
+                keyboardRow10.add(keyboardButton13);
+
+
+                keyboardRow11.add(keyboardButton14);
+                keyboardRow11.add(keyboardButton15);
+                keyboardRow11.add(keyboardButton11);
+
+
                 list1.add(keyboardRow10);
+                list1.add(keyboardRow11);
                 ReplyKeyboardMarkup replyKeyboardMarkup = ReplyKeyboardMarkup.builder().keyboard(list1).resizeKeyboard(true).build();
 
                 SendMessage message2 = SendMessage.builder()
@@ -309,6 +325,18 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                         .text(append2.toString()).build();
                 execute(message4);
+            }
+            if (text.equals("\uD83C\uDFB0WL棋牌")) {
+
+            }
+            if (text.equals("\uD83D\uDC21EG电子")) {
+
+            }
+            if (text.equals("\uD83D\uDC9EWL百家乐")) {
+
+            }
+            if (text.equals("⚽\uFE0FWL体育")) {
+
             }
             if (text.equals("\uD83D\uDD3A返回上级\uD83D\uDD19")) {
                 SendMessage message5 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
@@ -394,19 +422,19 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                             .text("尊贵的用户，请输入TRC-20地址进行提现绑定").build();
                 } else {
                     message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                            .text("尊贵的用户，已绑定您的TRC-20地址").build();
+                            .text("尊贵的用户，您已成功绑定提现地址:" + user.getWithdrawalUrl()).build();
                 }
                 execute(message);
             } else if (checkState(update).equals("绑定地址")) {
                 SendMessage message = null;
-                if (!text.startsWith("TRC_20")) {
+                if (text.length() != 34) {
                     message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                             .text("尊贵的用户，请输入正确的TRC-20地址。").build();
                 } else {
                     userService.update(new LambdaUpdateWrapper<com.tl.tgGame.project.entity.User>()
-                            .set(com.tl.tgGame.project.entity.User::getWithdrawalUrl,text).eq(com.tl.tgGame.project.entity.User::getTgId,from.getId()));
+                            .set(com.tl.tgGame.project.entity.User::getWithdrawalUrl, text).eq(com.tl.tgGame.project.entity.User::getTgId, from.getId()));
                     message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                            .text("尊贵的用户，已绑定您的TRC-20地址").build();
+                            .text("尊贵的用户，您已成功绑定提现地址，如需变更，请联系本群唯一充提财务。").build();
                 }
                 execute(message);
             }
@@ -430,6 +458,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message7);
             }
             if (text.equals("推广链接")) {
+                String link = configService.get(ConfigConstants.BOT_GROUP_INVITE_LINK);
                 SendMessage message6 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                         .text("全民推广，人人获利！\n" +
                                 "\n" +
@@ -437,7 +466,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                                 "\n" +
                                 "不同游戏对应不同返佣系数，详情请点击“下级数据”和“获利查询”查看\n" +
                                 "\n" +
-                                "尊贵的用户，您的推广链接为：" + "等有域名这里在正式改").build();
+                                "尊贵的用户，您的推广链接为：" + link + "&" + user.getGameAccount()).build();
                 execute(message6);
             }
             if (text.equals("/start")) {
@@ -447,7 +476,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message3);
             }
         } catch (TelegramApiException e) {
-            log.error("个人中心机器人报错exception:{},输入文本text:{}",e,update.getMessage().getText());
+            log.error("个人中心机器人报错exception:{},输入文本text:{}", e, update.getMessage().getText());
         }
 
     }

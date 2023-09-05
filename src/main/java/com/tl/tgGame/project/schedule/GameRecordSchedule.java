@@ -133,7 +133,7 @@ public class GameRecordSchedule {
         LocalDateTime startTime = endTime.minusMinutes(60);
         WlBet wlBet = wlBetService.lambdaQuery().orderByDesc(WlBet::getId).last("LIMIT 1").one();
         if (wlBet != null) {
-            startTime = wlBet.getPullTime().minusMinutes(10);
+            startTime = wlBet.getPullTime();
             endTime = wlBet.getPullTime().plusMinutes(50);
             if (endTime.isBefore(LocalDateTime.now())) {
                 wlBet.setPullTime(endTime);

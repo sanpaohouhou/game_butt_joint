@@ -113,18 +113,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //余额
         Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
         //总充值
-        BigDecimal sumRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, null, null);
+        BigDecimal sumRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, null, null).setScale(2,RoundingMode.DOWN);
         //总提现
-        BigDecimal sumWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), null, null);
+        BigDecimal sumWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), null, null).setScale(2,RoundingMode.DOWN);;
         //提现待审核金额
         BigDecimal withdrawalWaitAuth = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER,
-                List.of(WithdrawStatus.created, WithdrawStatus.review_success, WithdrawStatus.withdrawing), null, null);
+                List.of(WithdrawStatus.created, WithdrawStatus.review_success, WithdrawStatus.withdrawing), null, null).setScale(2,RoundingMode.DOWN);;
         //总佣金
-        BigDecimal allCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null);
+        BigDecimal allCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2,RoundingMode.DOWN);;
         //总返水
-        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, null, null);
+        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, null, null).setScale(2,RoundingMode.DOWN);;
         //待返水
-        BigDecimal waitBackWater = betService.sumAmount(user.getId(), false);
+        BigDecimal waitBackWater = betService.sumAmount(user.getId(), false).setScale(2,RoundingMode.DOWN);;
 
         return BotPersonInfo.builder()
                 .balance(currency.getBalance().setScale(2, RoundingMode.DOWN))
@@ -146,43 +146,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
          */
         LocalDateTime monthBegin = TimeUtil.getMonthBegin();
         LocalDateTime endTime = LocalDateTime.now();
-        BigDecimal monthBetAmount = betService.sumBetAmount(user.getId(), monthBegin, endTime);
+        BigDecimal monthBetAmount = betService.sumBetAmount(user.getId(), monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
         /**
          * 本周下注金额
          */
         LocalDateTime weekBegin = TimeUtil.getWeekBegin();
-        BigDecimal weekBetAmount = betService.sumBetAmount(user.getId(), weekBegin, endTime);
+        BigDecimal weekBetAmount = betService.sumBetAmount(user.getId(), weekBegin, endTime).setScale(2,RoundingMode.DOWN);;
         /**
          * 当天下注金额
          */
         LocalDateTime todayBegin = TimeUtil.getTodayBegin();
-        BigDecimal dayBetAmount = betService.sumBetAmount(user.getId(), todayBegin, endTime);
+        BigDecimal dayBetAmount = betService.sumBetAmount(user.getId(), todayBegin, endTime).setScale(2,RoundingMode.DOWN);;
 
         /**
          * 当月派彩
          */
-        BigDecimal monthFestoon = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime);
+        BigDecimal monthFestoon = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
         /**
          * 本周派彩
          */
-        BigDecimal weekFestoon = userCommissionService.sumAmount(user.getId(), null, null, weekBegin, endTime);
+        BigDecimal weekFestoon = userCommissionService.sumAmount(user.getId(), null, null, weekBegin, endTime).setScale(2,RoundingMode.DOWN);;
         /**
          * 当日派彩
          */
-        BigDecimal dayFestoon = userCommissionService.sumAmount(user.getId(), null, null, todayBegin, endTime);
+        BigDecimal dayFestoon = userCommissionService.sumAmount(user.getId(), null, null, todayBegin, endTime).setScale(2,RoundingMode.DOWN);;
 
         /**
          * 当月盈利
          */
-        BigDecimal monthProfit = betService.sumWinLose(user.getId(), monthBegin, endTime, true);
+        BigDecimal monthProfit = betService.sumWinLose(user.getId(), monthBegin, endTime, true).setScale(2,RoundingMode.DOWN);;
         /**
          * 本周盈利
          */
-        BigDecimal weekProfit = betService.sumWinLose(user.getId(), weekBegin, endTime, true);
+        BigDecimal weekProfit = betService.sumWinLose(user.getId(), weekBegin, endTime, true).setScale(2,RoundingMode.DOWN);;
         /**
          * 当日盈利
          */
-        BigDecimal dayProfit = betService.sumWinLose(user.getId(), todayBegin, endTime, true);
+        BigDecimal dayProfit = betService.sumWinLose(user.getId(), todayBegin, endTime, true).setScale(2,RoundingMode.DOWN);;
 
 
         return BotGameStatisticsInfo.builder()
@@ -205,7 +205,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //总返水
         BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, gameBusiness, null, null);
         //待返水
-        BigDecimal waitBackWater = betService.sumAmount(user.getId(), false);
+//        BigDecimal waitBackWater = BigDecimal.ZERO;
+//        switch (gameBusiness){
+//            case "FC":
+//                waitBackWater = betService.sumAmount(user.getId(),false).setScale()
+//        }
+         BigDecimal waitBackWater = betService.sumAmount(user.getId(), false);
 
         return GameBusinessStatisticsInfo.builder()
                 .gameBusiness(GameBusiness.of(gameBusiness))
@@ -230,13 +235,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LocalDateTime todayBegin = TimeUtil.getTodayBegin();
 
         //当月总充值
-        BigDecimal monthAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, monthBegin, endTime);
+        BigDecimal monthAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
         //当日总充值
-        BigDecimal todayAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, todayBegin, endTime);
+        BigDecimal todayAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, todayBegin, endTime).setScale(2,RoundingMode.DOWN);;
         //当月总提现
-        BigDecimal monthWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime);
+        BigDecimal monthWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
         //今日总提现
-        BigDecimal todayWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime);
+        BigDecimal todayWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
         //总邀请
         List<User> users = queryByInviteUser(user.getInviteUser(), null, null);
         //当月总邀请
@@ -244,11 +249,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //当日总邀请
         List<User> todayUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //总佣金
-        BigDecimal todayCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null);
+        BigDecimal todayCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2,RoundingMode.DOWN);;
         //总返水
-        BigDecimal todayBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, todayBegin, endTime);
+        BigDecimal todayBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, todayBegin, endTime).setScale(2,RoundingMode.DOWN);;
         //当月总盈利
-        BigDecimal monthAllProfit = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime);
+        BigDecimal monthAllProfit = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
 
 
         return BotExtendStatisticsInfo.builder()

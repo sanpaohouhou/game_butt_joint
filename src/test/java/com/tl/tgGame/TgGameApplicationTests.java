@@ -4,6 +4,12 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.symmetric.AES;
 import com.google.gson.Gson;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.Bet;
 import com.tl.tgGame.project.entity.EgBet;
@@ -17,10 +23,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -273,6 +285,35 @@ class TgGameApplicationTests {
 		String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
 		System.out.println(value);
 	}
+
+	@Test
+	public void testErWeiMa(){
+		String textToEncode = "亲爱的媳妇,我们结婚吧!想跟你创造一个属于我们幸福的家庭,我爱你!我滴宝"; // 要编码成二维码的文本
+		String filePath = "qrcode.png"; // 生成的二维码图片文件路径
+		int width = 300; // 图片宽度
+		int height = 300; // 图片高度
+
+		try {
+			// 设置二维码参数
+			Map<EncodeHintType, Object> hints = new HashMap<>();
+			hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
+
+			// 生成二维码
+			BitMatrix bitMatrix = new MultiFormatWriter().encode(textToEncode, BarcodeFormat.QR_CODE, width, height, hints);
+
+			// 将BitMatrix转换为BufferedImage
+			BufferedImage image = MatrixToImageWriter.toBufferedImage(bitMatrix);
+
+			// 保存生成的二维码图片
+			File outputFile = new File(filePath);
+			ImageIO.write(image, "png", outputFile);
+
+			System.out.println("二维码已生成并保存到：" + filePath);
+		} catch (WriterException | IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 
 
 }

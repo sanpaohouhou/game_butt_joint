@@ -16,6 +16,6 @@ import java.math.BigDecimal;
  */
 public interface UserCommissionMapper extends BaseMapper<UserCommission> {
 
-    @Select("SELECT IFNULL(SUM(`profit`), 0) FROM `user_commission` ${ew.customSqlSegment}")
+    @Select("SELECT IFNULL(SUM(`profit`), '0') FROM `user_commission` ${ew.customSqlSegment}")
     BigDecimal sumAmount(@Param(Constants.WRAPPER) Wrapper<UserCommission> wrapper);
 }

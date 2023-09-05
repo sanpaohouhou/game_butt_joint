@@ -99,6 +99,16 @@ public class ConfigConstants {
     public static final String EXCLUSION_CUSTOMER_SERVICE = "exclusion_customer_service";
 
     /**
+     * 机器人群邀请链接
+     */
+    public static final String BOT_GROUP_INVITE_LINK = "bot_group_invite_link";
+
+    /**
+     * 机器人前端落地页H5链接
+     */
+    public static final String BOT_TG_GAME_H5_URL = "tg_game_h5_url";
+
+    /**
      * 发财电子密钥code
      */
     public static final String FC_AGENT_CODE = "fc_agent_code";

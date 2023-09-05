@@ -11,6 +11,8 @@ public enum GameBusiness {
 //    FC,WL,EG
     FC("FC","FC电子"),
     WL("WL","瓦力"),
+    WL_BJL("WL_BJL","瓦力百家乐"),
+    WL_TY("WL_TY","瓦力体育"),
     EG("EG","EG游戏"),;
     private String key;
 

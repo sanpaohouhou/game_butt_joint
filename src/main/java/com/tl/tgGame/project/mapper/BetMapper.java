@@ -16,13 +16,13 @@ import java.math.BigDecimal;
  */
 public interface BetMapper extends BaseMapper<Bet> {
 
-    @Select("SELECT IFNULL(SUM(`back_water_amount`), 0) FROM `bet` ${ew.customSqlSegment}")
+    @Select("SELECT IFNULL(SUM(`back_water_amount`), '0') FROM `bet` ${ew.customSqlSegment}")
     BigDecimal sumAmount(@Param(Constants.WRAPPER) Wrapper<Bet> wrapper);
 
-    @Select("SELECT IFNULL(SUM(`bet`),0) FROM `bet` ${ew.customSqlSegment}")
+    @Select("SELECT IFNULL(SUM(`bet`),'0') FROM `bet` ${ew.customSqlSegment}")
     BigDecimal sumBetAmount(@Param(Constants.WRAPPER) Wrapper<Bet> wrapper);
 
-    @Select("SELECT IFNULL(SUM(`win_lose`),0) FROM `bet` ${ew.customSqlSegment}")
+    @Select("SELECT IFNULL(SUM(`win_lose`),'0') FROM `bet` ${ew.customSqlSegment}")
     BigDecimal sumWinLose(@Param(Constants.WRAPPER) Wrapper<Bet> wrapper);
 
 }

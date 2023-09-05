@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.ApiWlGameRecordData;
 import com.tl.tgGame.project.dto.ApiWlGameRecordRes;
+import com.tl.tgGame.project.entity.Game;
 import com.tl.tgGame.project.entity.WlBet;
 import com.tl.tgGame.project.enums.*;
 import com.tl.tgGame.project.mapper.WlBetMapper;
@@ -94,8 +95,15 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
             BigDecimal usdtPoint = configService.getDecimal(ConfigConstants.WL_GAME_USDT_POINT);
             BigDecimal backWater = wlBet.getProfit().divide(usdtPoint, 2, RoundingMode.DOWN);
             if(backWater.compareTo(BigDecimal.ZERO) > 0){
+                GameBusiness business = GameBusiness.WL;
+                if(wlBet.getGameId().equals("81")){
+                    business = GameBusiness.WL_BJL;
+                }
+                if(wlBet.getGameId().equals("100")){
+                    business = GameBusiness.WL_TY;
+                }
                 Boolean commission = userCommissionService.insertUserCommission(wlBet.getUserId(), wlBet.getUserId(), wlBet.getGameId(), wlBet.getGameName()
-                        , UserCommissionType.BACK_WATER, GameBusiness.WL.getKey(), backWater, rate, wlBet.getProfit());
+                        , UserCommissionType.BACK_WATER, business.getKey(), backWater, rate, wlBet.getProfit());
                 if(commission){
                     currencyService.increase(wlBet.getId(), UserType.USER, BusinessEnum.BACK_WATER,backWater,wlBet.getRecordId(),"瓦力用户输钱返水");
                 }
