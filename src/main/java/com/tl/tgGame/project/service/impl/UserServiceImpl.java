@@ -1,6 +1,7 @@
 package com.tl.tgGame.project.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -238,9 +240,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //总邀请
         List<User> users = queryByInviteUser(user.getInviteUser(), null, null);
         //当月总邀请
-        List<User> monthUsers = queryByInviteUser(user.getId(),monthBegin,endTime);
+        List<User> monthUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //当日总邀请
-        List<User> todayUsers = queryByInviteUser(user.getId(),monthBegin,endTime);
+        List<User> todayUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //总佣金
         BigDecimal todayCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null);
         //总返水
@@ -267,13 +269,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Boolean updateByHasGroup(Long tgId, String tgGroup, Boolean hasGroup) {
-        return update(new LambdaUpdateWrapper<User>().set(User::getHasGroup, hasGroup).eq(User::getTgId, tgId).eq(User::getTgGroup, tgGroup));
+        return update(new LambdaUpdateWrapper<User>().set(User::getHasGroup, hasGroup)
+                .eq(User::getTgId, tgId).eq(User::getTgGroup, tgGroup).eq(User::getHasGroup, !hasGroup));
     }
 
 
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     @Override
-    public Boolean gameRecharge(Long tgId,String gameType) {
+    public Boolean gameRecharge(Long tgId, String gameType) {
         String key = redisKeyGenerator.generateKey("gameRecharge", tgId);
         redisLock.redissonLock(key);
         try {
@@ -282,69 +285,90 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 return false;
             }
             Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
-            if(currency.getRemain().compareTo(BigDecimal.ZERO) <= 0){
-                return false;
+            if (currency.getRemain().compareTo(BigDecimal.ZERO) <= 0) {
+                return true;
             }
-            currencyService.freeze(user.getId(),UserType.USER,
-                    BusinessEnum.FC_RECHARGE,currency.getRemain(),null, gameType + "电子用户充值暂冻");
-            switch (gameType){
+            switch (gameType) {
                 case "FC":
+                    currencyService.freeze(user.getId(), UserType.USER,
+                            BusinessEnum.FC_RECHARGE, currency.getRemain(), null, gameType + "电子用户充值暂冻");
                     ApiSetPointReq build = ApiSetPointReq.builder()
                             .Points(currency.getRemain().doubleValue())
                             .MemberAccount(user.getGameAccount())
                             .build();
                     ApiSetPointRes apiSetPointRes = gameService.setPoints(build);
-                    if (apiSetPointRes.getResult().equals(0)) {
-                        try{
-                            currencyService.reduce(user.getId(),UserType.USER,
-                                    BusinessEnum.FC_RECHARGE,currency.getRemain(),apiSetPointRes.getTrsID(),
-                                    "FC发财电子用户充值AfterPoint:" +apiSetPointRes.getAfterPoint() + "|points:" + apiSetPointRes.getPoints());
-                            return true;
-                        }catch (Exception e){
-
+                    try {
+                        if (!apiSetPointRes.getResult().equals(0)) {
+                            ErrorEnum.GAME_RECHARGE_FAIL.throwException();
                         }
-                    }else {
-                        ErrorEnum.SYSTEM_ERROR.throwException();
+                    } catch (Exception e) {
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    }
+                    if (apiSetPointRes.getResult().equals(0)) {
+                        currencyService.reduce(user.getId(), UserType.USER,
+                                BusinessEnum.FC_RECHARGE, currency.getRemain(), apiSetPointRes.getTrsID(),
+                                "FC发财电子用户充值AfterPoint:" + apiSetPointRes.getAfterPoint() + "|points:" + apiSetPointRes.getPoints());
+                        String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", user.getTgId());
+                        stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType);
+                        return true;
                     }
                     break;
                 case "WL":
-                    ApiWlGameRes wlGameRes = gameService.wlPayOrder(user.getId(), currency.getRemain());
-                    if (wlGameRes.getCode() != 0 || (wlGameRes.getData() != null && !wlGameRes.getData().getReason().equals("ok"))) {
-                        String errMsg = wlGameRes.getData() == null ? wlGameRes.getMsg() : wlGameRes.getData().getReason();
-                        log.info("瓦力电子用户充值失败订单id:{},划转失败原因:{}",wlGameRes.getOrderId() ,errMsg);
-                        ErrorEnum.SYSTEM_ERROR.throwException(errMsg);
-                    }else {
+                    currencyService.freeze(user.getId(), UserType.USER,
+                            BusinessEnum.WL_RECHARGE, currency.getRemain(), null, gameType + "电子用户充值暂冻");
+                    String gup = StrUtil.emptyToDefault(configService.get(ConfigConstants.WL_GAME_USDT_POINT), "7.00");
+                    BigDecimal point = currency.getRemain().multiply(new BigDecimal(gup)).setScale(2, RoundingMode.HALF_DOWN);
+                    ApiWlGameRes wlGameRes = gameService.wlPayOrder(user.getId(), point);
+                    try {
+                        if (wlGameRes.getCode() != 0 || (wlGameRes.getData() != null && !wlGameRes.getData().getReason().equals("ok"))) {
+                            String errMsg = wlGameRes.getData() == null ? wlGameRes.getMsg() : wlGameRes.getData().getReason();
+                            ErrorEnum.GAME_RECHARGE_FAIL.throwException(errMsg);
+                        }
+                    } catch (Exception e) {
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    }
+                    if (wlGameRes.getCode() ==0 && wlGameRes.getData()!=null && wlGameRes.getData().getReason().equals("ok")) {
                         ApiWlGameOrderRes resData = wlGameRes.getData();
-                        currencyService.reduce(user.getId(),UserType.USER,
-                                BusinessEnum.WL_RECHARGE,currency.getRemain(),resData.getOrderId(),
-                                "瓦力电子用户充值Point:" +resData.getBalance());
+                        currencyService.reduce(user.getId(), UserType.USER,
+                                BusinessEnum.WL_RECHARGE, currency.getRemain(), resData.getOrderId(), "瓦力电子用户充值Point:" + resData.getBalance());
+                        String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", user.getTgId());
+                        stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType);
                         return true;
                     }
                     break;
                 case "EG":
-                    String merch = configService.get(ConfigConstants.EG_PLATFORM);
+                    String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
                     String transactionId = UUID.randomUUID().toString();
                     ApiEgDepositReq req = ApiEgDepositReq.builder().merch(merch)
-                            .playerId(user.getId().toString()).amount(currency.getRemain().toString()).transactionId(transactionId).build();
+                            .playerId(user.getGameAccount()).amount(currency.getRemain().toString()).transactionId(transactionId).build();
+                    currencyService.freeze(user.getId(), UserType.USER,
+                            BusinessEnum.EG_RECHARGE, currency.getRemain(), transactionId, gameType + "电子用户充值暂冻");
                     ApiEgDepositRes apiEgDepositRes = gameService.egDeposit(req);
-                    if(StringUtils.isEmpty(apiEgDepositRes.getCode())){
-                        currencyService.reduce(user.getId(),UserType.USER,
-                                BusinessEnum.EG_RECHARGE,currency.getRemain(),transactionId,
-                                "EG电子用户充值AfterPoint:" +apiEgDepositRes.getBeforeBalance() + "|points:" + apiEgDepositRes.getAfterBalance());
+                    try {
+                        if (!StringUtils.isEmpty(apiEgDepositRes.getCode())) {
+                            ErrorEnum.GAME_RECHARGE_FAIL.throwException();
+                        }
+                    } catch (Exception e) {
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    }
+                    if (StringUtils.isEmpty(apiEgDepositRes.getCode())) {
+                        currencyService.reduce(user.getId(), UserType.USER,
+                                BusinessEnum.EG_RECHARGE, currency.getRemain(), transactionId,
+                                "EG电子用户充值AfterPoint:" + apiEgDepositRes.getBeforeBalance() + "|points:" + apiEgDepositRes.getAfterBalance());
+                        String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", user.getTgId());
+                        stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType);
                         return true;
-                    }else {
-                        ErrorEnum.SYSTEM_ERROR.throwException();
                     }
                     break;
             }
-        }finally {
+        } finally {
             redisLock._redissonUnLock(key);
         }
         return false;
     }
 
     @Override
-    public Boolean gameWithdrawal(Long tgId) {
+    public Boolean gameWithdrawal(Long tgId, String gameType) {
         String key = redisKeyGenerator.generateKey("gameWithdrawal", tgId);
         redisLock.redissonLock(key);
         try {
@@ -352,29 +376,65 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (user == null) {
                 return false;
             }
-            ApiSetPointReq build = ApiSetPointReq.builder()
-                    .MemberAccount(user.getGameAccount())
-                    .AllOut(1)
-                    .build();
-            ApiSetPointRes apiSetPointRes = gameService.setPoints(build);
-            if (apiSetPointRes.getResult().equals(0)) {
-                currencyService.increase(user.getId(), UserType.USER, BusinessEnum.FC_WITHDRAWAL, BigDecimal.valueOf(apiSetPointRes.getPoints()),
-                        apiSetPointRes.getTrsID(), "Fc电子提现:" + apiSetPointRes.getBankID());
-                return true;
+            switch (gameType) {
+                case "FC":
+                    ApiSetPointReq build = ApiSetPointReq.builder()
+                            .MemberAccount(user.getGameAccount())
+                            .AllOut(1)
+                            .build();
+                    ApiSetPointRes apiSetPointRes = gameService.setPoints(build);
+                    if (apiSetPointRes.getResult().equals(0)) {
+                        log.info("FC提现余额增加BankID:{},amount:{}", apiSetPointRes.getBankID(), apiSetPointRes.getPoints());
+                        currencyService.increase(user.getId(), UserType.USER, BusinessEnum.FC_WITHDRAWAL, BigDecimal.valueOf(apiSetPointRes.getPoints()).negate(),
+                                apiSetPointRes.getBankID(), "Fc电子提现之后金额:" + apiSetPointRes.getAfterPoint());
+                        log.info("FC提现余额增加成功BankID:{},amount:{}", apiSetPointRes.getBankID(), apiSetPointRes.getPoints());
+                        return true;
+                    }
+                    break;
+                case "WL":
+                    ApiWlGameOrderRes apiWlGameOrderRes = gameService.wlGetUserBalance(user.getId());
+                    BigDecimal transferable = new BigDecimal(apiWlGameOrderRes.getTransferable());
+                    //transferable大于0,就可以下分
+                    if (transferable.compareTo(BigDecimal.ZERO) > 0) {
+                        ApiWlGameRes wlGameRes = gameService.wlPayOrder(user.getId(), transferable.negate());
+                        if (wlGameRes.getCode().equals(0) && wlGameRes.getData() != null
+                                && wlGameRes.getData().getStatus().equals(1) && wlGameRes.getData().getReason().equals("ok")) {
+                            BigDecimal gup = configService.getDecimal(ConfigConstants.WL_GAME_USDT_POINT);
+                            BigDecimal gupAmount = transferable.divide(gup, 2, RoundingMode.HALF_DOWN);
+                            log.info("WL提现余额增加OrderID:{},amount:{}", wlGameRes.getOrderId(), gupAmount);
+                            currencyService.increase(user.getId(), UserType.USER, BusinessEnum.WL_WITHDRAWAL,
+                                    gupAmount, wlGameRes.getOrderId(), "WL电子提现金额:" + transferable);
+                            log.info("WL提现余额增加成功OrderID:{},amount:{}", wlGameRes.getOrderId(), gupAmount);
+                            return true;
+                        }
+                    }
+                    break;
+                case "EG":
+                    String transactionId = UUID.randomUUID().toString();
+                    String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
+                    ApiEgWithdrawReq req = ApiEgWithdrawReq.builder()
+                            .amount("0").transactionId(transactionId).merch(merch).playerId(user.getGameAccount())
+                            .takeAll("1").build();
+                    ApiEgDepositRes apiEgDepositRes = gameService.egWithdraw(req);
+                    if (StringUtils.isEmpty(apiEgDepositRes.getCode())) {
+                        log.info("EG提现余额增加TransactionID:{},amount:{}", transactionId, apiEgDepositRes.getAmount());
+                        currencyService.increase(user.getId(), UserType.USER, BusinessEnum.EG_WITHDRAWAL, new BigDecimal(apiEgDepositRes.getAmount())
+                                , transactionId, "EG电子提现之前金额:" + apiEgDepositRes.getBeforeBalance());
+                        log.info("EG提现余额增加TransactionId:{},amount:{}", transactionId, apiEgDepositRes.getAmount());
+                        return true;
+                    }
+                    break;
             }
             return false;
-        } catch (Exception e) {
-            ErrorEnum.SYSTEM_BUSY.throwException(e.getMessage());
         } finally {
             redisLock._redissonUnLock(key);
         }
-        return null;
     }
 
     @Override
-    public List<User> queryByInviteUser(Long inviteUser, LocalDateTime startTime,LocalDateTime endTime) {
-        return list(new LambdaQueryWrapper<User>().eq(User::getInviteUser,inviteUser).ge(Objects.nonNull(startTime),User::getJoinedTime,startTime)
-                .le(Objects.nonNull(endTime),User::getJoinedTime,endTime));
+    public List<User> queryByInviteUser(Long inviteUser, LocalDateTime startTime, LocalDateTime endTime) {
+        return list(new LambdaQueryWrapper<User>().eq(User::getInviteUser, inviteUser).ge(Objects.nonNull(startTime), User::getJoinedTime, startTime)
+                .le(Objects.nonNull(endTime), User::getJoinedTime, endTime));
     }
 
 

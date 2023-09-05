@@ -32,7 +32,9 @@ public class UserCommission {
 
     private Long fromUserId;
 
-    private Long gameId;
+    private Long betId;
+
+    private String gameId;
 
     private String gameName;
     //利润类型,佣金,返水

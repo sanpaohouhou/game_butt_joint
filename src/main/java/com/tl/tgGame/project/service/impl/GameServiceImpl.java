@@ -270,7 +270,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             }
         } catch (Exception e) {
             log.error("FC发财电子查询游戏记录异常exception:{},request:{},params:{},response:{}", e, req.toString(), params, body);
-            ErrorEnum.FC_GET_RECORD_LIST_FAIL.throwException();
+            ErrorEnum.GAME_GET_RECORD_LIST_FAIL.throwException();
         }
         return results;
     }
@@ -423,7 +423,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
 
         String param = "uid=" + userId;
         String wlHost = configService.get(ConfigConstants.WL_HOST);
-        String quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp()));
+        String quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp(LocalDateTime.now())));
         String res = HttpRequest.of(wlHost + wlUserBalanceUrl + quartet, null).execute().body();
         ApiWlGameRes gameRes = new Gson().fromJson(res, ApiWlGameRes.class);
         if (gameRes.getCode() != 0) {
@@ -443,7 +443,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
                 param = String.format("uid=%s&ip=" + ip, userId);
             }
             String wlHost = configService.get(ConfigConstants.WL_HOST);
-            String quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp()));
+            String quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp(LocalDateTime.now())));
             String res = HttpRequest.of(wlHost + wlEnterGameUrl + quartet, null).execute().body();
             System.out.println(res);
             ApiWlGameRes gameRes = new Gson().fromJson(res, ApiWlGameRes.class);
@@ -465,8 +465,8 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
         String wlAgentId = configService.get(ConfigConstants.WL_AGENT_ID);
         String wlHost = configService.get(ConfigConstants.WL_HOST);
         String orderId = orderIdGen(wlAgentId, LocalDateTime.now(), userId.toString());
-        String param = String.format("orderId=%s" + "&uid=%s&credit=%s", orderId, userId.toString(), amount);
-        String url = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp()));
+        String param = String.format("orderId=%s&uid=%s&credit=%s", orderId, userId, amount);
+        String url = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp(LocalDateTime.now())));
         String res = HttpRequest.of(wlHost + wlTransferUrl + url, null).execute().body();
         ApiWlGameRes wlGameRes = new Gson().fromJson(res, ApiWlGameRes.class);
         wlGameRes.setOrderId(orderId);
@@ -479,13 +479,10 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
         String startTimeStr = DateUtil.format(startTime, DatePattern.PURE_DATETIME_PATTERN);
         String engTimeStr = DateUtil.format(endTime, DatePattern.PURE_DATETIME_PATTERN);
         String param = "from=" + startTimeStr + "&" + "until=" + engTimeStr;
-        String quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp()));
+        String quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp(LocalDateTime.now())));
         String wlHost = configService.get(ConfigConstants.WL_HOST);
         String body = HttpRequest.of(wlHost + wlGameRecordUrl + quartet, null).execute().body();
         ApiWlGameResponse gameRes = new Gson().fromJson(body, ApiWlGameResponse.class);
-        if (gameRes.getCode() != 0) {
-            ErrorEnum.SYSTEM_ERROR.throwException();
-        }
         return gameRes;
     }
 

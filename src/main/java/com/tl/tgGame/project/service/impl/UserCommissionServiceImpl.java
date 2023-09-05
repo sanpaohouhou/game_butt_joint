@@ -38,7 +38,7 @@ public class UserCommissionServiceImpl extends ServiceImpl<UserCommissionMapper,
     }
 
     @Override
-    public Boolean insertUserCommission(Long userId,Long fromUserId, Long gameId, String gameName, UserCommissionType type,String gameBusiness, BigDecimal profit, BigDecimal rate, BigDecimal actualAmount) {
+    public Boolean insertUserCommission(Long userId,Long fromUserId, String gameId, String gameName, UserCommissionType type,String gameBusiness, BigDecimal profit, BigDecimal rate, BigDecimal actualAmount) {
         UserCommission commission = UserCommission.builder()
                 .actualAmount(actualAmount)
                 .fromUserId(fromUserId)

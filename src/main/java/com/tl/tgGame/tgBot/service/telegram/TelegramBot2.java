@@ -221,6 +221,12 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             if (user == null) {
                 user = userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(), from.getIsBot(), from.getId(), chat.getId().toString());
             }
+            if(StringUtils.isEmpty(text)){
+                SendMessage message3 = SendMessage.builder().text("\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25")
+                        .replyMarkup(keyboardMarkup).chatId(update.getMessage().getChatId().toString())
+                        .build();
+                execute(message3);
+            }
             if (text.equals("开始游戏")) {
                 InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().url("https://t.me/+-pyYcS7upcg2Njc1").text("\uD83D\uDC9E游戏大厅").build();
                 List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();

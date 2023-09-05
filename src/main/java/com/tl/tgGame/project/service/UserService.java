@@ -40,7 +40,7 @@ public interface UserService extends IService<User> {
 
     Boolean gameRecharge(Long tgId,String gameType);
 
-    Boolean gameWithdrawal(Long tgId);
+    Boolean gameWithdrawal(Long tgId,String gameType);
 
     List<User> queryByInviteUser(Long inviteUser, LocalDateTime startTime, LocalDateTime endTime);
 

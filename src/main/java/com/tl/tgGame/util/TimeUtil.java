@@ -7,10 +7,14 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalField;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
 public class TimeUtil {
+
+    public static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     /**
      * 获取今天零点时间
      *
@@ -38,6 +42,23 @@ public class TimeUtil {
         return localDateTime;
     }
 
+    /**
+     * 转换成毫秒级时间戳
+     * @param now
+     * @return
+     */
+    public static Long getTimestamp(LocalDateTime now){
+        return now.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+    }
+
+    /**
+     * 转换成秒级时间戳
+     * @param now
+     * @return
+     */
+    public static Long nowTimeStamp(LocalDateTime now) {
+        return now.toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
+    }
 
     /**
      * LocalDateTime 转换 美东时间 uct-4
@@ -46,24 +67,27 @@ public class TimeUtil {
         ZoneId of2 = ZoneId.of("Asia/Shanghai");
         ZoneId of = ZoneId.of("UTC-4");
         ZonedDateTime zonedDateTime = time.atZone(of2).withZoneSameInstant(of);
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String format = zonedDateTime.format(dtf);
-        return format;
+        return zonedDateTime.format(dateTimeFormatter);
     }
 
-    public static void main(String[] args) {
-//        LocalDateTime localDateTime = parseLocalDateTime("2023-08-23 21:48:57");
-//        LocalDateTime localDateTime1 = parseLocalDateTime("2023-08-19 17:10:00");
-//        String s = americaCharge(localDateTime);
-//        String s1 = americaCharge(localDateTime1);
-//        System.out.println(s);
-//        System.out.println(localDateTime.plusSeconds(1));
-        Long aLong = nowTimeStamp();
-        System.out.println(aLong);
+    /**
+     * 获取当前时间.time就传0
+     * @param time
+     * @return
+     */
+    public static Long nowCalendar(int time,int calendarId){
+        Calendar calendar = Calendar.getInstance();
+        // 将时间往前推15分钟
+        calendar.add(calendarId, time);
+        return calendar.getTimeInMillis();
     }
 
-    public static Long nowTimeStamp() {
-        return LocalDateTime.now().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
+    public static Long nowCalendar(){
+        return nowCalendar(0,Calendar.MINUTE);
+    }
+
+    public static LocalDateTime getStringDisplayLocalDateTime(String time){
+        return LocalDateTime.parse(time, dateTimeFormatter);
     }
 
 }

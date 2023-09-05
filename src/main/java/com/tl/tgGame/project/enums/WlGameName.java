@@ -85,11 +85,11 @@ public enum WlGameName {
         this.gameName = gameName;
     }
 
-    public static WlGameName of(Integer game){
+    public static String of(Integer game){
         WlGameName[] values = WlGameName.values();
         for (WlGameName type:values) {
             if(type.getGame().equals(game)){
-                return type;
+                return type.getGameName();
             }
         }
         return null;

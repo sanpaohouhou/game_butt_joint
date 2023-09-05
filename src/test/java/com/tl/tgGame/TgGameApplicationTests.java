@@ -3,36 +3,26 @@ package com.tl.tgGame;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.symmetric.AES;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
 import com.google.gson.Gson;
 import com.tl.tgGame.project.dto.*;
-import com.tl.tgGame.project.entity.User;
-import com.tl.tgGame.project.schedule.FcGameSchedule;
-import com.tl.tgGame.project.service.BetService;
-import com.tl.tgGame.project.service.GameService;
-import com.tl.tgGame.project.service.UserService;
+import com.tl.tgGame.project.entity.Bet;
+import com.tl.tgGame.project.entity.EgBet;
+import com.tl.tgGame.project.entity.WlBet;
+import com.tl.tgGame.project.schedule.GameRecordSchedule;
+import com.tl.tgGame.project.service.*;
 import com.tl.tgGame.util.AESUtil;
-import com.tl.tgGame.util.TimeUtil;
-import com.tl.tgGame.util.crypto.Crypto;
-import io.vertx.core.http.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.bouncycastle.crypto.util.DigestFactory;
+import com.tl.tgGame.util.RedisKeyGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.sql.Time;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-
-import static cn.hutool.crypto.digest.HmacAlgorithm.HmacSHA256;
 
 @SpringBootTest
 class TgGameApplicationTests {
@@ -90,7 +80,7 @@ class TgGameApplicationTests {
 	}
 
 	@Autowired
-	private FcGameSchedule fcGameSchedule;
+	private GameRecordSchedule fcGameSchedule;
 
 
 	@Autowired
@@ -133,13 +123,13 @@ class TgGameApplicationTests {
 ////		HttpResponse execute = HttpUtil.createGet(url).execute();
 ////		String body = execute.body();
 ////		System.out.println(body);
-		ApiEgGameListRes apiEgGameListRes = gameService.egGameList();
-		System.out.println(apiEgGameListRes);
-//		ApiEgCreateUserReq req = ApiEgCreateUserReq.builder().merch("389bet_cny")
-//						.isBot(false).currency("CNY").playerId("1695008845821018114").build();
-//		gameService.egCreateUser(req);
-//		String json = new Gson().toJson(req);
-//		System.out.println(json);
+//		ApiEgGameListRes apiEgGameListRes = gameService.egGameList();
+//		System.out.println(apiEgGameListRes);
+		ApiEgCreateUserReq req = ApiEgCreateUserReq.builder().merch("389bet_cny")
+						.isBot(false).currency("CNY").playerId("1695008845821018114").build();
+		gameService.egCreateUser(req);
+		String json = new Gson().toJson(req);
+		System.out.println(json);
 //		String hash = Crypto.hmacToString(DigestFactory.createSHA256(), "pEd9heiqDR", json);
 //		System.out.println(hash);
 //		HttpResponse execute = HttpUtil.createPost(host + "/389bet/" + "createUser" + "?hash=" + hash).body(json).contentType("application/json").execute();
@@ -227,6 +217,62 @@ class TgGameApplicationTests {
 		System.out.println(new Gson().toJson(apiWlGameResponse));
 	}
 
+	@Test
+	public void egRecord(){
+		fcGameSchedule.insertEgBetRecord();
+	}
+
+	@Test
+	public void wlRecord(){
+		fcGameSchedule.insertWlBetRecord();
+	}
+
+	@Autowired
+	private EgBetService egBetService;
+	@Test
+	public void egCommission(){
+		EgBet egBet = egBetService.getById(1698249505751683073L);
+		Boolean aBoolean = egBetService.egCommission(egBet);
+		System.out.println(aBoolean);
+	}
+
+	@Test
+	public void fcRecord(){
+		fcGameSchedule.insertFcBetRecord();
+	}
+	@Test
+	public void fcCommission(){
+		Bet byId = betService.getById(1698534705840705537L);
+		betService.fcCommission(byId);
+	}
+
+	@Autowired
+	private WlBetService wlBetService;
+	@Test
+	public void wlCommission(){
+		WlBet wlBet = wlBetService.getById(1698272424892444674L);
+		wlBetService.wlCommission(wlBet);
+	}
+
+	@Test
+	public void withdrawal(){
+		Boolean aBoolean = userService.gameWithdrawal(6585031559L, "EG");
+		System.out.println(aBoolean);
+	}
+
+	@Autowired
+	private RedisKeyGenerator redisKeyGenerator;
+
+	@Autowired
+	private StringRedisTemplate stringRedisTemplate;
+
+	@Test
+	public void testRedis(){
+		String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", "123");
+//		stringRedisTemplate.boundValueOps(gameRechargeKey).set("FC");
+		String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
+		System.out.println(value);
+	}
 
 
 }

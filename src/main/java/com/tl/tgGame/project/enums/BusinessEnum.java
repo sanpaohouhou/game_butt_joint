@@ -7,6 +7,7 @@ public enum BusinessEnum {
     SETTLE,  // 结算
     BET,  // 下注
     COMMISSION,  // 返佣
+    BACK_WATER,//返水
     EXCHANGE,//兑换钻石
 
     FC_RECHARGE,//fc游戏充值

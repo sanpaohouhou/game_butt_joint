@@ -2,7 +2,6 @@ package com.tl.tgGame.project.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
@@ -22,7 +21,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class wlBet {
+public class WlBet {
 
     @TableId(value = "id",type = IdType.ASSIGN_ID)
     @JsonSerialize(using = ToStringSerializer.class)
@@ -90,4 +89,16 @@ public class wlBet {
      * 该记录是否操作过分钱
      */
     private Boolean hasSettled;
+
+    private LocalDateTime updateTime;
+    /**
+     * 返水金额
+     */
+    private BigDecimal backWaterAmount;
+    /**
+     * 上级返佣
+     */
+    private BigDecimal topCommission;
+
+
 }

@@ -14,9 +14,12 @@ import com.tl.tgGame.project.service.GameService;
 import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
+import com.tl.tgGame.util.RedisKeyGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -115,26 +118,39 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Autowired
     private AuthTokenService authTokenService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedisKeyGenerator redisKeyGenerator;
+
     public void sendCallBackQuery(Update update) {
         CallbackQuery callbackQuery = update.getCallbackQuery();
         try {
             User from = callbackQuery.getFrom();
+            String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
+            String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
+            if(!StringUtils.isEmpty(value)){
+                userService.gameWithdrawal(from.getId(), value);
+            }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("FC_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 String login = gameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
                 Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
                 log.info("Fc发财电子游戏登录链接:{},rechargeResult:{}", login, result);
-                AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                answerCallbackQuery.setUrl(login);
-                answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
-                execute(answerCallbackQuery);
+                if (result) {
+                    AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+                    answerCallbackQuery.setUrl(login);
+                    answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+                    execute(answerCallbackQuery);
+                }
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("EG_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 String token = authTokenService.login(user.getId());
                 if (!user.getHasJoinEg()) {
                     String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
-                    Boolean createUser = gameService.egCreateUser(ApiEgCreateUserReq.builder().isBot(user.getIsBot()).playerId(user.getId().toString()).merch(merch)
+                    Boolean createUser = gameService.egCreateUser(ApiEgCreateUserReq.builder().isBot(user.getIsBot()).playerId(user.getGameAccount()).merch(merch)
                             .currency("USDT").build());
                     if (createUser) {
                         user.setHasJoinEg(true);
@@ -142,40 +158,42 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                 }
                 Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.EG.getKey());
-                AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                answerCallbackQuery.setUrl("http://192.168.28.113:5173/#/home?token=" + token);
-                answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
-                execute(answerCallbackQuery);
+                if (result) {
+                    AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+                    answerCallbackQuery.setUrl("http://192.168.28.113:5173/#/home?token=" + token);
+                    answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+                    execute(answerCallbackQuery);
+                }
             }
-            if(callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_GAME")){
+            if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
-                String wlEnterGame = gameService.wlEnterGame(user.getId(), null,request);
-                AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                answerCallbackQuery.setUrl(wlEnterGame);
-                answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
-                execute(answerCallbackQuery);
-            }
-            if(callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_BJL")){
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
-                String wlEnterGame = gameService.wlEnterGame(user.getId(), "81",request);
+                String wlEnterGame = gameService.wlEnterGame(user.getId(), null, request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                 execute(answerCallbackQuery);
             }
-            if(callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_TY")){
+            if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_BJL")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
-                String wlEnterGame = gameService.wlEnterGame(user.getId(), "100",request);
+                String wlEnterGame = gameService.wlEnterGame(user.getId(), "81", request);
+                AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+                answerCallbackQuery.setUrl(wlEnterGame);
+                answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+                execute(answerCallbackQuery);
+            }
+            if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_TY")) {
+                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+                String wlEnterGame = gameService.wlEnterGame(user.getId(), "100", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                 execute(answerCallbackQuery);
             }
         } catch (Exception e) {
-            log.error("电子开始游戏异常exception:{},callBackQuery:{}", e,callbackQuery.getGameShortName() + callbackQuery.getFrom().getId());
+            log.error("电子开始游戏异常exception:{},callBackQuery:{}", e, callbackQuery.getGameShortName() +":"+ callbackQuery.getFrom().getId());
         }
     }
 
@@ -232,6 +250,15 @@ public class TelegramBot extends TelegramLongPollingBot {
                             userService.updateByHasGroup(users.getId(), chat.getId().toString(), true);
                         }
                     }
+                } else {
+                    User from = message2.getFrom();
+                    com.tl.tgGame.project.entity.User user = userService.checkTgId(message2.getFrom().getId());
+                    if (user == null) {
+                        userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(),
+                                from.getIsBot(), from.getId(), chat.getId().toString());
+                    } else {
+                        userService.updateByHasGroup(from.getId(), chat.getId().toString(), true);
+                    }
                 }
                 if (message2.getLeftChatMember() != null) {
                     Chat chats = update.getMessage().getChat();
@@ -239,8 +266,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     return;
                 }
                 if (message2.getText() != null) {
+                    String url = configService.get(ConfigConstants.PERSON_CENTER_BOT_URL);
                     InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().callbackGame(new CallbackGame()).text("\uD83C\uDFC6开始游戏\uD83D\uDD25").build();
-                    InlineKeyboardButton inlineKeyboardButton2 = InlineKeyboardButton.builder().url("https://t.me/first_new_one_bot").text("\uD83E\uDD29个人中心\uD83C\uDF08").build();
+                    InlineKeyboardButton inlineKeyboardButton2 = InlineKeyboardButton.builder().url(url).text("\uD83E\uDD29个人中心\uD83C\uDF08").build();
                     List<List<InlineKeyboardButton>> lists = new ArrayList<>();
                     List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
                     List<InlineKeyboardButton> inlineKeyboardButtonsS = new ArrayList<>();
@@ -252,7 +280,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     lists.add(inlineKeyboardButtonsS);
                     InlineKeyboardMarkup build = InlineKeyboardMarkup.builder().keyboard(lists).build();
 
-                    InlineKeyboardButton inlineKeyboardButton3 = InlineKeyboardButton.builder().url("https://t.me/first_new_one_bot").text("\uD83E\uDD29个人中心\uD83C\uDF08").build();
+                    InlineKeyboardButton inlineKeyboardButton3 = InlineKeyboardButton.builder().url(url).text("\uD83E\uDD29个人中心\uD83C\uDF08").build();
                     List<InlineKeyboardButton> inlineKeyboardButtons3 = new ArrayList<>();
                     inlineKeyboardButtons3.add(inlineKeyboardButton3);
                     InlineKeyboardMarkup inlineKeyboardMarkup3 = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons3).build();
@@ -289,7 +317,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                                     .build();
                             execute(build4);
                             break;
-                        case"⚽\uFE0FWL体育":
+                        case "⚽\uFE0FWL体育":
                             SendGame build5 = SendGame.builder().chatId(update.getMessage().getChatId())
                                     .gameShortName("WL_TY")
                                     .allowSendingWithoutReply(false)
@@ -315,8 +343,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                                     .replyMarkup(inlineKeyboardMarkup3).build();
                             execute(message3);
                             break;
-                        case "\uD83D\uDC96唯一专属客服\uD83D\uDE47\u200D♀\uFE0F":
-                            InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("\uD83D\uDC96唯一专属客服\uD83D\uDE47\u200D♀\uFE0F").build();
+                        case "\uD83D\uDC96专属客服\uD83D\uDE47\u200D♀\uFE0F":
+                            String exclusionUrl = configService.get(ConfigConstants.EXCLUSION_CUSTOMER_SERVICE);
+                            InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder().url(exclusionUrl).text("\uD83D\uDC96专属客服\uD83D\uDE47\u200D♀\uFE0F").build();
                             List<InlineKeyboardButton> inlineKeyboardButtons1 = new ArrayList<>();
                             inlineKeyboardButtons1.add(inlineKeyboardButton);
                             InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons1).build();

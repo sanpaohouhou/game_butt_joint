@@ -1,4 +1,4 @@
-package com.tl.tgGame.project.service;
+package com.tl.tgGame.project.service.impl;
 
 import com.tl.tgGame.project.dto.UserInfoStatistics;
 import com.tl.tgGame.project.service.GameStatisticsService;

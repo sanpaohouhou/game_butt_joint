@@ -22,12 +22,12 @@ public enum ErrorEnum {
     ORDER_TYPE_NOT_AUTH("5012","该订单类型不允许审核"),
     YOU_HAS_BEEN_BANNED("5013","您已被封禁"),
     REPEAT_SET_AGENT("5014", "重复设置代理商"),
-    API_FC_GAME_RECORD_ADD_FAIL("5015","添加FC游戏记录失败"),
+    API_GAME_RECORD_ADD_FAIL("5015","添加游戏记录失败"),
     WITHDRAW_FAIL("5016","提现失败"),
     ORDER_EXCEPTION("5017","订单异常"),
 
-    FC_RECHARGE_FAIL("5018","fc充值失败"),
-    FC_GET_RECORD_LIST_FAIL("5019","fc获取记录失败"),
+    GAME_RECHARGE_FAIL("5018","fc充值失败"),
+    GAME_GET_RECORD_LIST_FAIL("5019","fc获取记录失败"),
 
 
     NOT_OPEN("6000", "配置未设置"),

@@ -88,6 +88,15 @@ public class ConfigConstants {
      * 个人中心机器人名称
      */
     public static final String TG_BOT_NAME_TWO = "tg_bot_name_two";
+    /**
+     * 个人中心机器人跳转链接
+     */
+    public static final String PERSON_CENTER_BOT_URL = "person_center_bot_url";
+
+    /**
+     * 唯一专属客服链接
+     */
+    public static final String EXCLUSION_CUSTOMER_SERVICE = "exclusion_customer_service";
 
     /**
      * 发财电子密钥code
@@ -142,6 +151,15 @@ public class ConfigConstants {
      * wl渠道id
      */
     public static final String WL_AGENT_ID = "wl_agent_id";
+    /**
+     * wl汇率转换
+     */
+    public static final String WL_GAME_USDT_POINT = "wl_game_usdt_point";
+
+    /**
+     * eg/wl/fc返水比例
+     */
+    public static final String GAME_BACK_WATER_RATE = "game_back_water_rate";
 
 
 
