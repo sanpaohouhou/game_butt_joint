@@ -5,8 +5,10 @@ import com.google.gson.Gson;
 import com.tl.tgGame.auth.annotation.Uid;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.project.dto.*;
+import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.service.GameApiService;
 import com.tl.tgGame.project.service.GameService;
+import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,9 @@ public class ApiGameController {
 
     @Autowired
     private ConfigService configService;
+
+    @Autowired
+    private UserService userService;
 
 
     @PostMapping("/getBalance")
@@ -101,7 +106,8 @@ public class ApiGameController {
     @GetMapping("/gameUrl")
     public Response gameUrl(@Uid Long uid, @RequestParam String gameId) {
         String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
-        String url = gameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(uid.toString()).build());
+        User user = userService.getById(uid);
+        String url = gameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
         return Response.success(url);
     }
 
