@@ -261,7 +261,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         BigDecimal todayWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2, RoundingMode.DOWN);
         ;
         //总邀请
-        List<User> users = queryByInviteUser(user.getInviteUser(), null, null);
+        List<User> users = queryByInviteUser(user.getId(), null, null);
         //当月总邀请
         List<User> monthUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //当日总邀请

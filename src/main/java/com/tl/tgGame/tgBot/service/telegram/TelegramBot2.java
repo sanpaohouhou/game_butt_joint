@@ -139,10 +139,10 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
                 String[] split = callbackQuery.getData().split("\\|");
                 String[] texts = split[1].split("\\.");
-                Address address = addressService.get(user.getId());
+//                Address address = addressService.get(user.getId());
                 StringBuilder append = new StringBuilder()
                         // TODO: 2023/8/28 这个地址以后在进行更换
-                        .append("充值地址: ").append(address.getTron()).append("\r\n")
+                        .append("充值地址: ").append("回头换成运营的固定地址").append("\r\n")
                         .append("充值分数: ").append(texts[0]).append("\r\n")
                         .append("付款金额: ").append(texts[1]).append("\r\n")
                         .append("充值有效时长: ").append("30分钟").append("\r\n")
@@ -167,7 +167,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message);
 //                }
             }
-        } catch (TelegramApiException | IOException e) {
+        } catch (TelegramApiException e) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
     }
@@ -460,14 +460,18 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                     buildState(update, true);
                     if (StringUtils.isEmpty(user.getWithdrawalUrl())) {
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                .text("尊敬的用户，请绑定充值提现地址").replyMarkup(inlineKeyboardMarkup).build();
+                                .text("尊敬的用户，请点击“绑定地址”按钮绑定充值提现地址").replyMarkup(inlineKeyboardMarkup).build();
                     } else {
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                 .text("尊贵的用户,请输入提现金额").replyMarkup(inlineKeyboardMarkup).build();
                     }
                 } else {
                     Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
-                    if (!NumberUtil.isParsable(update.getMessage().getText()) || !NumberUtil.isNumeric2(update.getMessage().getText())) {
+                    if (StringUtils.isEmpty(user.getWithdrawalUrl())) {
+                        message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                                .text("尊敬的用户，请点击“绑定地址”按钮绑定充值提现地址").replyMarkup(inlineKeyboardMarkup).build();
+                    }else if ((!NumberUtil.isParsable(update.getMessage().getText()) && !update.getMessage().getText().equals("/cancel"))
+                            || !NumberUtil.isNumeric2(update.getMessage().getText())) {
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                 .text("尊贵的用户，请正确输入金额").replyMarkup(inlineKeyboardMarkup).build();
                     } else if (Integer.parseInt(update.getMessage().getText()) < 20) {
@@ -483,10 +487,11 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         inlineKeyboardButtonList.add(inlineKeyboardButton1);
                         lists.add(inlineKeyboardButtons);
                         lists.add(inlineKeyboardButtonList);
+                        InlineKeyboardMarkup inlineKeyboardMarkup1 = InlineKeyboardMarkup.builder().keyboard(lists).build();
                         StringBuilder append = new StringBuilder()
                                 .append("可提现金额: ").append(currency.getRemain()).append("\r\n");
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
+                                .text(append.toString()).replyMarkup(inlineKeyboardMarkup1).build();
                     }
                 }
                 execute(message);
