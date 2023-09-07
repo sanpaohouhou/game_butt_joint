@@ -3,21 +3,16 @@ package com.tl.tgGame.project.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tl.tgGame.common.lock.RedisLock;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.ApiGameRecordListDTO;
 import com.tl.tgGame.project.entity.Bet;
-import com.tl.tgGame.project.entity.EgBet;
+import com.tl.tgGame.project.entity.GameBet;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.enums.*;
 import com.tl.tgGame.project.mapper.BetMapper;
-import com.tl.tgGame.project.service.BetService;
-import com.tl.tgGame.project.service.CurrencyService;
-import com.tl.tgGame.project.service.UserCommissionService;
-import com.tl.tgGame.project.service.UserService;
+import com.tl.tgGame.project.service.*;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
-import com.tl.tgGame.util.RedisKeyGenerator;
 import com.tl.tgGame.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,7 +23,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @version 1.0
@@ -38,18 +32,8 @@ import java.util.Objects;
 @Service
 public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetService {
 
-
-    @Autowired
-    private RedisKeyGenerator redisKeyGenerator;
-
-    @Autowired
-    private RedisLock redisLock;
-
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private BetMapper betMapper;
 
     @Autowired
     private ConfigService configService;
@@ -60,23 +44,14 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
     @Autowired
     private CurrencyService currencyService;
 
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public Boolean bet(Long userId, Bet bet) {
-        String key = redisKeyGenerator.generateKey("bet", bet.getRecordId(), userId);
-        redisLock.redissonLock(key);
-        try {
-
-        } finally {
-            redisLock._redissonLock(key);
-        }
-        return null;
-    }
+    @Autowired
+    private GameBetService gameBetService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Boolean addBet(List<ApiGameRecordListDTO> result) {
         List<Bet> list = new ArrayList<>();
+        List<GameBet> gameBets = new ArrayList<>();
         for (ApiGameRecordListDTO record : result) {
             Bet bet = buildBet(record);
             User user = userService.queryByMemberAccount(record.getAccount());
@@ -85,9 +60,15 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
             if(one == null){
                list.add(bet);
             }
+            GameBet gameBet = buildGameBet(bet);
+            gameBets.add(gameBet);
         }
         boolean saveBatch = saveBatch(list);
         if(!saveBatch){
+            ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
+        }
+        boolean saved = gameBetService.saveBatch(gameBets);
+        if(!saved){
             ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
         }
         return true;
@@ -123,34 +104,6 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
         }
     }
 
-    @Override
-    public BigDecimal sumAmount(Long userId, Boolean hasSettled) {
-        LambdaQueryWrapper<Bet> wrapper = new LambdaQueryWrapper<Bet>()
-                .eq(Bet::getUserId, userId)
-                .eq(Bet::getHasSettled, hasSettled);
-        return betMapper.sumAmount(wrapper);
-    }
-
-    @Override
-    public BigDecimal sumBetAmount(Long userId, LocalDateTime startTime,LocalDateTime endTime) {
-        LambdaQueryWrapper<Bet> wrapper = new LambdaQueryWrapper<Bet>()
-                .eq(Bet::getUserId, userId).ge(Objects.nonNull(startTime),Bet::getCreateTime,startTime)
-                .le(Objects.nonNull(endTime),Bet::getCreateTime,endTime);
-        return betMapper.sumBetAmount(wrapper);
-    }
-
-    @Override
-    public BigDecimal sumWinLose(Long userId, LocalDateTime startTime, LocalDateTime endTime,Boolean hasWinLose) {
-        LambdaQueryWrapper<Bet> wrapper = new LambdaQueryWrapper<Bet>()
-                .eq(Objects.nonNull(userId), Bet::getUserId, userId)
-                .gt(hasWinLose != null && hasWinLose, Bet::getWinLose, 0)
-                .lt(hasWinLose != null & !hasWinLose, Bet::getWinLose, 0)
-                .ge(Objects.nonNull(startTime), Bet::getCreateTime, startTime)
-                .le(Objects.nonNull(endTime), Bet::getCreateTime, endTime);
-        return betMapper.sumWinLose(wrapper);
-    }
-
-
     private Bet buildBet(ApiGameRecordListDTO record) {
         return Bet.builder()
                 .recordId(record.getRecordID())
@@ -175,8 +128,25 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
                 .hasSettled(false)
                 .gameName(FcGameName.of(record.getGameID().toString()))
                 .build();
-
-
+    }
+    private GameBet buildGameBet(Bet bet){
+        return GameBet.builder()
+                .backWaterAmount(BigDecimal.ZERO)
+                .gameBusiness(GameBusiness.FC.getKey())
+                .createTime(LocalDateTime.now())
+                .tax(BigDecimal.ZERO)
+                .profit(bet.getPrize())
+                .topCommission(BigDecimal.ZERO)
+                .gameAccount(bet.getGameAccount())
+                .bet(bet.getBet())
+                .hasSettled(false)
+                .userId(bet.getUserId())
+                .gameName(bet.getGameName())
+                .recordId(bet.getRecordId())
+                .validBet(bet.getValidBet())
+                .gameId(bet.getGameId().toString())
+                .recordTime(TimeUtil.shanghaiCharge(bet.getBDate()))
+                .build();
     }
 
 }

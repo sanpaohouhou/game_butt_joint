@@ -40,6 +40,11 @@ public interface WithdrawalService extends IService<Withdrawal> {
     Withdrawal audit(long id, boolean result, String note);
 
     /**
+     * 审核成功后运营手动打款,上传图片
+     */
+    Withdrawal upload(Long id,String image,String hash);
+
+    /**
      * 获取今日用户已提现的金额
      *
      * @param uid 用户id

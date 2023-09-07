@@ -26,7 +26,15 @@ public class NumberUtil {
      * 判断字符串是不是整数
      */
     public static Boolean isNumeric2(String str) {
-        return str != null && str.matches("-?\\d+(\\.\\d+)?");
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        return str.matches("^\\d+$");
+    }
+
+    public static void main(String[] args) {
+        Boolean numeric2 = isNumeric2("9.9");
+        System.out.println(numeric2);
     }
 
 

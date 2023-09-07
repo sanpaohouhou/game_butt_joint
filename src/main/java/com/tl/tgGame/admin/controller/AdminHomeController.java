@@ -1,14 +1,33 @@
 package com.tl.tgGame.admin.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tl.tgGame.admin.dto.AdminGameBetStatistics;
 import com.tl.tgGame.admin.dto.AdminHomeUserStatistics;
 import com.tl.tgGame.admin.dto.UserOverviewStatistics;
+import com.tl.tgGame.common.dto.PageQueryDTO;
 import com.tl.tgGame.common.dto.Response;
+import com.tl.tgGame.project.entity.GameBet;
+import com.tl.tgGame.project.entity.Recharge;
+import com.tl.tgGame.project.entity.User;
+import com.tl.tgGame.project.mapper.ConversionRateMapper;
+import com.tl.tgGame.project.service.GameBetService;
+import com.tl.tgGame.project.service.RechargeService;
 import com.tl.tgGame.project.service.UserService;
+import com.tl.tgGame.project.service.WithdrawalService;
+import com.tl.tgGame.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @version 1.0
@@ -22,25 +41,80 @@ public class AdminHomeController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RechargeService rechargeService;
+
+    @Autowired
+    private GameBetService gameBetService;
+    
+    @Autowired
+    private WithdrawalService withdrawalService;
+
+    @Autowired
+    private ConversionRateMapper conversionRateMapper;
     /**
      * 用户统计
      * @return
      */
     @GetMapping("homeUserStatistics")
     public Response homeUserStatistics(){
-        AdminHomeUserStatistics adminHomeUserStatistics = new AdminHomeUserStatistics();
-        return Response.success(adminHomeUserStatistics);
+        //总用户数
+        int allUserCount = userService.count(new LambdaQueryWrapper<User>().eq(User::getHasGroup,true));
+        //今日新增用户
+        LocalDateTime todayBegin = TimeUtil.getTodayBegin();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime monthBegin = TimeUtil.getMonthBegin();
+        List<User> todayUserList = userService.list(new LambdaQueryWrapper<User>().eq(User::getHasGroup, true)
+                .ge(User::getJoinedTime, todayBegin).le(User::getJoinedTime, now));
+        //总充值用户数量
+        Integer allRechargeUserCount = rechargeService.countRechargeNumber(null, null, null);
+        //今日注册用户充值数量
+        Integer todayRegisterUserRechargeCount = 0;
+        if(!CollectionUtils.isEmpty(todayUserList)){
+            List<Long> userIds = todayUserList.stream().map(User::getId).collect(Collectors.toList());
+            todayRegisterUserRechargeCount = rechargeService.countRechargeNumber(userIds,todayBegin,now);
+        }
+        //今日下注用户数
+        Integer todayBetUserCount = gameBetService.todayBetUserCount(todayBegin,now);
+        //今日充值金额
+        BigDecimal todayRechargeAmount = rechargeService.sumRecharge(null, null, todayBegin, now);
+        //今日提现金额
+        BigDecimal todayWithdrawalAmount = withdrawalService.todayPlatformWithdrawalAmount();
+        //今日用户下注金额
+        BigDecimal todayUserBetAmount = gameBetService.sumBetAmount(null, todayBegin, now, null);
+        //当月用户下注金额
+        BigDecimal userBetAmount = gameBetService.sumBetAmount(null, monthBegin, now, null);
+        AdminHomeUserStatistics build = AdminHomeUserStatistics.builder()
+                .todayRegisterUserRechargeCount(todayRegisterUserRechargeCount)
+                .allUserCount(allUserCount)
+                .todayBetUserCount(todayBetUserCount)
+                .allRechargeUserCount(allRechargeUserCount)
+                .todayUserBetAmount(todayUserBetAmount)
+                .userBetAmount(userBetAmount)
+                .todayRechargeAmount(todayRechargeAmount)
+                .todayWithdrawalAmount(todayWithdrawalAmount)
+                .todayUserCount(todayUserList.size())
+                .build();
+        return Response.success(build);
     }
 
     /**
      * 用户转化漏斗
-     * @param type
+     * @param
      * @return
      */
     @GetMapping("userOverviewStatistics")
-    public Response userOverviewStatistics(Integer type){
-        UserOverviewStatistics userOverviewStatistics = new UserOverviewStatistics();
-        return Response.success(userOverviewStatistics);
+    public Response userOverviewStatistics(PageQueryDTO queryDTO){
+        Integer joinedUser = userService.count(new LambdaQueryWrapper<User>().gt(Objects.nonNull(queryDTO.getStartTime()),
+                User::getJoinedTime, queryDTO.getStartTime()).le(Objects.nonNull(queryDTO.getEndTime()),
+                User::getJoinedTime, queryDTO.getEndTime()).eq(User::getIsBot, false));
+        Integer rechargeUser = conversionRateMapper.userChargeCount(new QueryWrapper<>().
+                gt(Objects.nonNull(queryDTO.getStartTime()), "`user`.`joined_time`", queryDTO.getStartTime()).
+                le(Objects.nonNull(queryDTO.getEndTime()), "`user`.`joined_time`", queryDTO.getEndTime()));
+        Integer betUser = conversionRateMapper.userBetCount(new QueryWrapper<>().
+                gt(Objects.nonNull(queryDTO.getStartTime()), "`user`.`joined_time`", queryDTO.getStartTime()).
+                le(Objects.nonNull(queryDTO.getEndTime()), "`user`.`joined_time`", queryDTO.getEndTime()).eq("`user`.`is_bot`", false));
+        return Response.success(UserOverviewStatistics.builder().joinedUser(joinedUser).rechargeUser(rechargeUser).betUser(betUser).build());
     }
 
     /**

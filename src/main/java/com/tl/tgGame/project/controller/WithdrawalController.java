@@ -17,12 +17,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/partner/withdrawal")
+@RequestMapping("/api/user/withdrawal")
 public class WithdrawalController {
     @Resource
     private WithdrawalService withdrawalService;
-    @Resource
-    private ConfigService configService;
 
     /**
      * partner u币提现
@@ -33,7 +31,7 @@ public class WithdrawalController {
      */
     @PostMapping("/withdraw")
     public Response partnerWithdraw(@Uid Long uid, @RequestBody @Valid UserUsdtWithdrawDTO param) {
-        return Response.success(withdrawalService.withdraw(uid, UserType.PARTNER, param.getNetwork(), param.getTo(), param.getAmount()));
+        return Response.success(withdrawalService.withdraw(uid, UserType.USER, param.getNetwork(), param.getTo(), param.getAmount()));
     }
 
     /**

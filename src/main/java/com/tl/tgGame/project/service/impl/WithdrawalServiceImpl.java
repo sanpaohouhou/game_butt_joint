@@ -175,6 +175,30 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Withdrawal upload(Long id, String image, String hash) {
+        String key = redisKeyGenerator.generateKey("upload", id);
+        redisLock.redissonLock(key);
+        try{
+            Withdrawal withdrawal = getById(id);
+            if(Objects.isNull(withdrawal)){
+                ErrorEnum.OBJECT_NOT_FOUND.throwException("订单不存在");
+            }
+            if(!withdrawal.getStatus().equals(WithdrawStatus.review_success)){
+                ErrorEnum.ORDER_EXCEPTION.throwException();
+            }
+            withdrawal.setStatus(WithdrawStatus.withdraw_success);
+            withdrawal.setScreen(image);
+            withdrawal.setHash(hash);
+            updateById(withdrawal);
+            currencyService.reduce(withdrawal.getUid(),withdrawal.getUserType(),BusinessEnum.WITHDRAW,withdrawal.getAmount(),withdrawal.getId(),"用户提现运营审核通过打款成功");
+            return withdrawal;
+        }finally {
+            redisLock.redissonUnLock();
+        }
+    }
+
     @Override
     public BigDecimal todayWithdrawalAmount(long uid) {
         return (BigDecimal) getMap(new QueryWrapper<Withdrawal>().select("IFNULL(SUM(`amount`), 0) AS `total`").lambda()

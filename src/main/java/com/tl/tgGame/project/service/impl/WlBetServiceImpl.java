@@ -7,12 +7,12 @@ import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.ApiWlGameRecordData;
 import com.tl.tgGame.project.dto.ApiWlGameRecordRes;
 import com.tl.tgGame.project.entity.Game;
+import com.tl.tgGame.project.entity.GameBet;
+import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.entity.WlBet;
 import com.tl.tgGame.project.enums.*;
 import com.tl.tgGame.project.mapper.WlBetMapper;
-import com.tl.tgGame.project.service.CurrencyService;
-import com.tl.tgGame.project.service.UserCommissionService;
-import com.tl.tgGame.project.service.WlBetService;
+import com.tl.tgGame.project.service.*;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.TimeUtil;
@@ -46,10 +46,17 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
     @Autowired
     private CurrencyService currencyService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private GameBetService gameBetService;
+
     @Override
     public Boolean addWlBet(ApiWlGameRecordData data) {
         ApiWlGameRecordRes list = data.getList();
         List<WlBet> recordList = new ArrayList<>();
+        List<GameBet> gameBets = new ArrayList<>();
         if (data.getCount() <= 0) {
             return true;
         }
@@ -78,8 +85,14 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
             if (record == null) {
                 recordList.add(wlBet);
             }
+            User user = userService.getById(userId);
+            GameBet gameBet = buildGameBet(wlBet, user.getGameAccount());
+            gameBets.add(gameBet);
         }
         if (!saveBatch(recordList)) {
+            ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
+        }
+        if(!gameBetService.saveBatch(gameBets)){
             ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
         }
         return true;
@@ -91,37 +104,36 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
         String gameBackWaterRate = configService.getOrDefault(ConfigConstants.GAME_BACK_WATER_RATE, "0.002");
         BigDecimal rate = new BigDecimal(gameBackWaterRate);
         //profit > 0代表用户输钱,系统赢钱
-        if(wlBet.getProfit().compareTo(BigDecimal.ZERO) > 0){
+        if (wlBet.getProfit().compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal usdtPoint = configService.getDecimal(ConfigConstants.WL_GAME_USDT_POINT);
             BigDecimal backWater = wlBet.getProfit().divide(usdtPoint, 2, RoundingMode.DOWN);
-            if(backWater.compareTo(BigDecimal.ZERO) > 0){
+            if (backWater.compareTo(BigDecimal.ZERO) > 0) {
                 GameBusiness business = GameBusiness.WL;
-                if(wlBet.getGameId().equals("81")){
+                if (wlBet.getGameId().equals("81")) {
                     business = GameBusiness.WL_BJL;
                 }
-                if(wlBet.getGameId().equals("100")){
+                if (wlBet.getGameId().equals("100")) {
                     business = GameBusiness.WL_TY;
                 }
                 Boolean commission = userCommissionService.insertUserCommission(wlBet.getUserId(), wlBet.getUserId(), wlBet.getGameId(), wlBet.getGameName()
                         , UserCommissionType.BACK_WATER, business.getKey(), backWater, rate, wlBet.getProfit());
-                if(commission){
-                    currencyService.increase(wlBet.getId(), UserType.USER, BusinessEnum.BACK_WATER,backWater,wlBet.getRecordId(),"瓦力用户输钱返水");
+                if (commission) {
+                    currencyService.increase(wlBet.getId(), UserType.USER, BusinessEnum.BACK_WATER, backWater, wlBet.getRecordId(), "瓦力用户输钱返水");
                 }
-                return update(new LambdaUpdateWrapper<WlBet>().set(WlBet::getHasSettled,true).set(WlBet::getBackWaterAmount,backWater)
-                        .set(WlBet::getUpdateTime,LocalDateTime.now())
-                        .eq(WlBet::getHasSettled,false).eq(WlBet::getId,wlBet.getId()));
-            }else {
-                return update(new LambdaUpdateWrapper<WlBet>().set(WlBet::getHasSettled,true)
-                        .set(WlBet::getUpdateTime,LocalDateTime.now())
-                        .eq(WlBet::getHasSettled,false).eq(WlBet::getId,wlBet.getId()));
+                return update(new LambdaUpdateWrapper<WlBet>().set(WlBet::getHasSettled, true).set(WlBet::getBackWaterAmount, backWater)
+                        .set(WlBet::getUpdateTime, LocalDateTime.now())
+                        .eq(WlBet::getHasSettled, false).eq(WlBet::getId, wlBet.getId()));
+            } else {
+                return update(new LambdaUpdateWrapper<WlBet>().set(WlBet::getHasSettled, true)
+                        .set(WlBet::getUpdateTime, LocalDateTime.now())
+                        .eq(WlBet::getHasSettled, false).eq(WlBet::getId, wlBet.getId()));
             }
-        }else {
-            return update(new LambdaUpdateWrapper<WlBet>().set(WlBet::getHasSettled,true)
-                    .set(WlBet::getUpdateTime,LocalDateTime.now())
-                    .eq(WlBet::getHasSettled,false).eq(WlBet::getId,wlBet.getId()));
+        } else {
+            return update(new LambdaUpdateWrapper<WlBet>().set(WlBet::getHasSettled, true)
+                    .set(WlBet::getUpdateTime, LocalDateTime.now())
+                    .eq(WlBet::getHasSettled, false).eq(WlBet::getId, wlBet.getId()));
         }
     }
-
 
     private WlBet buildWlBet(BigDecimal balance, BigDecimal bet, Integer category, String detailUrl,
                              Integer game, String gameId, LocalDateTime gameStartTime, BigDecimal profit,
@@ -145,5 +157,32 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
                 .gameName(WlGameName.of(game))
                 .hasSettled(false)
                 .createTime(LocalDateTime.now()).build();
+    }
+
+    private GameBet buildGameBet(WlBet wlBet, String gameAccount) {
+        GameBusiness business = GameBusiness.WL;
+        if (wlBet.getGameId().equals("81")) {
+            business = GameBusiness.WL_BJL;
+        }
+        if (wlBet.getGameId().equals("100")) {
+            business = GameBusiness.WL_TY;
+        }
+        return GameBet.builder()
+                .backWaterAmount(BigDecimal.ZERO)
+                .gameBusiness(business.getKey())
+                .createTime(LocalDateTime.now())
+                .tax(wlBet.getTax())
+                .profit(wlBet.getProfit().negate())
+                .topCommission(BigDecimal.ZERO)
+                .gameAccount(gameAccount)
+                .bet(wlBet.getBet())
+                .hasSettled(false)
+                .userId(wlBet.getUserId())
+                .gameName(wlBet.getGameName())
+                .recordId(wlBet.getRecordId())
+                .validBet(wlBet.getValidBet())
+                .gameId(wlBet.getGameId())
+                .recordTime(wlBet.getRecordTime())
+                .build();
     }
 }

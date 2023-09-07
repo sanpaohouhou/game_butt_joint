@@ -1,6 +1,7 @@
 package com.tl.tgGame.project.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -9,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -54,4 +56,19 @@ public class User {
     private String withdrawalUrl;
 
     private Boolean hasJoinEg;
+
+    @TableField(exist = false)
+    private Currency currency;
+
+    @TableField(exist = false)
+    private Integer todayBetCount;
+
+    @TableField(exist = false)
+    private BigDecimal todayProfit;
+
+    @TableField(exist = false)
+    private BigDecimal allProfit;
+
+    @TableField(exist = false)
+    private Integer allBetCount;
 }

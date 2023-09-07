@@ -9,9 +9,11 @@ import com.tl.tgGame.project.service.GameService;
 import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
+import com.tl.tgGame.util.AESUtil;
 import com.tl.tgGame.util.RedisKeyGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -116,6 +118,9 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Autowired
     private RedisKeyGenerator redisKeyGenerator;
 
+    @Value("${security.key}")
+    private String securityKey;
+
     public void sendCallBackQuery(Update update) {
         CallbackQuery callbackQuery = update.getCallbackQuery();
         try {
@@ -129,7 +134,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 String login = gameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
                 Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
-                log.info("Fc发财电子游戏登录链接:{},rechargeResult:{}", login, result);
                 if (result) {
                     AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                     answerCallbackQuery.setUrl(login);
@@ -139,7 +143,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("EG_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                String token = authTokenService.login(user.getId());
                 if (!user.getHasJoinEg()) {
                     String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
                     Boolean createUser = gameService.egCreateUser(ApiEgCreateUserReq.builder().isBot(user.getIsBot()).playerId(user.getGameAccount()).merch(merch)
@@ -151,16 +154,17 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
                 Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.EG.getKey());
                 if (result) {
+                    String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                     String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                     AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                    answerCallbackQuery.setUrl(h5Url + "?token=" + token);
+                    answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt +"&type=" + GameBusiness.EG.getKey());
                     answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                     execute(answerCallbackQuery);
                 }
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+                userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
                 String wlEnterGame = gameService.wlEnterGame(user.getId(), null, request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
@@ -169,7 +173,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_BJL")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+                userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
                 String wlEnterGame = gameService.wlEnterGame(user.getId(), "81", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
@@ -178,7 +182,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_TY")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+                userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
                 String wlEnterGame = gameService.wlEnterGame(user.getId(), "100", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);

@@ -33,7 +33,7 @@ public class AdminHomeUserStatistics {
     /**
      * 今日注册用户充值数量
      */
-    private Integer todayRegisterUserRechargeCount;
+    private Integer todayRegisterUserRechargeCount = 0;
     /**
      * 今日充值用户数
      */

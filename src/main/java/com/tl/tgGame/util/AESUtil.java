@@ -41,7 +41,7 @@ public class AESUtil {
      * @param key     加密密钥
      * @return 返回Base64转码后的加密数据
      */
-    public static String encrypt(String content, String key) throws Exception {
+    public static String encrypt(String content, String key){
         try {
             // 创建密码器
             Cipher cipher = Cipher.getInstance(DEFAULT_CIPHER_ALGORITHM);
@@ -115,7 +115,9 @@ public class AESUtil {
 
     public static void main(String[] args) throws Exception {
         String key = "U81msjdw0v486i+ol8pko+0_(m0ck-p6%om!wbkmg0_(.34&1";
-        System.out.println(encrypt("{\"password\": \"begin chef cost scare off record meadow arena yard monitor donate lecture\", \"ethPriKey\": \"937eb51f179eb049e05bc4206271ec8d622263722f5677ac96483042dc6d7ad6\", \"ethAddress\": \"0x605BfA292B84bC05E044a015BfFBC690B3915B05\", \"tronPriKey\": \"0b15b3b7e9203be8355723a6d00fed4f3a54e8990ffb37a5fdfe79fbb053b4b3\", \"tronAddress\": \"TC7UCyGzERTtLuTgjjp28PRSZaQsyXHv8m\"}", key));
-        System.out.println(decrypt("b+5yQavt+fKPWWW7O3YGxMyjxsCR8cH4Y/lN6V6ThWjPJM98Sk3RhxzVZwyq+DJuMLGQXC0BFIMAleXNCWZDakbKOACdAyXjgUp8mQPaMIFSnW9724E/XFM6kloqsgPglbQ3DY4+8/BRXvRvohU8OVxJa31JiFFtJxaQYksvGkdce75EF+7D5ibOrex5mPXPOSOA71k0R698NvL31MPIx2lrV3Qx8FX7h+P5SlZvywy6fOuCVI+V6hlDPmRS1GnpxJZ94FxBSgreCPQTgRD8+/lSvczb86INQ2iAieBRR9DIPUmpZw6ixg9h0TiXBwdvtM/YFANfAAzvyPqQcnQ/HiRQLdhK9ceEBf801vbGXd+kCWB4SJk6d+bqeTi64qBM1e1IFSNO9rTbYBzF15eqK+7OCW25FYp/FfWPmXkK5FT6FWPjLY6MqJQjtKO/9Jd3hOdiCGw2RX2C0ghnDR2L+z7klqsJBPNs27p0JHTUjxM=", key));
+        String decrypt = encrypt("1698218972392947714", key);
+        String encrypt = decrypt(decrypt, key);
+        System.out.println(decrypt);
+        System.out.println(encrypt);
     }
 }

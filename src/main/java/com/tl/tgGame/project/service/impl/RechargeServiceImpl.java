@@ -27,11 +27,13 @@ import com.tl.tgGame.project.service.RechargeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -132,6 +134,16 @@ public class RechargeServiceImpl extends ServiceImpl<RechargeMapper, Recharge> i
                         .ge(Objects.nonNull(startTime),Recharge::getCreateTime,startTime)
                         .le(Objects.nonNull(endTime),Recharge::getCreateTime,endTime);;
         return rechargeMapper.amountSum(wrapper);
+    }
+
+    @Override
+    public Integer countRechargeNumber(List<Long> userIds, LocalDateTime startTime, LocalDateTime endTime) {
+        LambdaQueryWrapper<Recharge> wrapper =
+                new LambdaQueryWrapper<Recharge>()
+                        .in(!CollectionUtils.isEmpty(userIds),Recharge::getUserId, userIds)
+                        .ge(Objects.nonNull(startTime),Recharge::getCreateTime,startTime)
+                        .le(Objects.nonNull(endTime),Recharge::getCreateTime,endTime);;
+        return rechargeMapper.countRechargeNumber(wrapper);
     }
 
     private void txHandle(long uid, String from, String to, Network network, String hash, BigInteger txVal) {

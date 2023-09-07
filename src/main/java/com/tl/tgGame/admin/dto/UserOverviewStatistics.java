@@ -18,14 +18,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class UserOverviewStatistics {
 
-    /**
-     * 全部注册用户/
-     */
-    private Integer registerUser = 0;
-    /**
-     * 全部充值用户
-     */
-    private BigDecimal rechargeAmount = BigDecimal.ZERO;
-
-    private BigDecimal betAmount = BigDecimal.ZERO;
+    private Integer joinedUser;
+    private Integer rechargeUser;
+    private Integer betUser;
 }

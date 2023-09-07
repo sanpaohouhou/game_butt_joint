@@ -47,7 +47,7 @@ public class TimeUtil {
      * @param now
      * @return
      */
-    public static Long getTimestamp(LocalDateTime now){
+    public static Long getTimestamp(LocalDateTime now) {
         return now.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
     }
 
@@ -71,23 +71,45 @@ public class TimeUtil {
     }
 
     /**
+     * 美东时间转换北京时区
+     *
+     * @param time
+     * @param
+     * @return
+     */
+    public static LocalDateTime shanghaiCharge(LocalDateTime time) {
+        ZonedDateTime of = ZonedDateTime.of(time, ZoneId.of("America/New_York"));
+        ZonedDateTime zonedDateTime = of.withZoneSameInstant(ZoneId.of("Asia/Shanghai"));
+        String format = zonedDateTime.format(dateTimeFormatter);
+        return parseLocalDateTime(format);
+    }
+
+    /**
      * 获取当前时间.time就传0
+     *
      * @param time
      * @return
      */
-    public static Long nowCalendar(int time,int calendarId){
+    public static Long nowCalendar(int time, int calendarId) {
         Calendar calendar = Calendar.getInstance();
         // 将时间往前推15分钟
         calendar.add(calendarId, time);
         return calendar.getTimeInMillis();
     }
 
-    public static Long nowCalendar(){
-        return nowCalendar(0,Calendar.MINUTE);
+    public static Long nowCalendar() {
+        return nowCalendar(0, Calendar.MINUTE);
     }
 
-    public static LocalDateTime getStringDisplayLocalDateTime(String time){
+    public static LocalDateTime getStringDisplayLocalDateTime(String time) {
         return LocalDateTime.parse(time, dateTimeFormatter);
+    }
+
+    public static void main(String[] args) {
+        String str = "2023-09-03 23:08:58";
+        LocalDateTime localDateTime = parseLocalDateTime(str);
+        LocalDateTime localDateTime1 = shanghaiCharge(localDateTime);
+        System.out.println(localDateTime1);
     }
 
 }

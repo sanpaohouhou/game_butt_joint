@@ -7,15 +7,14 @@ import com.google.gson.Gson;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.ApiEgGameRecordRes;
 import com.tl.tgGame.project.entity.EgBet;
+import com.tl.tgGame.project.entity.GameBet;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.enums.*;
 import com.tl.tgGame.project.mapper.EgBetMapper;
-import com.tl.tgGame.project.service.CurrencyService;
-import com.tl.tgGame.project.service.EgBetService;
-import com.tl.tgGame.project.service.UserCommissionService;
-import com.tl.tgGame.project.service.UserService;
+import com.tl.tgGame.project.service.*;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
+import com.tl.tgGame.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,9 +49,13 @@ public class EgBetServiceImpl extends ServiceImpl<EgBetMapper, EgBet> implements
     @Autowired
     private CurrencyService currencyService;
 
+    @Autowired
+    private GameBetService gameBetService;
+
     @Override
     public Boolean addEgBet(List<ApiEgGameRecordRes> date,LocalDateTime pullTime) {
         List<EgBet> list = new ArrayList<>();
+        List<GameBet> gameBets = new ArrayList<>();
         for (ApiEgGameRecordRes record : date) {
             EgBet bet = buildEgBet(record,pullTime);
             User user = userService.getById(record.getPlayerId());
@@ -61,8 +64,13 @@ public class EgBetServiceImpl extends ServiceImpl<EgBetMapper, EgBet> implements
             if(one == null){
                 list.add(bet);
             }
+            GameBet gameBet = buildGameBet(bet);
+            gameBets.add(gameBet);
         }
         if(!saveBatch(list)){
+            ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
+        }
+        if(!gameBetService.saveBatch(gameBets)){
             ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
         }
         return true;
@@ -124,6 +132,26 @@ public class EgBetServiceImpl extends ServiceImpl<EgBetMapper, EgBet> implements
                 .topCommission(BigDecimal.ZERO)
                 .winTime(record.getWinTime())
                 .wpTime(record.getWpTime())
+                .build();
+    }
+
+    private GameBet buildGameBet(EgBet egBet){
+        return GameBet.builder()
+                .backWaterAmount(BigDecimal.ZERO)
+                .gameBusiness(GameBusiness.EG.getKey())
+                .createTime(LocalDateTime.now())
+                .tax(BigDecimal.ZERO)
+                .profit(new BigDecimal(egBet.getNetWin()))
+                .topCommission(BigDecimal.ZERO)
+                .gameAccount(egBet.getPlayerId())
+                .bet(new BigDecimal(egBet.getBet()))
+                .hasSettled(false)
+                .userId(egBet.getUserId())
+                .gameName(egBet.getGameName())
+                .recordId(egBet.getRoundId())
+                .validBet(new BigDecimal(egBet.getBet()))
+                .gameId(egBet.getGameId())
+                .recordTime(TimeUtil.parseLocalDateTime(egBet.getWpTime()))
                 .build();
     }
 }

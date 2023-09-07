@@ -15,15 +15,8 @@ import java.util.List;
  */
 public interface BetService extends IService<Bet> {
 
-    Boolean bet(Long userId,Bet bet);
-
     Boolean addBet(List<ApiGameRecordListDTO> result);
 
     Boolean fcCommission(Bet bet);
 
-    BigDecimal sumAmount(Long userId,Boolean hasSettled);
-
-    BigDecimal sumBetAmount(Long userId, LocalDateTime startTime,LocalDateTime endTime);
-
-    BigDecimal sumWinLose(Long userId,LocalDateTime startTime,LocalDateTime endTime,Boolean hasWinLose);
 }

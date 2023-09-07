@@ -78,6 +78,11 @@ public class Recharge implements Serializable {
 
     private String note;
 
+    private BigDecimal balance;
+
+    private BigDecimal freeze;
+
+    private BigDecimal remain;
     /**
      * 时间
      */

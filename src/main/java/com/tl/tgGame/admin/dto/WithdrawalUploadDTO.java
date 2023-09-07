@@ -1,23 +1,27 @@
 package com.tl.tgGame.admin.dto;
 
-import com.tl.tgGame.common.dto.PageQueryDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * @version 1.0
  * @auther w
- * @date 2023/8/8 , 17:10
+ * @date 2023/8/30 , 10:21
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AdminUserRechargeReq extends PageQueryDTO {
+public class WithdrawalUploadDTO {
 
-    private Long userId;
-
-    private String gameAccount;
+    @NotNull
+    private String image;
+    @NotNull
+    private String hash;
+    @NotNull
+    private Long id;
 }

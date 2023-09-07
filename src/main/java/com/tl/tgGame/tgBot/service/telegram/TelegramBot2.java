@@ -1,6 +1,8 @@
 package com.tl.tgGame.tgBot.service.telegram;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.tl.tgGame.address.AddressService;
+import com.tl.tgGame.address.entity.Address;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.BotExtendStatisticsInfo;
 import com.tl.tgGame.project.dto.BotGameStatisticsInfo;
@@ -19,10 +21,12 @@ import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.tgBot.entity.UserBot;
 import com.tl.tgGame.tgBot.service.UserBotRepository;
 import com.tl.tgGame.util.NumberUtil;
+import com.tl.tgGame.util.RedisKeyGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -34,6 +38,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,6 +123,15 @@ public class TelegramBot2 extends TelegramLongPollingBot {
     @Autowired
     private RechargeService rechargeService;
 
+    @Autowired
+    private AddressService addressService;
+
+    @Autowired
+    private RedisKeyGenerator redisKeyGenerator;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     private static final List<String> KEYS = Arrays.asList("开始游戏", "个人资料", "游戏报表"
             , "获利查询", "推广链接", "推广数据", "/start", "USDT充值", "USDT提现", "绑定地址");
 
@@ -125,11 +139,13 @@ public class TelegramBot2 extends TelegramLongPollingBot {
         CallbackQuery callbackQuery = update.getCallbackQuery();
         try {
             if (callbackQuery.getData().contains("USDT充值:转账金额确认")) {
+                com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
                 String[] split = callbackQuery.getData().split("\\|");
                 String[] texts = split[1].split("\\.");
+                Address address = addressService.get(user.getId());
                 StringBuilder append = new StringBuilder()
                         // TODO: 2023/8/28 这个地址以后在进行更换
-                        .append("充值地址: ").append("TE2kinqr93ZeWGLUAvw33JCq4sMVA4oPfJ").append("\r\n")
+                        .append("充值地址: ").append(address.getTron()).append("\r\n")
                         .append("充值分数: ").append(texts[0]).append("\r\n")
                         .append("付款金额: ").append(texts[1]).append("\r\n")
                         .append("充值有效时长: ").append("30分钟").append("\r\n")
@@ -144,27 +160,23 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
                 execute(message);
             }
-            if (callbackQuery.getData().equals("充值转账完成:请确认")) {
-                // TODO: 2023/8/28  去链上拉数据,确认是否充值成功,然后进行充值
-            }
             if (callbackQuery.getData().equals("USDT提现:确认提现")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
                 Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
-                BigDecimal amount = BigDecimal.valueOf(100);
                 SendMessage message = null;
                 if (currency.getRemain().compareTo(BigDecimal.valueOf(20)) < 0) {
                     message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                             .text("尊敬的用户,可提现金额需大于20USDT").build();
                     execute(message);
                 }
-                if (amount.compareTo(BigDecimal.valueOf(20)) >= 0) {
+                if (currency.getRemain().compareTo(BigDecimal.valueOf(20)) >= 0) {
                     withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(), currency.getRemain());
                     message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                             .text("提现待审核,请稍等~~~").build();
                     execute(message);
                 }
             }
-        } catch (TelegramApiException e) {
+        } catch (TelegramApiException | IOException e) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
     }
@@ -238,6 +250,11 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(sendMessage);
             }
             if (text.equals("个人资料")) {
+                String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
+                String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
+                if(!org.springframework.util.StringUtils.isEmpty(value)){
+                    userService.gameWithdrawal(from.getId(), value);
+                }
                 BotPersonInfo botPersonInfo = userService.getbotPersonInfo(user);
                 StringBuilder builder = new StringBuilder();
                 StringBuilder append = builder.append("游戏账号: ").append(botPersonInfo.getGameAccount()).append("\r\n")
@@ -327,16 +344,60 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message4);
             }
             if (text.equals("\uD83C\uDFB0WL棋牌")) {
-
+                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL.getKey());
+                StringBuilder append2 = new StringBuilder()
+                        .append("\uD83C\uDFB0WL棋牌").append("\r\n")
+                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
+                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                        .text(append2.toString()).build();
+                execute(message4);
             }
             if (text.equals("\uD83D\uDC21EG电子")) {
-
+                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.EG.getKey());
+                StringBuilder append2 = new StringBuilder()
+                        .append("\uD83D\uDC21EG电子").append("\r\n")
+                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
+                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                        .text(append2.toString()).build();
+                execute(message4);
             }
             if (text.equals("\uD83D\uDC9EWL百家乐")) {
-
+                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL_BJL.getKey());
+                StringBuilder append2 = new StringBuilder()
+                        .append("\uD83D\uDC9EWL百家乐").append("\r\n")
+                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
+                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                        .text(append2.toString()).build();
+                execute(message4);
             }
             if (text.equals("⚽\uFE0FWL体育")) {
-
+                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL_TY.getKey());
+                StringBuilder append2 = new StringBuilder()
+                        .append("⚽\uFE0FWL体育").append("\r\n")
+                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
+                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                        .text(append2.toString()).build();
+                execute(message4);
             }
             if (text.equals("\uD83D\uDD3A返回上级\uD83D\uDD19")) {
                 SendMessage message5 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())

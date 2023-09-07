@@ -53,7 +53,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private UserCommissionService userCommissionService;
 
     @Autowired
-    private BetService betService;
+    private GameBetService gameBetService;
 
     @Autowired
     private GameService gameService;
@@ -66,6 +66,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private ConfigService configService;
+
+    @Autowired
+    private WlBetService wlBetService;
+
+    @Autowired
+    private EgBetService egBetService;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -113,19 +119,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //余额
         Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
         //总充值
-        BigDecimal sumRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, null, null).setScale(2,RoundingMode.DOWN);
+        BigDecimal sumRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, null, null).setScale(2, RoundingMode.DOWN);
         //总提现
-        BigDecimal sumWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), null, null).setScale(2,RoundingMode.DOWN);;
+        BigDecimal sumWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), null, null).setScale(2, RoundingMode.DOWN);
+        ;
         //提现待审核金额
         BigDecimal withdrawalWaitAuth = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER,
-                List.of(WithdrawStatus.created, WithdrawStatus.review_success, WithdrawStatus.withdrawing), null, null).setScale(2,RoundingMode.DOWN);;
+                List.of(WithdrawStatus.created, WithdrawStatus.review_success, WithdrawStatus.withdrawing), null, null).setScale(2, RoundingMode.DOWN);
+        ;
         //总佣金
-        BigDecimal allCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2,RoundingMode.DOWN);;
+        BigDecimal allCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
+        ;
         //总返水
-        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, null, null).setScale(2,RoundingMode.DOWN);;
+        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, null, null).setScale(2, RoundingMode.DOWN);
+        ;
         //待返水
-        BigDecimal waitBackWater = betService.sumAmount(user.getId(), false).setScale(2,RoundingMode.DOWN);;
-
+        BigDecimal waitBackWater = gameBetService.sumBetAmount(user.getId(), null, null, false).setScale(2, RoundingMode.DOWN);
+        ;
+        BigDecimal backWaterRate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
         return BotPersonInfo.builder()
                 .balance(currency.getBalance().setScale(2, RoundingMode.DOWN))
                 .allCommission(allCommission)
@@ -134,7 +145,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .allWithdrawal(sumWithdrawal)
                 .allProfit(allCommission.add(allBackWater))
                 .waitAuthWithdrawal(withdrawalWaitAuth)
-                .waitBackWater(waitBackWater)
+                .waitBackWater(waitBackWater.multiply(backWaterRate).setScale(2, RoundingMode.DOWN))
                 .withdrawalUrl(user.getWithdrawalUrl() == null ? "" : user.getWithdrawalUrl())
                 .gameAccount(user.getGameAccount()).build();
     }
@@ -146,43 +157,52 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
          */
         LocalDateTime monthBegin = TimeUtil.getMonthBegin();
         LocalDateTime endTime = LocalDateTime.now();
-        BigDecimal monthBetAmount = betService.sumBetAmount(user.getId(), monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal monthBetAmount = gameBetService.sumBetAmount(user.getId(), monthBegin, endTime, null).setScale(2, RoundingMode.DOWN);
+        ;
         /**
          * 本周下注金额
          */
         LocalDateTime weekBegin = TimeUtil.getWeekBegin();
-        BigDecimal weekBetAmount = betService.sumBetAmount(user.getId(), weekBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal weekBetAmount = gameBetService.sumBetAmount(user.getId(), weekBegin, endTime, null).setScale(2, RoundingMode.DOWN);
+        ;
         /**
          * 当天下注金额
          */
         LocalDateTime todayBegin = TimeUtil.getTodayBegin();
-        BigDecimal dayBetAmount = betService.sumBetAmount(user.getId(), todayBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal dayBetAmount = gameBetService.sumBetAmount(user.getId(), todayBegin, endTime, null).setScale(2, RoundingMode.DOWN);
+        ;
 
         /**
          * 当月派彩
          */
-        BigDecimal monthFestoon = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal monthFestoon = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
         /**
          * 本周派彩
          */
-        BigDecimal weekFestoon = userCommissionService.sumAmount(user.getId(), null, null, weekBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal weekFestoon = userCommissionService.sumAmount(user.getId(), null, null, weekBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
         /**
          * 当日派彩
          */
-        BigDecimal dayFestoon = userCommissionService.sumAmount(user.getId(), null, null, todayBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal dayFestoon = userCommissionService.sumAmount(user.getId(), null, null, todayBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
 
         /**
          * 当月盈利
          */
-        BigDecimal monthProfit = betService.sumWinLose(user.getId(), monthBegin, endTime, true).setScale(2,RoundingMode.DOWN);;
+        BigDecimal monthProfit = gameBetService.sumWinLose(user.getId(), monthBegin, endTime, true).setScale(2, RoundingMode.DOWN);
+        ;
         /**
          * 本周盈利
          */
-        BigDecimal weekProfit = betService.sumWinLose(user.getId(), weekBegin, endTime, true).setScale(2,RoundingMode.DOWN);;
+        BigDecimal weekProfit = gameBetService.sumWinLose(user.getId(), weekBegin, endTime, true).setScale(2, RoundingMode.DOWN);
+        ;
         /**
          * 当日盈利
          */
-        BigDecimal dayProfit = betService.sumWinLose(user.getId(), todayBegin, endTime, true).setScale(2,RoundingMode.DOWN);;
+        BigDecimal dayProfit = gameBetService.sumWinLose(user.getId(), todayBegin, endTime, true).setScale(2, RoundingMode.DOWN);
+        ;
 
 
         return BotGameStatisticsInfo.builder()
@@ -205,12 +225,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //总返水
         BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, gameBusiness, null, null);
         //待返水
-//        BigDecimal waitBackWater = BigDecimal.ZERO;
-//        switch (gameBusiness){
-//            case "FC":
-//                waitBackWater = betService.sumAmount(user.getId(),false).setScale()
-//        }
-         BigDecimal waitBackWater = betService.sumAmount(user.getId(), false);
+        BigDecimal waitBackWater = gameBetService.sumAmount(user.getId(), false, gameBusiness).setScale(2, RoundingMode.DOWN);
 
         return GameBusinessStatisticsInfo.builder()
                 .gameBusiness(GameBusiness.of(gameBusiness))
@@ -235,13 +250,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LocalDateTime todayBegin = TimeUtil.getTodayBegin();
 
         //当月总充值
-        BigDecimal monthAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal monthAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
         //当日总充值
-        BigDecimal todayAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, todayBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal todayAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, todayBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
         //当月总提现
-        BigDecimal monthWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal monthWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
         //今日总提现
-        BigDecimal todayWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal todayWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
         //总邀请
         List<User> users = queryByInviteUser(user.getInviteUser(), null, null);
         //当月总邀请
@@ -249,11 +268,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //当日总邀请
         List<User> todayUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //总佣金
-        BigDecimal todayCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2,RoundingMode.DOWN);;
+        BigDecimal todayCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
+        ;
         //总返水
-        BigDecimal todayBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, todayBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal todayBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, todayBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
         //当月总盈利
-        BigDecimal monthAllProfit = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2,RoundingMode.DOWN);;
+        BigDecimal monthAllProfit = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
+        ;
 
 
         return BotExtendStatisticsInfo.builder()
@@ -293,52 +315,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (currency.getRemain().compareTo(BigDecimal.ZERO) <= 0) {
                 return true;
             }
+            Boolean result = false;
             switch (gameType) {
                 case "FC":
-                    currencyService.freeze(user.getId(), UserType.USER,
-                            BusinessEnum.FC_RECHARGE, currency.getRemain(), null, gameType + "电子用户充值暂冻");
+                    currencyService.withdraw(user.getId(), UserType.USER,
+                            BusinessEnum.FC_RECHARGE, currency.getRemain(), null, gameType + "电子用户充值");
                     ApiSetPointReq build = ApiSetPointReq.builder()
                             .Points(currency.getRemain().doubleValue())
                             .MemberAccount(user.getGameAccount())
                             .build();
                     ApiSetPointRes apiSetPointRes = gameService.setPoints(build);
-                    try {
-                        if (!apiSetPointRes.getResult().equals(0)) {
-                            ErrorEnum.GAME_RECHARGE_FAIL.throwException();
-                        }
-                    } catch (Exception e) {
-                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    if (!apiSetPointRes.getResult().equals(0)) {
+                        ErrorEnum.GAME_RECHARGE_FAIL.throwException();
                     }
-                    if (apiSetPointRes.getResult().equals(0)) {
-                        currencyService.reduce(user.getId(), UserType.USER,
-                                BusinessEnum.FC_RECHARGE, currency.getRemain(), apiSetPointRes.getTrsID(),
-                                "FC发财电子用户充值AfterPoint:" + apiSetPointRes.getAfterPoint() + "|points:" + apiSetPointRes.getPoints());
-                        String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", user.getTgId());
-                        stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType);
-                        return true;
-                    }
+                    result = true;
                     break;
                 case "WL":
-                    currencyService.freeze(user.getId(), UserType.USER,
-                            BusinessEnum.WL_RECHARGE, currency.getRemain(), null, gameType + "电子用户充值暂冻");
+                    currencyService.withdraw(user.getId(), UserType.USER,
+                            BusinessEnum.WL_RECHARGE, currency.getRemain(), null, gameType + "电子用户充值");
                     String gup = StrUtil.emptyToDefault(configService.get(ConfigConstants.WL_GAME_USDT_POINT), "7.00");
                     BigDecimal point = currency.getRemain().multiply(new BigDecimal(gup)).setScale(2, RoundingMode.HALF_DOWN);
                     ApiWlGameRes wlGameRes = gameService.wlPayOrder(user.getId(), point);
-                    try {
-                        if (wlGameRes.getCode() != 0 || (wlGameRes.getData() != null && !wlGameRes.getData().getReason().equals("ok"))) {
-                            String errMsg = wlGameRes.getData() == null ? wlGameRes.getMsg() : wlGameRes.getData().getReason();
-                            ErrorEnum.GAME_RECHARGE_FAIL.throwException(errMsg);
-                        }
-                    } catch (Exception e) {
-                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                    }
-                    if (wlGameRes.getCode() ==0 && wlGameRes.getData()!=null && wlGameRes.getData().getReason().equals("ok")) {
-                        ApiWlGameOrderRes resData = wlGameRes.getData();
-                        currencyService.reduce(user.getId(), UserType.USER,
-                                BusinessEnum.WL_RECHARGE, currency.getRemain(), resData.getOrderId(), "瓦力电子用户充值Point:" + resData.getBalance());
-                        String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", user.getTgId());
-                        stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType);
-                        return true;
+                    if (wlGameRes.getCode() != 0 || (wlGameRes.getData() != null && !wlGameRes.getData().getReason().equals("ok"))) {
+                        String errMsg = wlGameRes.getData() == null ? wlGameRes.getMsg() : wlGameRes.getData().getReason();
+                        ErrorEnum.GAME_RECHARGE_FAIL.throwException(errMsg);
                     }
                     break;
                 case "EG":
@@ -346,30 +346,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     String transactionId = UUID.randomUUID().toString();
                     ApiEgDepositReq req = ApiEgDepositReq.builder().merch(merch)
                             .playerId(user.getGameAccount()).amount(currency.getRemain().toString()).transactionId(transactionId).build();
-                    currencyService.freeze(user.getId(), UserType.USER,
-                            BusinessEnum.EG_RECHARGE, currency.getRemain(), transactionId, gameType + "电子用户充值暂冻");
+                    currencyService.withdraw(user.getId(), UserType.USER,
+                            BusinessEnum.EG_RECHARGE, currency.getRemain(), transactionId, gameType + "电子用户充值");
                     ApiEgDepositRes apiEgDepositRes = gameService.egDeposit(req);
-                    try {
-                        if (!StringUtils.isEmpty(apiEgDepositRes.getCode())) {
-                            ErrorEnum.GAME_RECHARGE_FAIL.throwException();
-                        }
-                    } catch (Exception e) {
-                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                    }
-                    if (StringUtils.isEmpty(apiEgDepositRes.getCode())) {
-                        currencyService.reduce(user.getId(), UserType.USER,
-                                BusinessEnum.EG_RECHARGE, currency.getRemain(), transactionId,
-                                "EG电子用户充值AfterPoint:" + apiEgDepositRes.getBeforeBalance() + "|points:" + apiEgDepositRes.getAfterBalance());
-                        String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", user.getTgId());
-                        stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType);
-                        return true;
+                    if (!StringUtils.isEmpty(apiEgDepositRes.getCode())) {
+                        ErrorEnum.GAME_RECHARGE_FAIL.throwException();
                     }
                     break;
             }
+            if (result) {
+                String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", user.getTgId());
+                stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType);
+            }
+            return result;
         } finally {
             redisLock._redissonUnLock(key);
         }
-        return false;
     }
 
     @Override
