@@ -53,6 +53,7 @@ game_api:
     deposit: /deposit
     withdraw: /withdraw
     gameList: /gameList
+    logout: /logout
     enterGame: /enterGame
     roundRecordByTime: /roundRecordByTime
   wl:

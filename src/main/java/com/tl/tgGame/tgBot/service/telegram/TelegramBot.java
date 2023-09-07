@@ -1,5 +1,6 @@
 package com.tl.tgGame.tgBot.service.telegram;
 
+import com.google.common.collect.Lists;
 import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.project.dto.ApiEgCreateUserReq;
 import com.tl.tgGame.project.dto.ApiLoginReq;
@@ -22,6 +23,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendGame;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.games.CallbackGame;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -33,6 +35,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -128,19 +131,22 @@ public class TelegramBot extends TelegramLongPollingBot {
             String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
             String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
             if(!StringUtils.isEmpty(value)){
-                userService.gameWithdrawal(from.getId(), value);
-            }
-            if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("FC_GAME")) {
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                String login = gameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
-                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
-                if (result) {
-                    AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                    answerCallbackQuery.setUrl(login);
-                    answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
-                    execute(answerCallbackQuery);
+                if(!(value.equals("EG") && callbackQuery.getGameShortName().equals("EG_GAME")) &&
+                        !(value.equals("WL") && Arrays.asList("WL_GAME","WL_BJL","WL_TY").contains(callbackQuery.getGameShortName()))){
+                    userService.gameWithdrawal(from.getId(), value);
                 }
             }
+//            if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("FC_GAME")) {
+//                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+//                String login = gameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
+//                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
+//                if (result) {
+//                    AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+//                    answerCallbackQuery.setUrl(login);
+//                    answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+//                    execute(answerCallbackQuery);
+//                }
+//            }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("EG_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 if (!user.getHasJoinEg()) {
@@ -239,10 +245,10 @@ public class TelegramBot extends TelegramLongPollingBot {
                 if (!CollectionUtils.isEmpty(message2.getNewChatMembers())) {
                     List<User> newChatMembers = message2.getNewChatMembers();
                     for (User users : newChatMembers) {
-                        com.tl.tgGame.project.entity.User user = userService.checkTgIdAndGroup(users.getId(), chat.getId().toString());
+                        com.tl.tgGame.project.entity.User user = userService.checkTgId(users.getId());
                         if (user == null) {
                             userService.insertUser(users.getFirstName(), users.getLastName(), users.getUserName(),
-                                    users.getIsBot(), users.getId(), chat.getId().toString());
+                                    users.getIsBot(), users.getId(), chat.getId().toString(),null,null);
                         } else {
                             userService.updateByHasGroup(users.getId(), chat.getId().toString(), true);
                         }
@@ -252,7 +258,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     com.tl.tgGame.project.entity.User user = userService.checkTgId(message2.getFrom().getId());
                     if (user == null) {
                         userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(),
-                                from.getIsBot(), from.getId(), chat.getId().toString());
+                                from.getIsBot(), from.getId(), chat.getId().toString(),null,null);
                     } else {
                         userService.updateByHasGroup(from.getId(), chat.getId().toString(), true);
                     }
@@ -284,11 +290,36 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                     switch (message2.getText()) {
                         case "\uD83D\uDC9EFC电子":
-                            SendGame build1 = SendGame.builder().chatId(update.getMessage().getChatId())
-                                    .gameShortName("FC_GAME")
-                                    .replyMarkup(build)
+                            String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", message2.getFrom().getId());
+                            String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
+                            if(!StringUtils.isEmpty(value) && !value.equals("FC")){
+                                userService.gameWithdrawal(message2.getFrom().getId(), value);
+                            }
+                            com.tl.tgGame.project.entity.User user = userService.checkTgId(message2.getFrom().getId());
+                            String login = gameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
+                            userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
+                            InlineKeyboardButton inlineKeyboardButton4 = InlineKeyboardButton.builder().url(login).text("\uD83C\uDFC6开始游戏\uD83D\uDD25").build();
+                            InlineKeyboardButton inlineKeyboardButton5 = InlineKeyboardButton.builder().url(url).text("\uD83E\uDD29个人中心\uD83C\uDF08").build();
+                            List<List<InlineKeyboardButton>> lists1 = new ArrayList<>();
+                            List<InlineKeyboardButton> inlineKeyboardButtons11 = new ArrayList<>();
+                            List<InlineKeyboardButton> inlineKeyboardButtonsS2 = new ArrayList<>();
+                            inlineKeyboardButtons11.add(inlineKeyboardButton4);
+
+                            inlineKeyboardButtonsS2.add(inlineKeyboardButton5);
+
+                            lists1.add(inlineKeyboardButtons11);
+                            lists1.add(inlineKeyboardButtonsS2);
+                            InlineKeyboardMarkup build1 = InlineKeyboardMarkup.builder().keyboard(lists1).build();
+                            SendPhoto sendPhoto = SendPhoto.builder().parseMode("html").chatId(update.getMessage().getChatId())
+                                    .replyMarkup(build1).caption("389.bet综合娱乐城为您献上极致沉浸的顶级娱乐游戏体验～")
+                                    .photo(new InputFile("https://tg-game-dev.s3.ap-northeast-1.amazonaws.com/image/202308281131068de0a859-22f4-45c0-82f5-c6a7cead1b73.png"))
                                     .build();
-                            execute(build1);
+//                            SendGame build1 = SendGame.builder().chatId(update.getMessage().getChatId())
+//                                    .gameShortName("FC_GAME")
+//                                    .replyMarkup(build)
+//                                    .build();
+//                            execute(build1);
+                            execute(sendPhoto);
                             break;
                         case "\uD83C\uDFB0WL棋牌":
                             SendGame build2 = SendGame.builder().chatId(update.getMessage().getChatId())

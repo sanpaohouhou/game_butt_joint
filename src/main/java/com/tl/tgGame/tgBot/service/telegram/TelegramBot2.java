@@ -40,10 +40,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @Slf4j
@@ -160,21 +157,15 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
                 execute(message);
             }
-            if (callbackQuery.getData().equals("USDT提现:确认提现")) {
+            if (callbackQuery.getData().contains("USDT提现:确认提现")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
-                Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
-                SendMessage message = null;
-                if (currency.getRemain().compareTo(BigDecimal.valueOf(20)) < 0) {
-                    message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
-                            .text("尊敬的用户,可提现金额需大于20USDT").build();
-                    execute(message);
-                }
-                if (currency.getRemain().compareTo(BigDecimal.valueOf(20)) >= 0) {
-                    withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(), currency.getRemain());
-                    message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
-                            .text("提现待审核,请稍等~~~").build();
-                    execute(message);
-                }
+                String[] split = callbackQuery.getData().split("\\|");
+                String text = split[1];
+                withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(), new BigDecimal(text));
+                SendMessage message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
+                        .text("提现待审核,请稍等~~~").build();
+                execute(message);
+//                }
             }
         } catch (TelegramApiException | IOException e) {
             ErrorEnum.SYSTEM_ERROR.throwException();
@@ -231,8 +222,20 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             User from = messages.getFrom();
             Chat chat = messages.getChat();
             com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-            if (user == null) {
-                user = userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(), from.getIsBot(), from.getId(), chat.getId().toString());
+            if (text.contains("/start") && text.length() > 6) {
+                String[] split = text.split(" ");
+                String gameAccount = split[1];
+                com.tl.tgGame.project.entity.User user1 = userService.queryByMemberAccount(gameAccount);
+                if (user == null) {
+                    user = userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(),
+                            from.getIsBot(), from.getId(), chat.getId().toString(),
+                            Objects.nonNull(user1) ? user1.getId() : null, user1.getInviteChain());
+                }
+            } else {
+                if (user == null) {
+                    user = userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(), from.getIsBot(),
+                            from.getId(), chat.getId().toString(), null, null);
+                }
             }
             if (StringUtils.isEmpty(text)) {
                 SendMessage message3 = SendMessage.builder().text("\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25")
@@ -252,7 +255,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             if (text.equals("个人资料")) {
                 String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
                 String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
-                if(!org.springframework.util.StringUtils.isEmpty(value)){
+                if (!org.springframework.util.StringUtils.isEmpty(value)) {
                     userService.gameWithdrawal(from.getId(), value);
                 }
                 BotPersonInfo botPersonInfo = userService.getbotPersonInfo(user);
@@ -447,30 +450,44 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message8);
             }
 
-            if (text.equals("USDT提现")) {
+            if (text.equals("USDT提现") || checkState(update).equals("USDT提现")) {
+                SendMessage message = null;
                 List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
                 InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
                 inlineKeyboardButtons.add(inlineKeyboardButton);
-                SendMessage message = null;
-                if (StringUtils.isEmpty(user.getWithdrawalUrl())) {
-                    InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons).build();
-                    message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                            .text("尊敬的用户，请绑定充值提现地址").replyMarkup(inlineKeyboardMarkup).build();
+                InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons).build();
+                if (update.getMessage().getText().equals("USDT提现")) {
+                    buildState(update, true);
+                    if (StringUtils.isEmpty(user.getWithdrawalUrl())) {
+                        message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                                .text("尊敬的用户，请绑定充值提现地址").replyMarkup(inlineKeyboardMarkup).build();
+                    } else {
+                        message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                                .text("尊贵的用户,请输入提现金额").replyMarkup(inlineKeyboardMarkup).build();
+                    }
                 } else {
                     Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
-                    List<List<InlineKeyboardButton>> lists = new ArrayList<>();
-                    InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().text("确认提现").callbackData("USDT提现:确认提现").build();
-                    List<InlineKeyboardButton> inlineKeyboardButtonList = new ArrayList<>();
-
-                    inlineKeyboardButtonList.add(inlineKeyboardButton1);
-                    lists.add(inlineKeyboardButtons);
-                    lists.add(inlineKeyboardButtonList);
-
-                    InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboard(lists).build();
-                    StringBuilder append = new StringBuilder()
-                            .append("可提现金额: ").append(currency.getRemain()).append("\r\n");
-                    message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                            .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
+                    if (!NumberUtil.isParsable(update.getMessage().getText()) || !NumberUtil.isNumeric2(update.getMessage().getText())) {
+                        message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                                .text("尊贵的用户，请正确输入金额").replyMarkup(inlineKeyboardMarkup).build();
+                    } else if (Integer.parseInt(update.getMessage().getText()) < 20) {
+                        message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                                .text("尊敬的用户，可提现金额需大于20USDT").replyMarkup(inlineKeyboardMarkup).build();
+                    } else if (new BigDecimal(update.getMessage().getText()).compareTo(currency.getRemain()) > 0) {
+                        message = SendMessage.builder().chatId(update.getMessage().getChatId())
+                                .text("尊贵的用户，您的余额不足，请重新输入。（输入 /cancel 取消）").replyMarkup(inlineKeyboardMarkup).build();
+                    } else {
+                        List<List<InlineKeyboardButton>> lists = new ArrayList<>();
+                        List<InlineKeyboardButton> inlineKeyboardButtonList = new ArrayList<>();
+                        InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().text("确认提现").callbackData("USDT提现:确认提现|" + update.getMessage().getText()).build();
+                        inlineKeyboardButtonList.add(inlineKeyboardButton1);
+                        lists.add(inlineKeyboardButtons);
+                        lists.add(inlineKeyboardButtonList);
+                        StringBuilder append = new StringBuilder()
+                                .append("可提现金额: ").append(currency.getRemain()).append("\r\n");
+                        message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                                .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
+                    }
                 }
                 execute(message);
             }
@@ -527,10 +544,10 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                                 "\n" +
                                 "不同游戏对应不同返佣系数，详情请点击“下级数据”和“获利查询”查看\n" +
                                 "\n" +
-                                "尊贵的用户，您的推广链接为：" + link + "&" + user.getGameAccount()).build();
+                                "尊贵的用户，您的推广链接为：" + link + "?start=" + user.getGameAccount()).build();
                 execute(message6);
             }
-            if (text.equals("/start")) {
+            if (text.equals("/cancel") || text.contains("/start")) {
                 SendMessage message3 = SendMessage.builder().text("\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25")
                         .replyMarkup(keyboardMarkup).chatId(update.getMessage().getChatId().toString())
                         .build();

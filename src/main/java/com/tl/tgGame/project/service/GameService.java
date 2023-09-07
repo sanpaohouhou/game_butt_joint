@@ -95,6 +95,11 @@ public interface GameService extends IService<Game> {
     ApiEgDepositRes egWithdraw(ApiEgWithdrawReq req);
 
     /**
+     * eg玩家登录
+     */
+    Boolean egLogout(ApiEgLogoutReq req);
+
+    /**
      * 取得游戏列表
      */
     ApiEgGameListRes egGameList();

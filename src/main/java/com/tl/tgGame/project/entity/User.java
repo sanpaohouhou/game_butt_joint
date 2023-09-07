@@ -57,6 +57,8 @@ public class User {
 
     private Boolean hasJoinEg;
 
+    private String inviteChain;
+
     @TableField(exist = false)
     private Currency currency;
 

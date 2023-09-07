@@ -4,6 +4,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tl.tgGame.common.lock.RedisLock;
 import com.tl.tgGame.exception.ErrorEnum;
@@ -23,12 +24,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * @version 1.0
@@ -68,25 +71,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private ConfigService configService;
 
     @Autowired
-    private WlBetService wlBetService;
-
-    @Autowired
-    private EgBetService egBetService;
-
-    @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private DefaultIdentifierGenerator defaultIdentifierGenerator;
+
     @Override
-    public User insertUser(String firstName, String lastName, String username, Boolean isBot, Long tgId, String tgGroup) {
+    public User insertUser(String firstName, String lastName, String username, Boolean isBot, Long tgId, String tgGroup,Long inviteUser,String inviteChain) {
         String gameAccount = convertAccount();
         User user = checkGameAccount(gameAccount);
         if (user != null) {
             ErrorEnum.USERNAME_ALREADY_USED.throwException();
         }
-        if (tgId.toString().equals(tgGroup)) {
-            return null;
-        }
-        User buildUser = buildUser(firstName, lastName, username, isBot, tgId, tgGroup, gameAccount);
+        Long id = defaultIdentifierGenerator.nextId(null);
+        User buildUser = buildUser(id,firstName, lastName, username, isBot, tgId, tgGroup,
+                gameAccount,inviteUser,StringUtils.isEmpty(inviteChain) ? String.valueOf(id) : inviteChain+":"+id);
         boolean save = save(buildUser);
         if (!save) {
             ErrorEnum.SYSTEM_ERROR.throwException();
@@ -340,6 +339,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         String errMsg = wlGameRes.getData() == null ? wlGameRes.getMsg() : wlGameRes.getData().getReason();
                         ErrorEnum.GAME_RECHARGE_FAIL.throwException(errMsg);
                     }
+                    result = true;
                     break;
                 case "EG":
                     String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
@@ -352,6 +352,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     if (!StringUtils.isEmpty(apiEgDepositRes.getCode())) {
                         ErrorEnum.GAME_RECHARGE_FAIL.throwException();
                     }
+                    result = true;
                     break;
             }
             if (result) {
@@ -407,8 +408,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     }
                     break;
                 case "EG":
-                    String transactionId = UUID.randomUUID().toString();
                     String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
+                    gameService.egLogout(ApiEgLogoutReq.builder().playerId(user.getGameAccount()).merch(merch).build());
+                    String transactionId = UUID.randomUUID().toString();
                     ApiEgWithdrawReq req = ApiEgWithdrawReq.builder()
                             .amount("0").transactionId(transactionId).merch(merch).playerId(user.getGameAccount())
                             .takeAll("1").build();
@@ -440,8 +442,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return "qu" + anInt;
     }
 
-    public User buildUser(String firstName, String lastName, String username, Boolean isBot, Long tgId, String tgGroup, String gameAccount) {
+    public User buildUser(Long id,String firstName, String lastName, String username, Boolean isBot, Long tgId, String tgGroup,
+                          String gameAccount,Long inviteUser,String inviteChain) {
         return User.builder()
+                .id(id)
                 .joinedTime(LocalDateTime.now())
                 .firstName(firstName)
                 .lastName(lastName)
@@ -450,6 +454,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .tgId(tgId)
                 .username(username)
                 .tgGroup(tgGroup)
+                .inviteUser(inviteUser)
+                .inviteChain(inviteChain)
                 .build();
     }
 

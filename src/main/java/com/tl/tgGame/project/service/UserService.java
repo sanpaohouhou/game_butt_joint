@@ -18,7 +18,7 @@ import java.util.List;
 public interface UserService extends IService<User> {
 
 
-    User insertUser(String firstName,String lastName,String username,Boolean isBot,Long tgId,String tgGroup);
+    User insertUser(String firstName,String lastName,String username,Boolean isBot,Long tgId,String tgGroup,Long inviteUser,String inviteChain);
 
     User checkGameAccount(String gameAccount);
 

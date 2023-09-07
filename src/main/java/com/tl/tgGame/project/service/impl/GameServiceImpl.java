@@ -85,6 +85,8 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
     private String egDeposit;
     @Value("${game_api.eg.withdraw}")
     private String egWithdraw;
+    @Value("${game_api.eg.logout}")
+    private String egLogout;
     @Value("${game_api.eg.gameList}")
     private String egGameList;
     @Value("${game_api.eg.enterGame}")
@@ -312,8 +314,8 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             String hash = Crypto.hmacToString(DigestFactory.createSHA256(), egHashKey, json.getBytes());
             url = egHost + egPlatform + egDeposit + "?hash=" + hash;
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(url).body(json).contentType("application/json").execute();
-            log.info("EG电子游戏充值请求参数:{},hash:{},返回结果:{}", json,hash,body);
             body = execute.body();
+            log.info("EG电子游戏充值请求参数:{},hash:{},返回结果:{}", json,hash,body);
             return new Gson().fromJson(body, ApiEgDepositRes.class);
         } catch (Exception e) {
             log.error("EG电子游戏充值异常exception:{},request:{},response:{}", e, req, body);
@@ -333,11 +335,32 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
             hash = Crypto.hmacToString(DigestFactory.createSHA256(), egHashKey, json.getBytes());
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(egHost + egPlatform + egWithdraw + "?hash=" + hash)
                     .body(json).contentType("application/json").execute();
-            log.info("EG电子游戏提现请求参数:{},hash:{},返回结果:{}", json,hash,body);
             body = execute.body();
+            log.info("EG电子游戏提现请求参数:{},hash:{},返回结果:{}", json,hash,body);
             return new Gson().fromJson(body, ApiEgDepositRes.class);
         } catch (Exception e) {
             log.error("EG电子游戏提现异常exception:{},request:{},response:{}", e, req, body);
+        }
+        return null;
+    }
+
+    @Override
+    public Boolean egLogout(ApiEgLogoutReq req) {
+        String hash = null;
+        String body = null;
+        try {
+            String json = new Gson().toJson(req);
+            String egPlatform = configService.get(ConfigConstants.EG_PLATFORM);
+            String egHashKey = configService.get(ConfigConstants.EG_HASH_KEY);
+            String egHost = configService.get(ConfigConstants.EG_HOST);
+            hash = Crypto.hmacToString(DigestFactory.createSHA256(), egHashKey, json.getBytes());
+            HttpResponse execute = cn.hutool.http.HttpUtil.createPost(egHost + egPlatform + egLogout + "?hash=" + hash)
+                    .body(json).contentType("application/json").execute();
+            body = execute.body();
+            log.info("EG电子游戏登出玩家请求参数:{},hash:{},返回结果:{}", json,hash,body);
+            return true;
+        } catch (Exception e) {
+            log.error("EG电子游戏登出玩家异常exception:{},request:{},response:{}", e, req, body);
         }
         return null;
     }

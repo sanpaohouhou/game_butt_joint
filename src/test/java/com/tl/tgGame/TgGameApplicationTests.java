@@ -287,6 +287,14 @@ class TgGameApplicationTests {
 	}
 
 	@Test
+	public void egLogout(){
+
+		ApiEgLogoutReq build = ApiEgLogoutReq.builder().playerId("qu4673689839").merch("389bet_usdt").build();
+		Boolean aBoolean = gameService.egLogout(build);
+		System.out.println(aBoolean);
+	}
+
+	@Test
 	public void testErWeiMa(){
 		String textToEncode = "亲爱的媳妇,我们结婚吧!想跟你创造一个属于我们幸福的家庭,我爱你!我滴宝"; // 要编码成二维码的文本
 		String filePath = "qrcode.png"; // 生成的二维码图片文件路径
