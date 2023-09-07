@@ -58,7 +58,7 @@ public class EgBetServiceImpl extends ServiceImpl<EgBetMapper, EgBet> implements
         List<GameBet> gameBets = new ArrayList<>();
         for (ApiEgGameRecordRes record : date) {
             EgBet bet = buildEgBet(record,pullTime);
-            User user = userService.getById(record.getPlayerId());
+            User user = userService.queryByMemberAccount(record.getPlayerId());
             bet.setUserId(user.getId());
             EgBet one = getOne(new LambdaQueryWrapper<EgBet>().eq(EgBet::getRoundId, record.getRoundId()));
             if(one == null){
