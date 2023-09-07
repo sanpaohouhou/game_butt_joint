@@ -37,11 +37,16 @@ public class TimeUtil {
         DateTime parse = DateUtil.parse(dateStr);
         Instant instant = parse.toInstant();
         ZoneId zoneId = ZoneId.systemDefault();
-        LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
-        System.out.println(localDateTime);
-        return localDateTime;
+        return instant.atZone(zoneId).toLocalDateTime();
     }
 
+
+    public static LocalDateTime parseTimestamp(String timestamp){
+        Instant instant = Instant.ofEpochMilli(Long.parseLong(timestamp));
+        ZoneId zoneId = ZoneId.systemDefault();
+        String format = LocalDateTime.ofInstant(instant, zoneId).format(dateTimeFormatter);
+        return LocalDateTime.parse(format,dateTimeFormatter);
+    }
     /**
      * 转换成毫秒级时间戳
      * @param now
@@ -109,7 +114,9 @@ public class TimeUtil {
         String str = "2023-09-03 23:08:58";
         LocalDateTime localDateTime = parseLocalDateTime(str);
         LocalDateTime localDateTime1 = shanghaiCharge(localDateTime);
+        LocalDateTime stringDisplayLocalDateTime = parseTimestamp("1694080792493");
         System.out.println(localDateTime1);
+        System.out.println(stringDisplayLocalDateTime);
     }
 
 }

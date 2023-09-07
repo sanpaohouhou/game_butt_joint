@@ -151,7 +151,7 @@ public class EgBetServiceImpl extends ServiceImpl<EgBetMapper, EgBet> implements
                 .recordId(egBet.getRoundId())
                 .validBet(new BigDecimal(egBet.getBet()))
                 .gameId(egBet.getGameId())
-                .recordTime(TimeUtil.parseLocalDateTime(egBet.getWpTime()))
+                .recordTime(TimeUtil.parseTimestamp(egBet.getWpTime()))
                 .build();
     }
 }
