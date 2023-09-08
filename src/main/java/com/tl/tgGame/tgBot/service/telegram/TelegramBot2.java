@@ -161,7 +161,12 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
                 String[] split = callbackQuery.getData().split("\\|");
                 String text = split[1];
-                withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(), new BigDecimal(text));
+                BigDecimal withdrawalAmount = new BigDecimal(text);
+                Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
+                if(withdrawalAmount.compareTo(currency.getRemain()) > 0){
+                    return;
+                }
+                withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(),withdrawalAmount);
                 SendMessage message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                         .text("提现待审核,请稍等~~~").build();
                 execute(message);
@@ -310,6 +315,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
 
                 KeyboardButton keyboardButton14 = KeyboardButton.builder().text("\uD83D\uDC9EWL百家乐").build();
                 KeyboardButton keyboardButton15 = KeyboardButton.builder().text("⚽\uFE0FWL体育").build();
+                KeyboardButton keyboardButton16 = KeyboardButton.builder().text("\uD83C\uDF08FC捕鱼").build();
                 KeyboardButton keyboardButton11 = KeyboardButton.builder().text("\uD83D\uDD3A返回上级\uD83D\uDD19").build();
 
                 keyboardRow10.add(keyboardButton10);
@@ -319,6 +325,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
 
                 keyboardRow11.add(keyboardButton14);
                 keyboardRow11.add(keyboardButton15);
+                keyboardRow11.add(keyboardButton16);
                 keyboardRow11.add(keyboardButton11);
 
 
@@ -333,10 +340,11 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .build();
                 execute(message2);
             }
-            if (text.equals("\uD83D\uDC9EFC电子")) {
-                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.FC.getKey());
+            if (text.equals("\uD83D\uDC9EFC电子") || text.equals("\uD83C\uDFB0WL棋牌") || text.equals("\uD83D\uDC21EG电子")
+            || text.equals("\uD83D\uDC9EWL百家乐") || text.equals("⚽\uFE0FWL体育") || text.equals("\uD83C\uDF08FC捕鱼")) {
+                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.pushName(text));
                 StringBuilder append2 = new StringBuilder()
-                        .append("\uD83D\uDC44FC电子").append("\r\n")
+                        .append(text).append("\r\n")
                         .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
                         .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
                         .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
@@ -347,62 +355,62 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .text(append2.toString()).build();
                 execute(message4);
             }
-            if (text.equals("\uD83C\uDFB0WL棋牌")) {
-                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL.getKey());
-                StringBuilder append2 = new StringBuilder()
-                        .append("\uD83C\uDFB0WL棋牌").append("\r\n")
-                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
-                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
-                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
-                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
-                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
-                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
-                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                        .text(append2.toString()).build();
-                execute(message4);
-            }
-            if (text.equals("\uD83D\uDC21EG电子")) {
-                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.EG.getKey());
-                StringBuilder append2 = new StringBuilder()
-                        .append("\uD83D\uDC21EG电子").append("\r\n")
-                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
-                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
-                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
-                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
-                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
-                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
-                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                        .text(append2.toString()).build();
-                execute(message4);
-            }
-            if (text.equals("\uD83D\uDC9EWL百家乐")) {
-                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL_BJL.getKey());
-                StringBuilder append2 = new StringBuilder()
-                        .append("\uD83D\uDC9EWL百家乐").append("\r\n")
-                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
-                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
-                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
-                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
-                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
-                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
-                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                        .text(append2.toString()).build();
-                execute(message4);
-            }
-            if (text.equals("⚽\uFE0FWL体育")) {
-                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL_TY.getKey());
-                StringBuilder append2 = new StringBuilder()
-                        .append("⚽\uFE0FWL体育").append("\r\n")
-                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
-                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
-                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
-                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
-                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
-                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
-                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                        .text(append2.toString()).build();
-                execute(message4);
-            }
+//            if (text.equals("\uD83C\uDFB0WL棋牌")) {
+//                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL.getKey());
+//                StringBuilder append2 = new StringBuilder()
+//                        .append("\uD83C\uDFB0WL棋牌").append("\r\n")
+//                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+//                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+//                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+//                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+//                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+//                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
+//                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                        .text(append2.toString()).build();
+//                execute(message4);
+//            }
+//            if (text.equals("\uD83D\uDC21EG电子")) {
+//                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.EG.getKey());
+//                StringBuilder append2 = new StringBuilder()
+//                        .append("\uD83D\uDC21EG电子").append("\r\n")
+//                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+//                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+//                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+//                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+//                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+//                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
+//                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                        .text(append2.toString()).build();
+//                execute(message4);
+//            }
+//            if (text.equals("\uD83D\uDC9EWL百家乐")) {
+//                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL_BJL.getKey());
+//                StringBuilder append2 = new StringBuilder()
+//                        .append("\uD83D\uDC9EWL百家乐").append("\r\n")
+//                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+//                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+//                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+//                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+//                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+//                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
+//                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                        .text(append2.toString()).build();
+//                execute(message4);
+//            }
+//            if (text.equals("⚽\uFE0FWL体育")) {
+//                GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.WL_TY.getKey());
+//                StringBuilder append2 = new StringBuilder()
+//                        .append("⚽\uFE0FWL体育").append("\r\n")
+//                        .append("游戏名称: ").append(gameBusinessStatistics.getGameBusiness()).append("\r\n")
+//                        .append("返水比例: ").append(gameBusinessStatistics.getBackWaterRate()).append("\r\n")
+//                        .append("已返水: ").append(gameBusinessStatistics.getBackWater()).append("\r\n")
+//                        .append("待返水: ").append(gameBusinessStatistics.getWaitBackWater()).append("\r\n")
+//                        .append("下级佣金比例: ").append(gameBusinessStatistics.getJuniorCommissionRate()).append("\r\n")
+//                        .append("下级佣金: ").append(gameBusinessStatistics.getJuniorCommission()).append("\r\n");
+//                SendMessage message4 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                        .text(append2.toString()).build();
+//                execute(message4);
+//            }
             if (text.equals("\uD83D\uDD3A返回上级\uD83D\uDD19")) {
                 SendMessage message5 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                         .text("\uD83C\uDF89欢迎您来到389.bet博彩娱乐综合城‼\uFE0F \uD83C\uDF1F无需注册，点击开始游戏，即可闪电加入⚡\uFE0F")

@@ -88,6 +88,9 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
             }
             User user = userService.getById(userId);
             GameBet gameBet = buildGameBet(wlBet, user.getGameAccount(),usdtPoint);
+            if(profit.compareTo(BigDecimal.ZERO) > 0){
+
+            }
             gameBets.add(gameBet);
         }
         if (!saveBatch(recordList)) {
@@ -172,16 +175,16 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
                 .backWaterAmount(BigDecimal.ZERO)
                 .gameBusiness(business.getKey())
                 .createTime(LocalDateTime.now())
-                .tax(wlBet.getTax())
-                .profit(wlBet.getProfit().negate())
+                .tax(wlBet.getTax().divide(usdtPoint,2,RoundingMode.DOWN))
+                .profit(wlBet.getProfit().negate().divide(usdtPoint,2,RoundingMode.DOWN))
                 .topCommission(BigDecimal.ZERO)
                 .gameAccount(gameAccount)
-                .bet(wlBet.getBet())
+                .bet(wlBet.getBet().divide(usdtPoint,2,RoundingMode.DOWN))
                 .hasSettled(false)
                 .userId(wlBet.getUserId())
                 .gameName(wlBet.getGameName())
                 .recordId(wlBet.getRecordId())
-                .validBet(wlBet.getValidBet())
+                .validBet(wlBet.getValidBet().divide(usdtPoint,2,RoundingMode.DOWN))
                 .gameId(wlBet.getGame().toString())
                 .recordTime(wlBet.getRecordTime())
                 .build();

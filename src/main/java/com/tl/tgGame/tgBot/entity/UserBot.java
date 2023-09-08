@@ -1,8 +1,5 @@
 package com.tl.tgGame.tgBot.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.tl.tgGame.tgBot.enums.BotState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -60,7 +60,11 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
             if(one == null){
                list.add(bet);
             }
-            GameBet gameBet = buildGameBet(bet);
+            GameBusiness business = GameBusiness.FC;
+            if(record.getGameID().equals(21003)){
+                business = GameBusiness.FC_BY;
+            }
+            GameBet gameBet = buildGameBet(bet,business);
             gameBets.add(gameBet);
         }
         boolean saveBatch = saveBatch(list);
@@ -129,13 +133,13 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
                 .gameName(FcGameName.of(record.getGameID().toString()))
                 .build();
     }
-    private GameBet buildGameBet(Bet bet){
+    private GameBet buildGameBet(Bet bet,GameBusiness business){
         return GameBet.builder()
                 .backWaterAmount(BigDecimal.ZERO)
-                .gameBusiness(GameBusiness.FC.getKey())
+                .gameBusiness(business.getKey())
                 .createTime(LocalDateTime.now())
                 .tax(BigDecimal.ZERO)
-                .profit(bet.getPrize())
+                .profit(bet.getWinLose())
                 .topCommission(BigDecimal.ZERO)
                 .gameAccount(bet.getGameAccount())
                 .bet(bet.getBet())

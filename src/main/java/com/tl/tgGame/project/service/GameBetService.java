@@ -20,7 +20,7 @@ public interface GameBetService extends IService<GameBet> {
 
     BigDecimal sumBetAmount(Long userId, LocalDateTime startTime, LocalDateTime endTime, Boolean hasSettled);
 
-    BigDecimal sumWinLose(Long userId,LocalDateTime startTime,LocalDateTime endTime,Boolean hasWinLose);
+    BigDecimal sumWinLose(Long userId,LocalDateTime startTime,LocalDateTime endTime,Boolean hasWinLose,String gameBusiness);
 
     Integer todayBetUserCount(LocalDateTime startTime,LocalDateTime endTime);
 

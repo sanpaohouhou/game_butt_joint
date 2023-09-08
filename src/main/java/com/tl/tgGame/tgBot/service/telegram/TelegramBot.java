@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.project.dto.ApiEgCreateUserReq;
 import com.tl.tgGame.project.dto.ApiLoginReq;
+import com.tl.tgGame.project.enums.FcGameName;
 import com.tl.tgGame.project.enums.GameBusiness;
 import com.tl.tgGame.project.service.CurrencyService;
 import com.tl.tgGame.project.service.GameService;
@@ -214,9 +215,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         KeyboardButton keyboardButton4 = KeyboardButton.builder().text("\uD83D\uDC9EWL百家乐").build();
         KeyboardButton keyboardButton5 = KeyboardButton.builder().text("⚽\uFE0FWL体育").build();
-        KeyboardButton keyboardButton6 = KeyboardButton.builder().text("\uD83E\uDD29个人中心\uD83C\uDF08").build();
+        KeyboardButton keyboardButton6 = KeyboardButton.builder().text("\uD83C\uDF08FC捕鱼").build();
 
-        KeyboardButton keyboardButton7 = KeyboardButton.builder().text("\uD83E\uDD29提现\uD83C\uDF08").build();
+        KeyboardButton keyboardButton7 = KeyboardButton.builder().text("\uD83E\uDD29充值提现\uD83C\uDF08").build();
         KeyboardButton keyboardButton8 = KeyboardButton.builder().text("\uD83E\uDD29推广\uD83C\uDF08").build();
         KeyboardButton keyboardButton9 = KeyboardButton.builder().text("\uD83D\uDC96专属客服\uD83D\uDE47\u200D♀\uFE0F").build();
 
@@ -353,9 +354,39 @@ public class TelegramBot extends TelegramLongPollingBot {
                                     .build();
                             execute(build5);
                             break;
-                        case "\uD83E\uDD29提现\uD83C\uDF08":
+                        case "\uD83C\uDF08FC捕鱼":
+                            String gameRechargeKey1 = redisKeyGenerator.generateKey("GAME_RECHARGE", message2.getFrom().getId());
+                            String value1 = stringRedisTemplate.boundValueOps(gameRechargeKey1).get();
+                            if(!StringUtils.isEmpty(value1) && !value1.equals("FC")){
+                                userService.gameWithdrawal(message2.getFrom().getId(), value1);
+                            }
+                            com.tl.tgGame.project.entity.User user1 = userService.checkTgId(message2.getFrom().getId());
+                            String login1 = gameService.login(ApiLoginReq.builder().MemberAccount(user1.getGameAccount())
+                                    .GameID(Integer.valueOf(FcGameName.DSBY.getGameId()))
+                                    .LoginGameHall(false).LanguageID(2).build());
+                            userService.gameRecharge(user1.getTgId(), GameBusiness.FC.getKey());
+                            InlineKeyboardButton inlineKeyboardButton6 = InlineKeyboardButton.builder().url(login1).text("\uD83C\uDFC6开始游戏\uD83D\uDD25").build();
+                            InlineKeyboardButton inlineKeyboardButton7 = InlineKeyboardButton.builder().url(url).text("\uD83E\uDD29个人中心\uD83C\uDF08").build();
+                            List<List<InlineKeyboardButton>> lists2 = new ArrayList<>();
+                            List<InlineKeyboardButton> inlineKeyboardButtons13 = new ArrayList<>();
+                            List<InlineKeyboardButton> inlineKeyboardButtonsS3 = new ArrayList<>();
+
+                            inlineKeyboardButtons13.add(inlineKeyboardButton6);
+
+                            inlineKeyboardButtonsS3.add(inlineKeyboardButton7);
+
+                            lists2.add(inlineKeyboardButtons13);
+                            lists2.add(inlineKeyboardButtonsS3);
+                            InlineKeyboardMarkup build6 = InlineKeyboardMarkup.builder().keyboard(lists2).build();
+                            SendPhoto sendPhoto1 = SendPhoto.builder().parseMode("html").chatId(update.getMessage().getChatId())
+                                    .replyMarkup(build6).caption("389.bet综合娱乐城为您献上极致沉浸的顶级娱乐游戏体验～")
+                                    .photo(new InputFile("https://tg-game-dev.s3.ap-northeast-1.amazonaws.com/image/202308281131068de0a859-22f4-45c0-82f5-c6a7cead1b73.png"))
+                                    .build();
+                            execute(sendPhoto1);
+                            break;
+                        case "\uD83E\uDD29充值提现\uD83C\uDF08":
                             SendMessage message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                    .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个中心进行提现！！！")
+                                    .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个中心进行充值提现！！！")
                                     .replyMarkup(inlineKeyboardMarkup3).build();
                             execute(message);
                             break;
@@ -364,12 +395,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                                     .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个中心查看推广规则！！！")
                                     .replyMarkup(inlineKeyboardMarkup3).build();
                             execute(message1);
-                            break;
-                        case "\uD83E\uDD29个人中心\uD83C\uDF08":
-                            SendMessage message3 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                    .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个人中心查询信息！！！")
-                                    .replyMarkup(inlineKeyboardMarkup3).build();
-                            execute(message3);
                             break;
                         case "\uD83D\uDC96专属客服\uD83D\uDE47\u200D♀\uFE0F":
                             String exclusionUrl = configService.get(ConfigConstants.EXCLUSION_CUSTOMER_SERVICE);

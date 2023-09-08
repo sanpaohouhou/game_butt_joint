@@ -188,8 +188,8 @@ public class AdminUserController {
                     .ge(GameBet::getRecordTime, todayBegin)
                     .le(GameBet::getRecordTime, now));
             int allBetCount = gameBetService.count(new LambdaQueryWrapper<GameBet>().eq(GameBet::getUserId, user.getId()));
-            BigDecimal todayProfit = gameBetService.sumWinLose(user.getId(), todayBegin, now, true);
-            BigDecimal allProfit = gameBetService.sumWinLose(user.getId(), null, null, true);
+            BigDecimal todayProfit = gameBetService.sumWinLose(user.getId(), todayBegin, now, null,null);
+            BigDecimal allProfit = gameBetService.sumWinLose(user.getId(), null, null, null,null);
             user.setAllBetCount(allBetCount);
             user.setAllProfit(allProfit);
             user.setTodayBetCount(todayBetCount);

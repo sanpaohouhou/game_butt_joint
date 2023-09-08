@@ -133,9 +133,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, null, null).setScale(2, RoundingMode.DOWN);
         ;
         //待返水
-        BigDecimal waitBackWater = gameBetService.sumBetAmount(user.getId(), null, null, false).setScale(2, RoundingMode.DOWN);
+        BigDecimal waitBackWater = gameBetService.sumWinLose(user.getId(), null, null, false,null).setScale(2, RoundingMode.DOWN);
         ;
         BigDecimal backWaterRate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
+
         return BotPersonInfo.builder()
                 .balance(currency.getBalance().setScale(2, RoundingMode.DOWN))
                 .allCommission(allCommission)
@@ -144,7 +145,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .allWithdrawal(sumWithdrawal)
                 .allProfit(allCommission.add(allBackWater))
                 .waitAuthWithdrawal(withdrawalWaitAuth)
-                .waitBackWater(waitBackWater.multiply(backWaterRate).setScale(2, RoundingMode.DOWN))
+                .waitBackWater(waitBackWater.negate().multiply(backWaterRate).setScale(2, RoundingMode.DOWN))
                 .withdrawalUrl(user.getWithdrawalUrl() == null ? "" : user.getWithdrawalUrl())
                 .gameAccount(user.getGameAccount()).build();
     }
@@ -190,17 +191,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         /**
          * 当月盈利
          */
-        BigDecimal monthProfit = gameBetService.sumWinLose(user.getId(), monthBegin, endTime, true).setScale(2, RoundingMode.DOWN);
+        BigDecimal monthProfit = gameBetService.sumWinLose(user.getId(), monthBegin, endTime, null,null).setScale(2, RoundingMode.DOWN);
         ;
         /**
          * 本周盈利
          */
-        BigDecimal weekProfit = gameBetService.sumWinLose(user.getId(), weekBegin, endTime, true).setScale(2, RoundingMode.DOWN);
+        BigDecimal weekProfit = gameBetService.sumWinLose(user.getId(), weekBegin, endTime, null,null).setScale(2, RoundingMode.DOWN);
         ;
         /**
          * 当日盈利
          */
-        BigDecimal dayProfit = gameBetService.sumWinLose(user.getId(), todayBegin, endTime, true).setScale(2, RoundingMode.DOWN);
+        BigDecimal dayProfit = gameBetService.sumWinLose(user.getId(), todayBegin, endTime, null,null).setScale(2, RoundingMode.DOWN);
         ;
 
 
@@ -224,14 +225,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //总返水
         BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, gameBusiness, null, null);
         //待返水
-        BigDecimal waitBackWater = gameBetService.sumAmount(user.getId(), false, gameBusiness).setScale(2, RoundingMode.DOWN);
-
+        BigDecimal waitBackWater = gameBetService.sumWinLose(user.getId(), null,null, false,gameBusiness).setScale(2, RoundingMode.DOWN);
+        BigDecimal rate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
         return GameBusinessStatisticsInfo.builder()
                 .gameBusiness(GameBusiness.of(gameBusiness))
                 .backWaterRate(BigDecimal.valueOf(2) + "%")
                 .juniorCommissionRate(BigDecimal.valueOf(2) + "%")
                 .backWater(allBackWater)
-                .waitBackWater(waitBackWater)
+                .waitBackWater(waitBackWater.negate().multiply(rate).setScale(2,RoundingMode.DOWN))
                 .juniorCommission(allCommission).build();
     }
 
@@ -268,13 +269,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         List<User> todayUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //总佣金
         BigDecimal todayCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
-        ;
         //总返水
         BigDecimal todayBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, todayBegin, endTime).setScale(2, RoundingMode.DOWN);
-        ;
         //当月总盈利
         BigDecimal monthAllProfit = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
-        ;
+
 
 
         return BotExtendStatisticsInfo.builder()
@@ -460,7 +459,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     public static void main(String[] args) {
-        String s = convertAccount();
-        System.out.println(s);
+        BigDecimal bigDecimal = new BigDecimal("17.8");
+        BigDecimal bigDecimal1 = new BigDecimal("0.002");
+        BigDecimal divide = bigDecimal.multiply(bigDecimal1).setScale(2,RoundingMode.DOWN);
+        System.out.println(divide);
     }
 }

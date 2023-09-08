@@ -8,6 +8,7 @@ import com.tl.tgGame.project.enums.GameBusiness;
 import com.tl.tgGame.project.mapper.GameBetMapper;
 import com.tl.tgGame.project.service.GameBetService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,9 +48,11 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
     }
 
     @Override
-    public BigDecimal sumWinLose(Long userId, LocalDateTime startTime, LocalDateTime endTime,Boolean hasWinLose) {
+    public BigDecimal sumWinLose(Long userId, LocalDateTime startTime, LocalDateTime endTime
+            ,Boolean hasWinLose,String gameBusiness) {
         LambdaQueryWrapper<GameBet> wrapper = new LambdaQueryWrapper<GameBet>()
                 .eq(Objects.nonNull(userId), GameBet::getUserId, userId)
+                .eq(!StringUtils.isEmpty(gameBusiness),GameBet::getGameBusiness,gameBusiness)
                 .gt(hasWinLose != null && hasWinLose, GameBet::getProfit, 0)
                 .lt(hasWinLose != null && !hasWinLose, GameBet::getProfit, 0)
                 .ge(Objects.nonNull(startTime), GameBet::getRecordTime, startTime)

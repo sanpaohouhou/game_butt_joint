@@ -34,6 +34,7 @@ public class User {
 
     private String username;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long inviteUser;
 
     private LocalDateTime joinedTime;
