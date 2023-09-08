@@ -10,11 +10,11 @@ public enum GameBusiness {
 
 //    FC,WL,EG
     FC("FC","FC电子","\uD83D\uDC9EFC电子"),
-    WL("WL","瓦力","\uD83C\uDFB0WL棋牌"),
-    WL_BJL("WL_BJL","瓦力百家乐","\uD83D\uDC9EWL百家乐"),
-    WL_TY("WL_TY","瓦力体育","⚽\uFE0FWL体育"),
+    WL("WL","WL棋牌","\uD83C\uDFB0WL棋牌"),
+    WL_BJL("WL_BJL","WL百家乐","\uD83D\uDC9EWL百家乐"),
+    WL_TY("WL_TY","WL体育","⚽\uFE0FWL体育"),
     FC_BY("FC_BY","FC捕鱼","\uD83C\uDF08FC捕鱼"),
-    EG("EG","EG游戏","\uD83D\uDC21EG电子"),;
+    EG("EG","EG电子","\uD83D\uDC21EG电子"),;
     private String key;
 
     private String gameName;
