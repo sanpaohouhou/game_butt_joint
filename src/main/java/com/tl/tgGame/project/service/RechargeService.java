@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tl.tgGame.callback.entity.BscBep20Tx;
 import com.tl.tgGame.callback.entity.EthErc20Tx;
 import com.tl.tgGame.callback.entity.TronTrc20Tx;
+import com.tl.tgGame.project.entity.Currency;
 import com.tl.tgGame.project.entity.Recharge;
 import com.tl.tgGame.project.enums.Network;
 import com.tl.tgGame.project.enums.UserType;
@@ -23,7 +24,7 @@ import java.util.List;
  */
 public interface RechargeService extends IService<Recharge> {
 
-    Recharge addRecharge(Long uid, BigDecimal amount, UserType userType, String fromAddress, String toAddress, String hash, Network network, String screen, String note);
+    Recharge addRecharge(Long uid, BigDecimal amount, UserType userType, String fromAddress, String toAddress, String hash, Network network, String screen, String note, Currency currency);
 
     /**
      * 处理波场转账事件

@@ -244,7 +244,8 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message3);
             }
             if (text.equals("开始游戏")) {
-                InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().url("https://t.me/+-pyYcS7upcg2Njc1").text("\uD83D\uDC9E游戏大厅").build();
+                String beginGameLink = configService.get(ConfigConstants.BOT_BEGIN_GAME_GROUP_LINK);
+                InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().url(beginGameLink).text("\uD83D\uDC9E游戏大厅").build();
                 List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
                 inlineKeyboardButtons.add(inlineKeyboardButton1);
                 InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons).build();
@@ -456,22 +457,25 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
                 inlineKeyboardButtons.add(inlineKeyboardButton);
                 InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons).build();
+                Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
                 if (update.getMessage().getText().equals("USDT提现")) {
                     buildState(update, true);
                     if (StringUtils.isEmpty(user.getWithdrawalUrl())) {
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                 .text("尊敬的用户，请点击“绑定地址”按钮绑定充值提现地址").replyMarkup(inlineKeyboardMarkup).build();
                     } else {
+                        StringBuilder append = new StringBuilder()
+                                .append("可提现金额: ").append(currency.getRemain()).append("\r\n")
+                                .append("尊贵的用户,请输入提现金额.").append("\r\n");
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                .text("尊贵的用户,请输入提现金额").replyMarkup(inlineKeyboardMarkup).build();
+                                .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
                     }
                 } else {
-                    Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
                     if (StringUtils.isEmpty(user.getWithdrawalUrl())) {
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                 .text("尊敬的用户，请点击“绑定地址”按钮绑定充值提现地址").replyMarkup(inlineKeyboardMarkup).build();
-                    }else if ((!NumberUtil.isParsable(update.getMessage().getText()) && !update.getMessage().getText().equals("/cancel"))
-                            || !NumberUtil.isNumeric2(update.getMessage().getText())) {
+                    } else if ((!NumberUtil.isParsable(update.getMessage().getText()) || !NumberUtil.isNumeric2(update.getMessage().getText()))
+                            && !update.getMessage().getText().equals("/cancel")) {
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                 .text("尊贵的用户，请正确输入金额").replyMarkup(inlineKeyboardMarkup).build();
                     } else if (Integer.parseInt(update.getMessage().getText()) < 20) {
@@ -489,7 +493,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         lists.add(inlineKeyboardButtonList);
                         InlineKeyboardMarkup inlineKeyboardMarkup1 = InlineKeyboardMarkup.builder().keyboard(lists).build();
                         StringBuilder append = new StringBuilder()
-                                .append("可提现金额: ").append(currency.getRemain()).append("\r\n");
+                                .append("请确认提现").append(update.getMessage().getText()).append("\r\n");
                         message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                 .text(append.toString()).replyMarkup(inlineKeyboardMarkup1).build();
                     }

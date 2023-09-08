@@ -60,6 +60,7 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
         if (data.getCount() <= 0) {
             return true;
         }
+        BigDecimal usdtPoint = configService.getDecimal(ConfigConstants.WL_GAME_USDT_POINT);
         for (int i = 0; i < data.getCount(); i++) {
             BigDecimal balance = list.getBalance()[i];
             BigDecimal bet = list.getBet()[i];
@@ -86,7 +87,7 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
                 recordList.add(wlBet);
             }
             User user = userService.getById(userId);
-            GameBet gameBet = buildGameBet(wlBet, user.getGameAccount());
+            GameBet gameBet = buildGameBet(wlBet, user.getGameAccount(),usdtPoint);
             gameBets.add(gameBet);
         }
         if (!saveBatch(recordList)) {
@@ -109,10 +110,10 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
             BigDecimal backWater = wlBet.getProfit().divide(usdtPoint, 2, RoundingMode.DOWN);
             if (backWater.compareTo(BigDecimal.ZERO) > 0) {
                 GameBusiness business = GameBusiness.WL;
-                if (wlBet.getGameId().equals("81")) {
+                if (wlBet.getGame().equals(81)) {
                     business = GameBusiness.WL_BJL;
                 }
-                if (wlBet.getGameId().equals("100")) {
+                if (wlBet.getGame().equals(100)) {
                     business = GameBusiness.WL_TY;
                 }
                 Boolean commission = userCommissionService.insertUserCommission(wlBet.getUserId(), wlBet.getUserId(), wlBet.getGameId(), wlBet.getGameName()
@@ -159,12 +160,12 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
                 .createTime(LocalDateTime.now()).build();
     }
 
-    private GameBet buildGameBet(WlBet wlBet, String gameAccount) {
+    private GameBet buildGameBet(WlBet wlBet, String gameAccount,BigDecimal usdtPoint) {
         GameBusiness business = GameBusiness.WL;
-        if (wlBet.getGameId().equals("81")) {
+        if (wlBet.getGame().equals(81)) {
             business = GameBusiness.WL_BJL;
         }
-        if (wlBet.getGameId().equals("100")) {
+        if (wlBet.getGame().equals(100)) {
             business = GameBusiness.WL_TY;
         }
         return GameBet.builder()
@@ -181,7 +182,7 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
                 .gameName(wlBet.getGameName())
                 .recordId(wlBet.getRecordId())
                 .validBet(wlBet.getValidBet())
-                .gameId(wlBet.getGameId())
+                .gameId(wlBet.getGame().toString())
                 .recordTime(wlBet.getRecordTime())
                 .build();
     }

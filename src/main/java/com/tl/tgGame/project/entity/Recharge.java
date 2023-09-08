@@ -1,6 +1,7 @@
 package com.tl.tgGame.project.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -87,4 +88,7 @@ public class Recharge implements Serializable {
      * 时间
      */
     private LocalDateTime createTime;
+
+    @TableField(exist = false)
+    private String gameAccount;
 }

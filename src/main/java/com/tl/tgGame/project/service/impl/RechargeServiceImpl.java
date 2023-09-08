@@ -67,7 +67,8 @@ public class RechargeServiceImpl extends ServiceImpl<RechargeMapper, Recharge> i
     private RechargeMapper rechargeMapper;
 
     @Override
-    public Recharge addRecharge(Long uid, BigDecimal amount, UserType userType, String fromAddress, String toAddress, String hash, Network network, String screen, String note) {
+    public Recharge addRecharge(Long uid, BigDecimal amount, UserType userType, String fromAddress,
+                                String toAddress, String hash, Network network, String screen, String note,Currency currency) {
         Long id = defaultIdentifierGenerator.nextId(null);
         Recharge rechargeRecord = Recharge.builder()
                 .id(id)
@@ -80,6 +81,9 @@ public class RechargeServiceImpl extends ServiceImpl<RechargeMapper, Recharge> i
                 .screen(screen)
                 .amount(amount)
                 .note(note)
+                .freeze(currency.getFreeze())
+                .remain(currency.getRemain())
+                .balance(currency.getBalance())
                 .createTime(LocalDateTime.now())
                 .build();
         save(rechargeRecord);
@@ -149,7 +153,7 @@ public class RechargeServiceImpl extends ServiceImpl<RechargeMapper, Recharge> i
     private void txHandle(long uid, String from, String to, Network network, String hash, BigInteger txVal) {
         Currency currency = currencyService.getByUid(uid);
         BigDecimal amount = usdtContractAdapter.uint256ToDecimal(network, txVal);
-        Recharge recharge = addRecharge(uid, amount, currency.getUserType(), from, to, hash, network, null, "链上充值");
+        Recharge recharge = addRecharge(uid, amount, currency.getUserType(), from, to, hash, network, null, "链上充值",currency);
         currencyService.increase(uid, currency.getUserType(), BusinessEnum.RECHARGE, amount, recharge.getId(), "充值-" + network);
         addressBalanceService.asyncAddressBalance(to, network);
     }

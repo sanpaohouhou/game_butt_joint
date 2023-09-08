@@ -70,7 +70,7 @@ public class AdminUserController {
                 .eq(!StringUtils.isEmpty(req.getGameAccount()), User::getGameAccount, req.getGameAccount())
                 .eq(Objects.nonNull(req.getPartnerId()), User::getPartnerId, req.getPartnerId())
                 .ge(Objects.nonNull(req.getStartTime()), User::getJoinedTime, req.getStartTime())
-                .le(Objects.nonNull(req.getEndTime()), User::getJoinedTime, req.getEndTime()));
+                .le(Objects.nonNull(req.getEndTime()), User::getJoinedTime, req.getEndTime()).orderByDesc(User::getJoinedTime));
         if (CollectionUtils.isEmpty(page.getRecords())) {
             return Response.pageResult(page);
         }
@@ -102,13 +102,24 @@ public class AdminUserController {
             }
             userId = user.getId();
         }
-        return Response.pageResult(rechargeService.page(new Page<>(req.getPage(), req.getSize()),
+        Page<Recharge> page = rechargeService.page(new Page<>(req.getPage(), req.getSize()),
                 new LambdaQueryWrapper<Recharge>()
                         .eq(Objects.nonNull(userId), Recharge::getUserId, userId)
                         .ge(Objects.nonNull(req.getStartTime()), Recharge::getCreateTime, req.getStartTime())
                         .le(Objects.nonNull(req.getEndTime()), Recharge::getCreateTime, req.getEndTime())
-                        .orderByDesc(Recharge::getId)
-        ));
+                        .orderByDesc(Recharge::getId));
+        List<Recharge> records = page.getRecords();
+        if(CollectionUtils.isEmpty(records)){
+            return Response.pageResult(page);
+        }
+        List<Recharge> recharges = new ArrayList<>();
+        for (Recharge recharge : records) {
+            User user = userService.getById(recharge.getId());
+            recharge.setGameAccount(user.getGameAccount());
+            recharges.add(recharge);
+        }
+        page.setRecords(recharges);
+        return Response.pageResult(page);
     }
 
     /**
@@ -128,7 +139,7 @@ public class AdminUserController {
         return Response.success();
     }
 
-    /**
+    /** k
      * 用户获利
      */
     @GetMapping("userMakeProfit")
@@ -152,6 +163,7 @@ public class AdminUserController {
         if (user.getIsBot()) {
             ErrorEnum.BOT_NOT_ALLOW_WITHDRAW.throwException();
         }
+        Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
         Recharge recharge = rechargeService.addRecharge(dto.getUserId(),
                 dto.getAmount(),
                 UserType.USER,
@@ -160,7 +172,7 @@ public class AdminUserController {
                 dto.getHash(),
                 dto.getNetwork(),
                 dto.getScreen(),
-                dto.getNote());
+                dto.getNote(),currency);
         currencyService.increase(dto.getUserId(), UserType.USER, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "充值");
         return Response.success(recharge);
     }

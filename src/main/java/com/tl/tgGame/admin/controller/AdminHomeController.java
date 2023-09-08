@@ -7,9 +7,11 @@ import com.tl.tgGame.admin.dto.AdminHomeUserStatistics;
 import com.tl.tgGame.admin.dto.UserOverviewStatistics;
 import com.tl.tgGame.common.dto.PageQueryDTO;
 import com.tl.tgGame.common.dto.Response;
+import com.tl.tgGame.project.entity.Game;
 import com.tl.tgGame.project.entity.GameBet;
 import com.tl.tgGame.project.entity.Recharge;
 import com.tl.tgGame.project.entity.User;
+import com.tl.tgGame.project.enums.GameBusiness;
 import com.tl.tgGame.project.mapper.ConversionRateMapper;
 import com.tl.tgGame.project.service.GameBetService;
 import com.tl.tgGame.project.service.RechargeService;
@@ -24,9 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -123,7 +123,21 @@ public class AdminHomeController {
      */
     @GetMapping("gameBet")
     public Response gameBet(){
-        AdminGameBetStatistics adminGameBetStatistics = new AdminGameBetStatistics();
+        List<GameBet> list = gameBetService.list();
+        if(CollectionUtils.isEmpty(list)){
+            return Response.success();
+        }
+        Map<String, List<GameBet>> collect = list.stream().collect(Collectors.groupingBy(GameBet::getGameBusiness));
+        List<AdminGameBetStatistics> adminGameBetStatistics = new ArrayList<>();
+        for (GameBusiness business: GameBusiness.values()) {
+            AdminGameBetStatistics statistics = new AdminGameBetStatistics();
+            statistics.setGameName(business.getGameName());
+            if(collect.containsKey(business.getKey())){
+                List<GameBet> gameBets = collect.get(business.getKey());
+                statistics.setUserCount(gameBets.size());
+            }
+            adminGameBetStatistics.add(statistics);
+        }
         return Response.success(adminGameBetStatistics);
     }
 
