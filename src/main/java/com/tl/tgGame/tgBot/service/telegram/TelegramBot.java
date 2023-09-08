@@ -386,13 +386,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                             break;
                         case "\uD83E\uDD29充值提现\uD83C\uDF08":
                             SendMessage message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                    .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个中心进行充值提现！！！")
+                                    .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个人中心进行充值提现！！！")
                                     .replyMarkup(inlineKeyboardMarkup3).build();
                             execute(message);
                             break;
                         case "\uD83E\uDD29推广\uD83C\uDF08":
                             SendMessage message1 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                    .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个中心查看推广规则！！！")
+                                    .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个人中心查看推广规则！！！")
                                     .replyMarkup(inlineKeyboardMarkup3).build();
                             execute(message1);
                             break;
