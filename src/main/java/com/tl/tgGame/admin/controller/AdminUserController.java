@@ -114,7 +114,7 @@ public class AdminUserController {
         }
         List<Recharge> recharges = new ArrayList<>();
         for (Recharge recharge : records) {
-            User user = userService.getById(recharge.getId());
+            User user = userService.getById(recharge.getUserId());
             recharge.setGameAccount(user.getGameAccount());
             recharges.add(recharge);
         }
