@@ -13,7 +13,6 @@ import kong.unirest.UnirestInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import javax.annotation.Resource;
 import java.util.concurrent.Executor;
@@ -35,6 +34,7 @@ public class BotMessageService {
         HttpResponse<String> stringHttpResponse = null;
         try {
             MultipartBody multipartBody = unirestInstance.post("https://api.telegram.org/bot" + token + "/sendMessage")
+                    .contentType("application/x-www-form-urlencoded")
                     .field("chat_id", chat).field("text", text);
             if (replyKeyboard != null) {
                 multipartBody.field("reply_markup", new ObjectMapper().writeValueAsString(replyKeyboard));
@@ -43,7 +43,7 @@ public class BotMessageService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        log.info("bot发送消息: {}", stringHttpResponse);
+        log.info("bot发送消息: {}", stringHttpResponse.getBody());
     }
 
     public void sendMessage2User(Long uid, String text, ReplyKeyboard replyKeyboard){

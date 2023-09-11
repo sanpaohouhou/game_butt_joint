@@ -3,11 +3,11 @@ package com.tl.tgGame.wallet;
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Configurable
+@Configuration
 public class FeginConfig {
     @Value("${wallet.endpoint}")
     private String endpoint;
