@@ -130,13 +130,14 @@ public class RechargeServiceImpl extends ServiceImpl<RechargeMapper, Recharge> i
     }
 
     @Override
-    public BigDecimal sumRecharge(Long userId,UserType userType, LocalDateTime startTime,LocalDateTime endTime) {
+    public BigDecimal sumRecharge(Long userId, UserType userType, LocalDateTime startTime, LocalDateTime endTime) {
         LambdaQueryWrapper<Recharge> wrapper =
                 new LambdaQueryWrapper<Recharge>()
                         .eq(Recharge::getUserId, userId)
                         .eq(Recharge::getUserType, userType)
-                        .ge(Objects.nonNull(startTime),Recharge::getCreateTime,startTime)
-                        .le(Objects.nonNull(endTime),Recharge::getCreateTime,endTime);;
+                        .ge(Objects.nonNull(startTime), Recharge::getCreateTime, startTime)
+                        .le(Objects.nonNull(endTime), Recharge::getCreateTime, endTime);
+        ;
         return rechargeMapper.amountSum(wrapper);
     }
 

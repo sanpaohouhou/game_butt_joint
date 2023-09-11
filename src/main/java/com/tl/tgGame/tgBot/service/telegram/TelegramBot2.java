@@ -1,6 +1,11 @@
 package com.tl.tgGame.tgBot.service.telegram;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
 import com.tl.tgGame.address.AddressService;
 import com.tl.tgGame.address.entity.Address;
 import com.tl.tgGame.exception.ErrorEnum;
@@ -22,6 +27,9 @@ import com.tl.tgGame.tgBot.entity.UserBot;
 import com.tl.tgGame.tgBot.service.UserBotRepository;
 import com.tl.tgGame.util.NumberUtil;
 import com.tl.tgGame.util.RedisKeyGenerator;
+import com.tl.tgGame.wallet.WalletAPI;
+import com.tl.tgGame.wallet.dto.RechargeCheckDTO;
+import com.tl.tgGame.wallet.dto.SingleResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -30,6 +38,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -38,6 +47,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.annotation.Resource;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -129,12 +144,30 @@ public class TelegramBot2 extends TelegramLongPollingBot {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private WalletAPI walletAPI;
+
     private static final List<String> KEYS = Arrays.asList("开始游戏", "个人资料", "游戏报表"
             , "获利查询", "推广链接", "推广数据", "/start", "USDT充值", "USDT提现", "绑定地址");
 
     public void sendCallBackQuery(Update update) {
         CallbackQuery callbackQuery = update.getCallbackQuery();
         try {
+            // 用户点击转账完成
+            if (callbackQuery.getData().equalsIgnoreCase("RECHARGE_CHECK")){
+                com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
+
+                RechargeCheckDTO rechargeCheckDTO = new RechargeCheckDTO();
+                rechargeCheckDTO.setChainType("TRON");
+                rechargeCheckDTO.setUid(user.getId());
+
+                SingleResponse<Boolean> rechargeCheck = walletAPI.rechargeCheck(rechargeCheckDTO);
+                if (rechargeCheck.isSuccess() && rechargeCheck.getData()){
+//
+                }
+
+            }
+
             if (callbackQuery.getData().contains("USDT充值:转账金额确认")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
                 String[] split = callbackQuery.getData().split("\\|");
@@ -163,10 +196,10 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 String text = split[1];
                 BigDecimal withdrawalAmount = new BigDecimal(text);
                 Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
-                if(withdrawalAmount.compareTo(currency.getRemain()) > 0){
+                if (withdrawalAmount.compareTo(currency.getRemain()) > 0) {
                     return;
                 }
-                withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(),withdrawalAmount);
+                withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(), withdrawalAmount);
                 SendMessage message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                         .text("提现待审核,请稍等~~~").build();
                 execute(message);
@@ -346,7 +379,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(message2);
             }
             if (text.equals("\uD83D\uDC9EFC电子") || text.equals("\uD83C\uDFB0WL棋牌") || text.equals("\uD83D\uDC21EG电子")
-            || text.equals("\uD83D\uDC9EWL百家乐") || text.equals("⚽\uFE0FWL体育") || text.equals("\uD83C\uDF08FC捕鱼")) {
+                    || text.equals("\uD83D\uDC9EWL百家乐") || text.equals("⚽\uFE0FWL体育") || text.equals("\uD83C\uDF08FC捕鱼")) {
                 GameBusinessStatisticsInfo gameBusinessStatistics = userService.getGameBusinessStatistics(user, GameBusiness.pushName(text));
                 StringBuilder append2 = new StringBuilder()
                         .append(text).append("\r\n")
@@ -366,47 +399,97 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .replyMarkup(keyboardMarkup).build();
                 execute(message5);
             }
+            if (text.equals("USDT充值")) {
+                SingleResponse<Address> userAddress = walletAPI.getUserAddress(user.getId());
 
-            if (text.equals("USDT充值") || checkState(update).equals("USDT充值")) {
-                SendMessage message8 = null;
-                if (update.getMessage().getText().equals("USDT充值")) {
-                    buildState(update, true);
-                    message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                            .text("尊贵的用户，请输入充值金额").build();
-                } else {
-                    List<List<InlineKeyboardButton>> lists = new ArrayList<>();
-                    List<InlineKeyboardButton> inlineKeyboardButtons1 = new ArrayList<>();
-                    InlineKeyboardButton inlineKeyboardButton2 = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
-                    inlineKeyboardButtons1.add(inlineKeyboardButton2);
-                    InlineKeyboardMarkup inlineKeyboardMarkup1 = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons1).build();
-                    if (!NumberUtil.isParsable(update.getMessage().getText()) || !NumberUtil.isNumeric2(update.getMessage().getText())) {
-                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                .text("尊贵的用户，请正确输入金额").replyMarkup(inlineKeyboardMarkup1).build();
-                    } else if (Integer.parseInt(update.getMessage().getText()) < 100) {
-                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                .text("尊贵的用户，最低充值：100USDT").replyMarkup(inlineKeyboardMarkup1).build();
-                    } else {
-                        StringBuilder append3 = new StringBuilder()
-                                .append("名称: ").append(user.getGameAccount()).append("\r\n")
-                                .append("充值分数: ").append(text).append("\r\n")
-                                .append("付款金额: ").append(text).append("\r\n")
-                                .append("尊贵的用户，请确认转账金额，如果无法正确转入系统指定付款金额，将无法完成游戏分数的充值。" +
-                                        "劳您再次确认，确认无误后请点击下方“转账金额确认”按钮。").append("\r\n");
-                        List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
+                String tron = userAddress.getData().getTron();
+                String textToEncode = "tron"; // 要编码成二维码的文本
+                String filePath = "qrcode.png"; // 生成的二维码图片文件路径
+                int width = 300; // 图片宽度
+                int height = 300; // 图片高度
 
-                        InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder()
-                                .text("转账金额确认").callbackData("USDT充值:转账金额确认|" + text + "." + text).build();
-                        inlineKeyboardButtons.add(inlineKeyboardButton);
-                        lists.add(inlineKeyboardButtons1);
-                        lists.add(inlineKeyboardButtons);
+                try {
+                    // 设置二维码参数
+                    Map<EncodeHintType, Object> hints = new HashMap<>();
+                    hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
 
-                        InlineKeyboardMarkup inlineKeyboardMarkup2 = InlineKeyboardMarkup.builder().keyboard(lists).build();
-                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                                .text(append3.toString()).replyMarkup(inlineKeyboardMarkup2).build();
-                    }
+                    // 生成二维码
+                    BitMatrix bitMatrix = new MultiFormatWriter().encode(textToEncode, BarcodeFormat.QR_CODE, width, height, hints);
+
+                    // 将BitMatrix转换为BufferedImage
+                    BufferedImage image = MatrixToImageWriter.toBufferedImage(bitMatrix);
+                    // 保存生成的二维码图片
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+                    ImageIO.write(image, "png", baos);
+
+                    List<List<InlineKeyboardButton>> inlineKeyButtons = new ArrayList<>();
+                    inlineKeyButtons.add(Collections.singletonList(InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build()));
+                    inlineKeyButtons.add(Collections.singletonList(InlineKeyboardButton.builder().callbackData("RECHARGE_CHECK").text("转账完成").build()));
+                    SendPhoto sendPhoto = SendPhoto.builder()
+                            .photo(new InputFile(new ByteArrayInputStream(baos.toByteArray()), filePath))
+                            .caption("<b>充值地址：</b><code>" + tron + "</code>\n" +
+                                    "\n" +
+                                    "<b>尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账！</b>\n" +
+                                    "\n" +
+                                    "<b>充值地址，单击即可复制，请务必复制或输入正确的充值地址，否则造成的损失平台概不负责！</b>\n" +
+                                    "\n" +
+                                    "<b>如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。</b>\n" +
+                                    "\n" +
+                                    "<b>转账成功后请您返回此页面，点击“转账完成”按钮，请务必完成此项操作，否则系统将无法为您自动充值。</b>\n")
+                            .parseMode("HTML")
+                            .replyMarkup(InlineKeyboardMarkup.builder()
+                                    .keyboard(inlineKeyButtons)
+                                    .build()
+                            ).build();
+                    execute(sendPhoto);
+                } catch (Exception exception) {
+                    exception.printStackTrace();
                 }
-                execute(message8);
+
             }
+
+
+//            if (text.equals("USDT充值") || checkState(update).equals("USDT充值")) {
+//                SendMessage message8 = null;
+//                if (update.getMessage().getText().equals("USDT充值")) {
+//                    buildState(update, true);
+//                    message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                            .text("尊贵的用户，请输入充值金额").build();
+//                } else {
+//                    List<List<InlineKeyboardButton>> lists = new ArrayList<>();
+//                    List<InlineKeyboardButton> inlineKeyboardButtons1 = new ArrayList<>();
+//                    InlineKeyboardButton inlineKeyboardButton2 = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
+//                    inlineKeyboardButtons1.add(inlineKeyboardButton2);
+//                    InlineKeyboardMarkup inlineKeyboardMarkup1 = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons1).build();
+//                    if (!NumberUtil.isParsable(update.getMessage().getText()) || !NumberUtil.isNumeric2(update.getMessage().getText())) {
+//                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                                .text("尊贵的用户，请正确输入金额").replyMarkup(inlineKeyboardMarkup1).build();
+//                    } else if (Integer.parseInt(update.getMessage().getText()) < 100) {
+//                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                                .text("尊贵的用户，最低充值：100USDT").replyMarkup(inlineKeyboardMarkup1).build();
+//                    } else {
+//                        StringBuilder append3 = new StringBuilder()
+//                                .append("名称: ").append(user.getGameAccount()).append("\r\n")
+//                                .append("充值分数: ").append(text).append("\r\n")
+//                                .append("付款金额: ").append(text).append("\r\n")
+//                                .append("尊贵的用户，请确认转账金额，如果无法正确转入系统指定付款金额，将无法完成游戏分数的充值。" +
+//                                        "劳您再次确认，确认无误后请点击下方“转账金额确认”按钮。").append("\r\n");
+//                        List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
+//
+//                        InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder()
+//                                .text("转账金额确认").callbackData("USDT充值:转账金额确认|" + text + "." + text).build();
+//                        inlineKeyboardButtons.add(inlineKeyboardButton);
+//                        lists.add(inlineKeyboardButtons1);
+//                        lists.add(inlineKeyboardButtons);
+//
+//                        InlineKeyboardMarkup inlineKeyboardMarkup2 = InlineKeyboardMarkup.builder().keyboard(lists).build();
+//                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                                .text(append3.toString()).replyMarkup(inlineKeyboardMarkup2).build();
+//                    }
+//                }
+//                execute(message8);
+//            }
 
             if (text.equals("USDT提现") || checkState(update).equals("USDT提现")) {
                 SendMessage message = null;

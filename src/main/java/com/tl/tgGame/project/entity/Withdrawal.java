@@ -113,4 +113,10 @@ public class Withdrawal implements Serializable {
     @TableField(exist = false)
     private String gameAccount;
 
+
+    /**
+     * 提现那边的订单id
+     */
+    private Long orderId;
+
 }

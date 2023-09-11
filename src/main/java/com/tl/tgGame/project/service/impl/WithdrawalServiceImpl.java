@@ -24,6 +24,9 @@ import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.CompareUtil;
 import com.tl.tgGame.util.RedisKeyGenerator;
 import com.tl.tgGame.util.TimeUtil;
+import com.tl.tgGame.wallet.WalletAPI;
+import com.tl.tgGame.wallet.dto.SingleResponse;
+import com.tl.tgGame.wallet.dto.UserUsdtWithdrawDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +60,9 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
 
     @Autowired
     private WithdrawalMapper withdrawalMapper;
+
+    @Resource
+    private WalletAPI walletAPI;
 
     @Override
     public Withdrawal addWithdrawal(Long uid, BigDecimal amount, UserType userType, String fromAddress, String toAddress, String hash, Network network, String screen, String note) {
@@ -162,6 +168,18 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
             }
             if (result) {
                 withdrawal.setStatus(WithdrawStatus.review_success);
+                UserUsdtWithdrawDTO userUsdtWithdrawDTO = new UserUsdtWithdrawDTO();
+                userUsdtWithdrawDTO.setNetwork(withdrawal.getNetwork());
+                userUsdtWithdrawDTO.setTo(withdrawal.getToAddress());
+                userUsdtWithdrawDTO.setAmount(withdrawal.getActualAmount());
+                userUsdtWithdrawDTO.setUid(withdrawal.getUid());
+
+                SingleResponse<Withdrawal> response = walletAPI.withdraw(userUsdtWithdrawDTO);
+                if (!response.isSuccess()){
+                    ErrorEnum.throwException(response.getCode(), response.getMessage());
+                }
+                Withdrawal responseData = response.getData();
+                withdrawal.setOrderId(responseData.getId());
             } else {
                 withdrawal.setStatus(WithdrawStatus.review_fail);
                 withdrawal.setCompleteTime(LocalDateTime.now());

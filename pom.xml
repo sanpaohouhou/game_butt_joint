@@ -108,6 +108,17 @@
 			<artifactId>unirest-java</artifactId>
 			<version>3.11.09</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.github.openfeign/feign-core -->
+		<dependency>
+			<groupId>io.github.openfeign</groupId>
+			<artifactId>feign-core</artifactId>
+			<version>12.4</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.openfeign</groupId>
+			<artifactId>feign-jackson</artifactId>
+			<version>12.4</version>
+		</dependency>
 		<dependency>
 			<groupId>org.javatuples</groupId>
 			<artifactId>javatuples</artifactId>

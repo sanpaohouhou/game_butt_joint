@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -311,7 +312,6 @@ class TgGameApplicationTests {
 
 			// 将BitMatrix转换为BufferedImage
 			BufferedImage image = MatrixToImageWriter.toBufferedImage(bitMatrix);
-
 			// 保存生成的二维码图片
 			File outputFile = new File(filePath);
 			ImageIO.write(image, "png", outputFile);

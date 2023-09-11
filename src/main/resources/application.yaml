@@ -63,3 +63,8 @@ game_api:
     userBalanceUrl: getBalance?
     gameRecordUrl: getRecordV2?
 
+
+wallet:
+  endpoint: http://wallet.dn28.link
+  appid: '1623510228468346882'
+  secret: 6cMWvNpusL4P2SCFnYMPbWwGZVFjt4PydZXbvxAKWFQ

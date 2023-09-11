@@ -91,13 +91,13 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> {
                     .eth(eth)
                     .build();
             if (!save(address)) ErrorEnum.INTERNAL_ERROR.throwException();
-            List<TxConditionReq> list = new ArrayList<>();
-            list.add(TxConditionReq.builder().chain(ChainEnum.BSC).contractAddress(configService.get(ConfigConstants.USDT_BEP20_CONTRACT)).to(bsc).build());
-            list.add(TxConditionReq.builder().chain(ChainEnum.TRON).contractAddress(configService.get(ConfigConstants.USDT_TRC20_CONTRACT)).to(tron).build());
-            list.add(TxConditionReq.builder().chain(ChainEnum.ETH).contractAddress(configService.get(ConfigConstants.USDT_ERC20_CONTRACT)).to(eth).build());
-            callbackController.pushCondition(TxConditionWrapperReq.builder()
-                    .callbackAddress(configService.get(ConfigConstants.TX_CALLBACK))
-                    .txConditionReqs(list).build());
+//            List<TxConditionReq> list = new ArrayList<>();
+//            list.add(TxConditionReq.builder().chain(ChainEnum.BSC).contractAddress(configService.get(ConfigConstants.USDT_BEP20_CONTRACT)).to(bsc).build());
+//            list.add(TxConditionReq.builder().chain(ChainEnum.TRON).contractAddress(configService.get(ConfigConstants.USDT_TRC20_CONTRACT)).to(tron).build());
+//            list.add(TxConditionReq.builder().chain(ChainEnum.ETH).contractAddress(configService.get(ConfigConstants.USDT_ERC20_CONTRACT)).to(eth).build());
+//            callbackController.pushCondition(TxConditionWrapperReq.builder()
+//                    .callbackAddress(configService.get(ConfigConstants.TX_CALLBACK))
+//                    .txConditionReqs(list).build());
             return address;
         } finally {
             redisLock.unlock(key);
