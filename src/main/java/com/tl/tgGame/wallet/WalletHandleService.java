@@ -60,14 +60,21 @@ public class WalletHandleService {
         if (currency != null) {
             Withdrawal withdrawal = withdrawalService.lambdaQuery().eq(Withdrawal::getOrderId, notifyDTO.getOrderId()).one();
             if (withdrawal != null) {
+
                 withdrawal.setStatus(notifyDTO.isSuccess() ? WithdrawStatus.withdraw_success : WithdrawStatus.withdraw_fail);
                 withdrawal.setHash(notifyDTO.getHash());
                 withdrawal.setCompleteTime(notifyDTO.getCompleteTime());
                 withdrawalService.updateById(withdrawal);
+                List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
                 if (notifyDTO.isSuccess()) {
                     currencyService.reduce(withdrawal.getUid(), withdrawal.getUserType(), BusinessEnum.WITHDRAW, withdrawal.getAmount(), withdrawal.getId(), "提现成功扣除解冻余额");
+                    botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "提现成功已到账请留意您的钱包余额。如有疑问请联系“唯一充提财务”\n交易哈希: " + notifyDTO.getHash(),
+                            InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
                 } else {
                     currencyService.unfreeze(withdrawal.getUid(), withdrawal.getUserType(), BusinessEnum.WITHDRAW, withdrawal.getAmount(), withdrawal.getId(), "提现失败解冻");
+                    botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "提现失败，提现金额已退回您的交易账户。如有疑问请联系“唯一充提财务”",
+                            InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build()
+                    );
                 }
             }
         }
@@ -77,7 +84,7 @@ public class WalletHandleService {
         Currency currency = currencyService.getByUid(notifyDTO.getUid());
         if (currency != null) {
             // 只处理大于等于100的
-            if (CompareUtil.isGreaterThan(notifyDTO.getAmount(), new BigDecimal("100"))) {
+            if (CompareUtil.isGreaterThan(notifyDTO.getAmount(), new BigDecimal("0"))) {
                 Recharge recharge = Recharge.builder()
                         .id(notifyDTO.getOrderId())
                         .toAddress(notifyDTO.getToAddress())
@@ -102,13 +109,13 @@ public class WalletHandleService {
                 String beginGameLink = configService.get(ConfigConstants.BOT_BEGIN_GAME_GROUP_LINK);
 
                 List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("返回游戏大厅").url(beginGameLink).build());
-                botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "您已成功上分" + recharge.getAmount().toPlainString() + "USDT，可以尽情享受游戏",
+                botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "您已成功上分" + recharge.getAmount().toString() + "USDT，可以尽情享受游戏",
                         InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build()
                 );
 
             } else {
                 List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
-                botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账！充值地址，单击即可复制，请务必复制或输入正确的充值地址，否则造成的损失平台概不负责！如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。感谢您的支持！",
+                botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "尊贵的用户，您充值金额小于100USDT，此次充值无法到账！如果您需要人工为您充值，请点击下方“唯一充提财务”按钮。",
                         InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build()
                 );
             }

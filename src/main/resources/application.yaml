@@ -34,6 +34,7 @@ security:
 logging:
   level:
     com.tl.tgGame: DEBUG
+    feign.Logger: debug
 
 
 game_api:

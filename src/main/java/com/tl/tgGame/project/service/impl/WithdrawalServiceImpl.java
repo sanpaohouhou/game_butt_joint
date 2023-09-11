@@ -21,6 +21,7 @@ import com.tl.tgGame.project.service.WalletService;
 import com.tl.tgGame.project.service.WithdrawalService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
+import com.tl.tgGame.tgBot.service.BotMessageService;
 import com.tl.tgGame.util.CompareUtil;
 import com.tl.tgGame.util.RedisKeyGenerator;
 import com.tl.tgGame.util.TimeUtil;
@@ -30,11 +31,14 @@ import com.tl.tgGame.wallet.dto.UserUsdtWithdrawDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -63,6 +67,8 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
 
     @Resource
     private WalletAPI walletAPI;
+    @Resource
+    private BotMessageService botMessageService;
 
     @Override
     public Withdrawal addWithdrawal(Long uid, BigDecimal amount, UserType userType, String fromAddress, String toAddress, String hash, Network network, String screen, String note) {
@@ -166,6 +172,8 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
             if (!withdrawal.getStatus().equals(WithdrawStatus.created)) {
                 ErrorEnum.ORDER_EXCEPTION.throwException();
             }
+            List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
+
             if (result) {
                 withdrawal.setStatus(WithdrawStatus.review_success);
                 UserUsdtWithdrawDTO userUsdtWithdrawDTO = new UserUsdtWithdrawDTO();
@@ -180,10 +188,14 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
                 }
                 Withdrawal responseData = response.getData();
                 withdrawal.setOrderId(responseData.getId());
+                botMessageService.sendMessage2UserAsync(withdrawal.getUid(), "提现审核成功，打款中~~~",
+                        InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
             } else {
                 withdrawal.setStatus(WithdrawStatus.review_fail);
                 withdrawal.setCompleteTime(LocalDateTime.now());
                 currencyService.unfreeze(withdrawal.getUid(), withdrawal.getUserType(), BusinessEnum.WITHDRAW, withdrawal.getAmount(), withdrawal.getId(), "保证金提现订单审核失败解冻");
+                botMessageService.sendMessage2UserAsync(withdrawal.getUid(), "提现审核失败，原因: " + note,
+                        InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
             }
             withdrawal.setNote(note);
             updateById(withdrawal);

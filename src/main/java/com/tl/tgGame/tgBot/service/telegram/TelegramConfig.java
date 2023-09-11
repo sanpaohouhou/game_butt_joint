@@ -16,35 +16,35 @@ public class TelegramConfig {
     @Autowired
     private ConfigService configService;
 
-    @Bean
-    public TelegramBot telegramBot() {
-        String telegram_token;
-        String telegram_username;
-        try {
-            String tele_config = configService._get(ConfigConstants.TG_BOT_TOKEN);
-            if (StringUtils.isEmpty(tele_config)){
-                return new TelegramBot();
-            }
-            telegram_token = configService.getOrDefault(ConfigConstants.TG_BOT_TOKEN, "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A");
-            telegram_username = configService.getOrDefault(ConfigConstants.TG_BOT_NAME, "shanpao_test_bot");
-        } catch (Exception e) {
-            telegram_token = "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A";
-            telegram_username = "shanpao_test_bot";
-        }
-
-        try {
-            TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-            TelegramBot bot2 = new TelegramBot();
-            bot2.setTelegram_token(telegram_token);
-            bot2.setTelegram_username(telegram_username);
-            telegramBotsApi.registerBot(bot2);
-
-            return bot2;
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+//    @Bean
+//    public TelegramBot telegramBot() {
+//        String telegram_token;
+//        String telegram_username;
+//        try {
+//            String tele_config = configService._get(ConfigConstants.TG_BOT_TOKEN);
+//            if (StringUtils.isEmpty(tele_config)){
+//                return new TelegramBot();
+//            }
+//            telegram_token = configService.getOrDefault(ConfigConstants.TG_BOT_TOKEN, "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A");
+//            telegram_username = configService.getOrDefault(ConfigConstants.TG_BOT_NAME, "shanpao_test_bot");
+//        } catch (Exception e) {
+//            telegram_token = "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A";
+//            telegram_username = "shanpao_test_bot";
+//        }
+//
+//        try {
+//            TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
+//            TelegramBot bot2 = new TelegramBot();
+//            bot2.setTelegram_token(telegram_token);
+//            bot2.setTelegram_username(telegram_username);
+//            telegramBotsApi.registerBot(bot2);
+//
+//            return bot2;
+//        } catch (TelegramApiException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
     @Bean
     public TelegramBot2 telegramBot2() {

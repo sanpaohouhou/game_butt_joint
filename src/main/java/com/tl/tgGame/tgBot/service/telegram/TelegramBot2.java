@@ -37,8 +37,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -154,7 +157,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
         CallbackQuery callbackQuery = update.getCallbackQuery();
         try {
             // 用户点击转账完成
-            if (callbackQuery.getData().equalsIgnoreCase("RECHARGE_CHECK")){
+            if (callbackQuery.getData().equalsIgnoreCase("RECHARGE_CHECK")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
 
                 RechargeCheckDTO rechargeCheckDTO = new RechargeCheckDTO();
@@ -162,8 +165,27 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 rechargeCheckDTO.setUid(user.getId());
 
                 SingleResponse<Boolean> rechargeCheck = walletAPI.rechargeCheck(rechargeCheckDTO);
-                if (rechargeCheck.isSuccess() && rechargeCheck.getData()){
-//
+                if (!rechargeCheck.getData()) {
+                    String callbackId = update.getCallbackQuery().getId();
+                    AnswerCallbackQuery answer = new AnswerCallbackQuery();
+                    answer.setCallbackQueryId(callbackId);
+                    answer.setText("尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账！充值地址，单击即可复制，请务必复制或输入正确的充值地址，否则造成的损失平台概不负责！如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。感谢您的支持！");
+                    answer.setShowAlert(true); // 如果你想显示一个弹窗，则设为 true
+                    execute(answer);
+                } else {
+                    execute(DeleteMessage.builder()
+                            .chatId(callbackQuery.getMessage().getChatId())
+                            .messageId(callbackQuery.getMessage().getMessageId())
+                            .build());
+                    SendMessage message = SendMessage.builder()
+                            .chatId(callbackQuery.getMessage().getChatId())
+                            .text("尊贵的用户，系统已收到您的充值，正在等待网络确认。")
+                            .replyMarkup(InlineKeyboardMarkup.builder().keyboardRow(
+                                            Collections.singletonList(InlineKeyboardButton.builder()
+                                                    .url("https://t.me/cin89886").text("唯一充提财务").build()))
+                                    .build())
+                            .build();
+                    execute(message);
                 }
 
             }
@@ -206,6 +228,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
 //                }
             }
         } catch (TelegramApiException e) {
+            e.printStackTrace();
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
     }
@@ -401,7 +424,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
             }
             if (text.equals("USDT充值")) {
                 SingleResponse<Address> userAddress = walletAPI.getUserAddress(user.getId());
-
+                currencyService.getOrCreate(user.getId(), UserType.USER);
                 String tron = userAddress.getData().getTron();
                 String textToEncode = "tron"; // 要编码成二维码的文本
                 String filePath = "qrcode.png"; // 生成的二维码图片文件路径
@@ -427,6 +450,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                     inlineKeyButtons.add(Collections.singletonList(InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build()));
                     inlineKeyButtons.add(Collections.singletonList(InlineKeyboardButton.builder().callbackData("RECHARGE_CHECK").text("转账完成").build()));
                     SendPhoto sendPhoto = SendPhoto.builder()
+                            .chatId(update.getMessage().getChatId())
                             .photo(new InputFile(new ByteArrayInputStream(baos.toByteArray()), filePath))
                             .caption("<b>充值地址：</b><code>" + tron + "</code>\n" +
                                     "\n" +

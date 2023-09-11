@@ -5,6 +5,7 @@ import com.tl.tgGame.wallet.dto.RechargeCheckDTO;
 import com.tl.tgGame.wallet.dto.SingleResponse;
 import com.tl.tgGame.wallet.dto.UserUsdtWithdrawDTO;
 import com.tl.tgGame.project.entity.Withdrawal;
+import feign.Headers;
 import feign.Param;
 import feign.QueryMap;
 import feign.RequestLine;
@@ -18,6 +19,7 @@ public interface WalletAPI {
     SingleResponse<Boolean> rechargeCheck(@QueryMap() RechargeCheckDTO rechargeCheckDTO);
 
     @RequestLine("POST /api/open/withdrawal/withdraw")
+    @Headers("Content-Type: application/json")
     SingleResponse<Withdrawal> withdraw(UserUsdtWithdrawDTO usdtWithdrawDTO);
 
 
