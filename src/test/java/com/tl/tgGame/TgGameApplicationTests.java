@@ -16,14 +16,19 @@ import com.tl.tgGame.project.entity.EgBet;
 import com.tl.tgGame.project.entity.WlBet;
 import com.tl.tgGame.project.schedule.GameRecordSchedule;
 import com.tl.tgGame.project.service.*;
+import com.tl.tgGame.tgBot.service.BotMessageService;
 import com.tl.tgGame.util.AESUtil;
 import com.tl.tgGame.util.RedisKeyGenerator;
+import com.tl.tgGame.wallet.WalletAPI;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import java.awt.image.BufferedImage;
@@ -32,10 +37,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @SpringBootTest
 class TgGameApplicationTests {
@@ -321,6 +323,23 @@ class TgGameApplicationTests {
 			e.printStackTrace();
 		}
 	}
+
+	@Resource
+	private BotMessageService botMessageService;
+
+	@Resource
+	private WithdrawalService withdrawalService;
+
+	@Test
+	public void testWw(){
+		withdrawalService.audit(1701204820993638402L, true, "");
+//		List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
+//		botMessageService.sendMessage("6245293274", "尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账！充值地址，单击即可复制，请务必复制或输入正确的充值地址，否则造成的损失平台概不负责！如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。感谢您的支持！",
+//				InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build()
+//		);
+//		botMessageService.sendMessage("6245293274", "hello", null);
+	}
+
 
 
 

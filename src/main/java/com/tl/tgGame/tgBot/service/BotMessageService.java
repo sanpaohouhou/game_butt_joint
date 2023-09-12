@@ -30,7 +30,7 @@ public class BotMessageService {
     private Executor taskExecutor;
 
     public void sendMessage(String chat, String text, ReplyKeyboard replyKeyboard){
-        String token = configService.getOrDefault(ConfigConstants.TG_BOT_TOKEN, "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A");
+        String token = configService.getOrDefault(ConfigConstants.TG_BOT_TOKEN_TWO, "6537817937:AAEr4vSYuWrrLGcBKlLGAuPm7WoYqb6iZ1A");
         HttpResponse<String> stringHttpResponse = null;
         try {
             MultipartBody multipartBody = unirestInstance.post("https://api.telegram.org/bot" + token + "/sendMessage")
@@ -46,6 +46,12 @@ public class BotMessageService {
         log.info("bot发送消息: {}", stringHttpResponse.getBody());
     }
 
+    public void sendMessageAsync(String chat, String text, ReplyKeyboard replyKeyboard){
+        taskExecutor.execute(() -> {
+            sendMessage(chat, text, replyKeyboard);
+        });
+    }
+
     public void sendMessage2User(Long uid, String text, ReplyKeyboard replyKeyboard){
         User u = userService.getById(uid);
         if (u != null){
@@ -54,8 +60,9 @@ public class BotMessageService {
     }
 
     public void sendMessage2UserAsync(Long uid, String text, ReplyKeyboard replyKeyboard){
-        taskExecutor.execute(() -> {
-            sendMessage2User(uid, text, replyKeyboard);
-        });
+        User u = userService.getById(uid);
+        if (u != null){
+            sendMessageAsync(String.valueOf(u.getTgId()), text, replyKeyboard);
+        }
     }
 }

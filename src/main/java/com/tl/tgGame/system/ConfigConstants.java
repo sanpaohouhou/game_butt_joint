@@ -112,6 +112,7 @@ public class ConfigConstants {
      * 机器人开始游戏群链接
      */
     public static final String BOT_BEGIN_GAME_GROUP_LINK = "bot_begin_game_group_link";
+    public static final String BOT_BEGIN_GAME_GROUP_CHAT = "bot_begin_game_group_chat";
 
     /**
      * 发财电子密钥code

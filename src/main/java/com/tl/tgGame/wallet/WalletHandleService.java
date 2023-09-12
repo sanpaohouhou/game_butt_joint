@@ -3,17 +3,20 @@ package com.tl.tgGame.wallet;
 
 import com.tl.tgGame.project.entity.Currency;
 import com.tl.tgGame.project.entity.Recharge;
+import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.entity.Withdrawal;
 import com.tl.tgGame.project.enums.BusinessEnum;
 import com.tl.tgGame.project.enums.WithdrawStatus;
 import com.tl.tgGame.project.service.CurrencyService;
 import com.tl.tgGame.project.service.RechargeService;
+import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.project.service.WithdrawalService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.tgBot.service.BotMessageService;
 import com.tl.tgGame.util.CompareUtil;
 import com.tl.tgGame.wallet.dto.NotifyDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -40,6 +43,9 @@ public class WalletHandleService {
 
     @Resource
     private ConfigService configService;
+
+    @Resource
+    private UserService userService;
 
 
     @Transactional(rollbackFor = Exception.class)
@@ -107,19 +113,26 @@ public class WalletHandleService {
                         "充值-" + notifyDTO.getNetwork());
 
                 String beginGameLink = configService.get(ConfigConstants.BOT_BEGIN_GAME_GROUP_LINK);
-
+                String chat = configService.getOrDefault(ConfigConstants.BOT_BEGIN_GAME_GROUP_CHAT, null);
+                String point = recharge.getAmount().stripTrailingZeros().toPlainString();
                 List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("返回游戏大厅").url(beginGameLink).build());
-                botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "您已成功上分" + recharge.getAmount().toString() + "USDT，可以尽情享受游戏",
+                botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "您已成功上分" + point + "USDT，可以尽情享受游戏",
                         InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build()
                 );
 
+                if (StringUtils.isNotBlank(chat)) {
+                    User user = userService.lambdaQuery().select(User::getGameAccount).eq(User::getId, notifyDTO.getUid()).one();
+                    botMessageService.sendMessageAsync(chat, "♠️389.bet♠️\n" +
+                            "\uD83D\uDCE3贵宾" + user.getGameAccount() + "❤️\n" +
+                            "以成功上分：" + point + "USDT\n" +
+                            "祝您福气满满，财源滚滚‼️", null);
+                }
             } else {
                 List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
                 botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "尊贵的用户，您充值金额小于100USDT，此次充值无法到账！如果您需要人工为您充值，请点击下方“唯一充提财务”按钮。",
                         InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build()
                 );
             }
-
         }
     }
 }
