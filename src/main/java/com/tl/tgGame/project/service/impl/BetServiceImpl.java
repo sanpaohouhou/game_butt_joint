@@ -89,7 +89,7 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
             BigDecimal backWater = actualWinLose.multiply(rate).setScale(2,RoundingMode.DOWN);
             if(backWater.compareTo(BigDecimal.ZERO) > 0){
                 Boolean commission = userCommissionService.insertUserCommission(bet.getUserId(), bet.getUserId(), bet.getGameId().toString(), bet.getGameName()
-                        , UserCommissionType.BACK_WATER, GameBusiness.FC.getKey(), backWater, rate, actualWinLose);
+                        , UserCommissionType.BACK_WATER, GameBusiness.FC.getKey(), backWater, rate, actualWinLose,bet.getId());
                 if(commission){
                     currencyService.increase(bet.getUserId(),UserType.USER,BusinessEnum.BACK_WATER,backWater,bet.getRecordId(),"fc用户输钱返水");
                 }

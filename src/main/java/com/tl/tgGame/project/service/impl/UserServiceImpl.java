@@ -59,7 +59,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private GameBetService gameBetService;
 
     @Autowired
-    private GameService gameService;
+    private ApiGameService apiGameService;
 
     @Autowired
     private RedisLock redisLock;
@@ -294,8 +294,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Boolean updateByHasGroup(Long tgId, String tgGroup, Boolean hasGroup) {
-        return update(new LambdaUpdateWrapper<User>().set(User::getHasGroup, hasGroup)
-                .eq(User::getTgId, tgId).eq(User::getTgGroup, tgGroup).eq(User::getHasGroup, !hasGroup));
+        return update(new LambdaUpdateWrapper<User>().set(User::getHasGroup, hasGroup).set(User::getTgGroup,tgGroup)
+                .eq(User::getTgId, tgId).eq(User::getHasGroup, !hasGroup));
     }
 
 
@@ -322,7 +322,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                             .Points(currency.getRemain().doubleValue())
                             .MemberAccount(user.getGameAccount())
                             .build();
-                    ApiSetPointRes apiSetPointRes = gameService.setPoints(build);
+                    ApiSetPointRes apiSetPointRes = apiGameService.setPoints(build);
                     if (!apiSetPointRes.getResult().equals(0)) {
                         ErrorEnum.GAME_RECHARGE_FAIL.throwException();
                     }
@@ -333,7 +333,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                             BusinessEnum.WL_RECHARGE, currency.getRemain(), null, gameType + "电子用户充值");
                     String gup = StrUtil.emptyToDefault(configService.get(ConfigConstants.WL_GAME_USDT_POINT), "7.00");
                     BigDecimal point = currency.getRemain().multiply(new BigDecimal(gup)).setScale(2, RoundingMode.HALF_DOWN);
-                    ApiWlGameRes wlGameRes = gameService.wlPayOrder(user.getId(), point);
+                    ApiWlGameRes wlGameRes = apiGameService.wlPayOrder(user.getId(), point);
                     if (wlGameRes.getCode() != 0 || (wlGameRes.getData() != null && !wlGameRes.getData().getReason().equals("ok"))) {
                         String errMsg = wlGameRes.getData() == null ? wlGameRes.getMsg() : wlGameRes.getData().getReason();
                         ErrorEnum.GAME_RECHARGE_FAIL.throwException(errMsg);
@@ -347,7 +347,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                             .playerId(user.getGameAccount()).amount(currency.getRemain().toString()).transactionId(transactionId).build();
                     currencyService.withdraw(user.getId(), UserType.USER,
                             BusinessEnum.EG_RECHARGE, currency.getRemain(), transactionId, gameType + "电子用户充值");
-                    ApiEgDepositRes apiEgDepositRes = gameService.egDeposit(req);
+                    ApiEgDepositRes apiEgDepositRes = apiGameService.egDeposit(req);
                     if (!StringUtils.isEmpty(apiEgDepositRes.getCode())) {
                         ErrorEnum.GAME_RECHARGE_FAIL.throwException();
                     }
@@ -356,7 +356,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
             if (result) {
                 String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", user.getTgId());
-                stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType);
+                stringRedisTemplate.boundValueOps(gameRechargeKey).set(gameType + ":" + currency.getRemain());
             }
             return result;
         } finally {
@@ -379,7 +379,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                             .MemberAccount(user.getGameAccount())
                             .AllOut(1)
                             .build();
-                    ApiSetPointRes apiSetPointRes = gameService.setPoints(build);
+                    ApiSetPointRes apiSetPointRes = apiGameService.setPoints(build);
                     if (apiSetPointRes.getResult().equals(0)) {
                         log.info("FC提现余额增加BankID:{},amount:{}", apiSetPointRes.getBankID(), apiSetPointRes.getPoints());
                         currencyService.increase(user.getId(), UserType.USER, BusinessEnum.FC_WITHDRAWAL, BigDecimal.valueOf(apiSetPointRes.getPoints()).negate(),
@@ -389,11 +389,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     }
                     break;
                 case "WL":
-                    ApiWlGameOrderRes apiWlGameOrderRes = gameService.wlGetUserBalance(user.getId());
+                    ApiWlGameOrderRes apiWlGameOrderRes = apiGameService.wlGetUserBalance(user.getId());
                     BigDecimal transferable = new BigDecimal(apiWlGameOrderRes.getTransferable());
                     //transferable大于0,就可以下分
                     if (transferable.compareTo(BigDecimal.ZERO) > 0) {
-                        ApiWlGameRes wlGameRes = gameService.wlPayOrder(user.getId(), transferable.negate());
+                        ApiWlGameRes wlGameRes = apiGameService.wlPayOrder(user.getId(), transferable.negate());
                         if (wlGameRes.getCode().equals(0) && wlGameRes.getData() != null
                                 && wlGameRes.getData().getStatus().equals(1) && wlGameRes.getData().getReason().equals("ok")) {
                             BigDecimal gup = configService.getDecimal(ConfigConstants.WL_GAME_USDT_POINT);
@@ -408,12 +408,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     break;
                 case "EG":
                     String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
-                    gameService.egLogout(ApiEgLogoutReq.builder().playerId(user.getGameAccount()).merch(merch).build());
+                    apiGameService.egLogout(ApiEgLogoutReq.builder().playerId(user.getGameAccount()).merch(merch).build());
                     String transactionId = UUID.randomUUID().toString();
                     ApiEgWithdrawReq req = ApiEgWithdrawReq.builder()
                             .amount("0").transactionId(transactionId).merch(merch).playerId(user.getGameAccount())
                             .takeAll("1").build();
-                    ApiEgDepositRes apiEgDepositRes = gameService.egWithdraw(req);
+                    ApiEgDepositRes apiEgDepositRes = apiGameService.egWithdraw(req);
                     if (StringUtils.isEmpty(apiEgDepositRes.getCode())) {
                         log.info("EG提现余额增加TransactionID:{},amount:{}", transactionId, apiEgDepositRes.getAmount());
                         currencyService.increase(user.getId(), UserType.USER, BusinessEnum.EG_WITHDRAWAL, new BigDecimal(apiEgDepositRes.getAmount())
@@ -431,8 +431,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public List<User> queryByInviteUser(Long inviteUser, LocalDateTime startTime, LocalDateTime endTime) {
-        return list(new LambdaQueryWrapper<User>().eq(User::getInviteUser, inviteUser).ge(Objects.nonNull(startTime), User::getJoinedTime, startTime)
+        return list(new LambdaQueryWrapper<User>().eq(User::getInviteUser, inviteUser)
+                .ge(Objects.nonNull(startTime), User::getJoinedTime, startTime)
                 .le(Objects.nonNull(endTime), User::getJoinedTime, endTime));
+    }
+
+    @Override
+    public Integer teamNumber(Long userId) {
+        return count(new LambdaQueryWrapper<User>().like(User::getInviteChain,userId)
+                .eq(User::getHasGroup,true));
     }
 
 

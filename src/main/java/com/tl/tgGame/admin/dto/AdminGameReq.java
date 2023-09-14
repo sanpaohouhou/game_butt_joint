@@ -18,4 +18,6 @@ import lombok.NoArgsConstructor;
 public class AdminGameReq extends PageQueryDTO {
 
     private String gameName;
+
+    private Long userId;
 }

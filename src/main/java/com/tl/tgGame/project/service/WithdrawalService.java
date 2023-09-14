@@ -2,6 +2,7 @@ package com.tl.tgGame.project.service;
 
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tl.tgGame.project.entity.Withdrawal;
 import com.tl.tgGame.project.enums.Network;
@@ -78,4 +79,11 @@ public interface WithdrawalService extends IService<Withdrawal> {
      */
     BigDecimal allWithdrawalAmount(Long userId, UserType userType, List<WithdrawStatus> statuses, LocalDateTime startTime, LocalDateTime endTime);
 
+    /**
+     * 下级提现人数
+     */
+    Integer countJuniorWithdrawalAmount(Long inviteUserId,Long userId,LocalDateTime startTime,LocalDateTime endTime);
+
+    Page<Withdrawal> agentList(Integer page, Integer size, Long userId, Long agentId, Long id,
+                               WithdrawStatus status, LocalDateTime startTime, LocalDateTime endTime);
 }

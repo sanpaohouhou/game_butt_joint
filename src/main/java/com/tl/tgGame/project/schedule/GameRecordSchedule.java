@@ -1,10 +1,8 @@
 package com.tl.tgGame.project.schedule;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.Bet;
 import com.tl.tgGame.project.entity.EgBet;
-import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.entity.WlBet;
 import com.tl.tgGame.project.service.*;
 import com.tl.tgGame.system.ConfigConstants;
@@ -18,7 +16,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -39,7 +36,7 @@ public class GameRecordSchedule {
     private RedissonClient redisLock;
 
     @Autowired
-    private GameService gameService;
+    private ApiGameService apiGameService;
 
     @Autowired
     private EgBetService egBetService;
@@ -73,7 +70,7 @@ public class GameRecordSchedule {
                 ApiRecordListReq req = new ApiRecordListReq();
                 req.setStartDate(startTime);
                 req.setEndDate(endTime);
-                List<ApiGameRecordListDTO> recordList = gameService.getRecordList(req);
+                List<ApiGameRecordListDTO> recordList = apiGameService.getRecordList(req);
                 if (CollectionUtils.isEmpty(recordList)) {
                     return;
                 }
@@ -116,7 +113,7 @@ public class GameRecordSchedule {
                 req.setPage("1");
                 req.setPageSize("1000");
                 req.setMerch(merch);
-                ApiEgRoundRecordRes res = gameService.egRoundRecordByTime(req);
+                ApiEgRoundRecordRes res = apiGameService.egRoundRecordByTime(req);
                 if (res == null || CollectionUtils.isEmpty(res.getData())) {
                     return;
                 }
@@ -130,7 +127,7 @@ public class GameRecordSchedule {
     @Scheduled(fixedDelay = 150000)
     public void insertWlBetRecord() {
         LocalDateTime endTime = LocalDateTime.now();
-        LocalDateTime startTime = endTime.minusMinutes(60);
+        LocalDateTime startTime = endTime.minusMinutes(15);
         WlBet wlBet = wlBetService.lambdaQuery().orderByDesc(WlBet::getId).last("LIMIT 1").one();
         if (wlBet != null) {
             startTime = wlBet.getPullTime();
@@ -142,11 +139,14 @@ public class GameRecordSchedule {
                 endTime = LocalDateTime.now();
             }
         }
+//        LocalDateTime startTime = TimeUtil.getStringDisplayLocalDateTime("2023-09-08 18:50:42");
+//        LocalDateTime endTime = TimeUtil.getStringDisplayLocalDateTime("2023-09-08 19:50:35");
+
         String lockKey = "insertWlBetRecord:lock";
         RLock lock = redisLock.getLock(lockKey);
         if (lock.tryLock()) {
             try {
-                ApiWlGameResponse response = gameService.wlGameRecord(startTime, endTime);
+                ApiWlGameResponse response = apiGameService.wlGameRecord(startTime, endTime);
                 if (response.getCode() != 0) {
                     return;
                 }

@@ -70,5 +70,9 @@ public class ApiWlGameRecordRes {
      *投注详情查询URl链接
      */
     private String[] detailUrl;
+    /**
+     * flag类型,只有体育有
+     */
+    private String[] flag;
 
 }

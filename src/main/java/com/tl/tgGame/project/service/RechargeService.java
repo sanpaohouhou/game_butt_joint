@@ -51,4 +51,8 @@ public interface RechargeService extends IService<Recharge> {
 
     Integer countRechargeNumber(List<Long> userIds,LocalDateTime startTime,LocalDateTime endTime);
 
+    Integer countJuniorRechargeNumber(Long inviteUserId,Long userId,LocalDateTime startTime,LocalDateTime endTime);
+
+    BigDecimal sumJuniorRechargeAmount(Long inviteUserId,Long userId,LocalDateTime startTime,LocalDateTime endTime);
+
 }

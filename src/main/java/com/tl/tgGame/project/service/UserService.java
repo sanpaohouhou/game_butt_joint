@@ -44,5 +44,7 @@ public interface UserService extends IService<User> {
 
     List<User> queryByInviteUser(Long inviteUser, LocalDateTime startTime, LocalDateTime endTime);
 
+    Integer teamNumber(Long userId);
+
 
 }

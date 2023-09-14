@@ -24,4 +24,10 @@ public interface RechargeMapper extends BaseMapper<Recharge> {
 
     @Select("SELECT COUNT(DISTINCT `user_id`) FROM `recharge` ${ew.customSqlSegment}")
     Integer countRechargeNumber(@Param(Constants.WRAPPER) Wrapper<Recharge> wrapper);
+
+    @Select(" SELECT COUNT(DISTINCT `user_id`) FROM `recharge` AS re JOIN `user` u ON re.user_id = u.id ${ew.customSqlSegment}")
+    Integer countJuniorRechargeNumber(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
+
+    @Select(" SELECT IFNULL(SUM(`amount`),'0') FROM `recharge` AS re JOIN `user` u ON re.user_id = u.id ${ew.customSqlSegment}")
+    BigDecimal sumJuniorRechargeAmount(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
 }

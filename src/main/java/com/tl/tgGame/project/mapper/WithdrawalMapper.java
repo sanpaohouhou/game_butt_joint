@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * <p>
@@ -18,11 +19,15 @@ import java.math.BigDecimal;
  * @since 2022-07-12
  */
 public interface WithdrawalMapper extends BaseMapper<Withdrawal> {
-    @Select("SELECT count(*) FROM usdt_withdrawal AS usdt  JOIN " +
-            "market_merchant AS merchant ON usdt.uid = merchant.id ${ew.customSqlSegment}")
-    int count(@Param(Constants.WRAPPER) Wrapper<Withdrawal> wrapper);
-
-
     @Select("SELECT IFNULL(SUM(`amount`),0) FROM `withdrawal` ${ew.customSqlSegment}")
     BigDecimal sumWithdrawal(@Param(Constants.WRAPPER) Wrapper<Withdrawal> wrapper);
+
+    @Select(" SELECT COUNT(DISTINCT `uid`) FROM `withdrawal` AS wi JOIN `user` u ON wi.uid = u.id ${ew.customSqlSegment}")
+    Integer countJuniorWithdrawalAmount(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
+
+    @Select("SELECT wi.*, u.`level`,u.`agent_id` FROM `withdrawal` AS wi JOIN `user` AS u ON wi.uid = u.id ${ew.customSqlSegment}")
+    List<Withdrawal> agentList(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
+
+    @Select("SELECT count(*) FROM `withdrawal` AS wi JOIN `user` AS u ON wi.uid = u.id ${ew.customSqlSegment}")
+    Integer agentCount(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
 }

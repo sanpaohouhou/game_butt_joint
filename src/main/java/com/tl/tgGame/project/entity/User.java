@@ -60,6 +60,12 @@ public class User {
 
     private String inviteChain;
 
+    //是否是代理,true是,false不是
+    private Boolean hasAgent;
+
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long agentId;
+
     @TableField(exist = false)
     private Currency currency;
 
@@ -74,4 +80,12 @@ public class User {
 
     @TableField(exist = false)
     private Integer allBetCount;
+
+    @TableField(exist = false)
+    private BigDecimal rechargeAmount;
+
+    @TableField(exist = false)
+    private BigDecimal withdrawalAmount;
+
+
 }

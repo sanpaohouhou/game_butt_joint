@@ -472,49 +472,6 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 }
 
             }
-
-
-//            if (text.equals("USDT充值") || checkState(update).equals("USDT充值")) {
-//                SendMessage message8 = null;
-//                if (update.getMessage().getText().equals("USDT充值")) {
-//                    buildState(update, true);
-//                    message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-//                            .text("尊贵的用户，请输入充值金额").build();
-//                } else {
-//                    List<List<InlineKeyboardButton>> lists = new ArrayList<>();
-//                    List<InlineKeyboardButton> inlineKeyboardButtons1 = new ArrayList<>();
-//                    InlineKeyboardButton inlineKeyboardButton2 = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
-//                    inlineKeyboardButtons1.add(inlineKeyboardButton2);
-//                    InlineKeyboardMarkup inlineKeyboardMarkup1 = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons1).build();
-//                    if (!NumberUtil.isParsable(update.getMessage().getText()) || !NumberUtil.isNumeric2(update.getMessage().getText())) {
-//                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-//                                .text("尊贵的用户，请正确输入金额").replyMarkup(inlineKeyboardMarkup1).build();
-//                    } else if (Integer.parseInt(update.getMessage().getText()) < 100) {
-//                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-//                                .text("尊贵的用户，最低充值：100USDT").replyMarkup(inlineKeyboardMarkup1).build();
-//                    } else {
-//                        StringBuilder append3 = new StringBuilder()
-//                                .append("名称: ").append(user.getGameAccount()).append("\r\n")
-//                                .append("充值分数: ").append(text).append("\r\n")
-//                                .append("付款金额: ").append(text).append("\r\n")
-//                                .append("尊贵的用户，请确认转账金额，如果无法正确转入系统指定付款金额，将无法完成游戏分数的充值。" +
-//                                        "劳您再次确认，确认无误后请点击下方“转账金额确认”按钮。").append("\r\n");
-//                        List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
-//
-//                        InlineKeyboardButton inlineKeyboardButton = InlineKeyboardButton.builder()
-//                                .text("转账金额确认").callbackData("USDT充值:转账金额确认|" + text + "." + text).build();
-//                        inlineKeyboardButtons.add(inlineKeyboardButton);
-//                        lists.add(inlineKeyboardButtons1);
-//                        lists.add(inlineKeyboardButtons);
-//
-//                        InlineKeyboardMarkup inlineKeyboardMarkup2 = InlineKeyboardMarkup.builder().keyboard(lists).build();
-//                        message8 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-//                                .text(append3.toString()).replyMarkup(inlineKeyboardMarkup2).build();
-//                    }
-//                }
-//                execute(message8);
-//            }
-
             if (text.equals("USDT提现") || checkState(update).equals("USDT提现")) {
                 SendMessage message = null;
                 List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();

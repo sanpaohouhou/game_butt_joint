@@ -1,6 +1,7 @@
 package com.tl.tgGame.project.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -91,6 +92,12 @@ GameBet {
      *更新时间
      */
     private LocalDateTime updateTime;
+
+    @TableField(exist = false)
+    private Integer level;
+
+    @TableField(exist = false)
+    private BigDecimal dividendAmount = BigDecimal.ZERO;
 
 
 }

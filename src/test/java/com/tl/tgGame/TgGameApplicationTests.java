@@ -13,6 +13,7 @@ import com.google.zxing.common.BitMatrix;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.Bet;
 import com.tl.tgGame.project.entity.EgBet;
+import com.tl.tgGame.project.entity.GameBet;
 import com.tl.tgGame.project.entity.WlBet;
 import com.tl.tgGame.project.schedule.GameRecordSchedule;
 import com.tl.tgGame.project.service.*;
@@ -48,14 +49,14 @@ class TgGameApplicationTests {
 
 
 	@Autowired
-	private GameService gameService;
+	private ApiGameService apiGameService;
 
 	@Test
 	public void addMember(){
 		ApiAddMemberReq addMemberReq = new ApiAddMemberReq();
 		long anInt = new Random().nextLong() % 10000000000L;
 		addMemberReq.setMemberAccount("pu" + anInt);
-		gameService.addUser(addMemberReq);
+		apiGameService.addUser(addMemberReq);
 //		gameService.testSign(addMemberReq);
 
 	}
@@ -68,7 +69,7 @@ class TgGameApplicationTests {
 		loginReq.setGameID(21003);
 		loginReq.setLoginGameHall(true);
 		loginReq.setLanguageID(2);
-		String login = gameService.login(loginReq);
+		String login = apiGameService.login(loginReq);
 		System.out.println(login);
 	}
 
@@ -112,7 +113,7 @@ class TgGameApplicationTests {
 		req.setAllOut(0);
 		req.setMemberAccount("qu5617520236");
 		req.setPoints(Double.valueOf("1200"));
-		gameService.setPoints(req);
+		apiGameService.setPoints(req);
 
 //		ApiRecordListReq req = new ApiRecordListReq();
 //		req.setStartDate("2023-08-14 10:20:00");
@@ -142,7 +143,7 @@ class TgGameApplicationTests {
 //		System.out.println(apiEgGameListRes);
 		ApiEgCreateUserReq req = ApiEgCreateUserReq.builder().merch("389bet_cny")
 						.isBot(false).currency("CNY").playerId("1695008845821018114").build();
-		gameService.egCreateUser(req);
+		apiGameService.egCreateUser(req);
 		String json = new Gson().toJson(req);
 		System.out.println(json);
 //		String hash = Crypto.hmacToString(DigestFactory.createSHA256(), "pEd9heiqDR", json);
@@ -159,7 +160,7 @@ class TgGameApplicationTests {
 		req.setPlayerId("1695008845821018113");
 		req.setMerch("389bet_cny");
 		req.setLang("zh_CN");
-		String s = gameService.egEnterGame(req);
+		String s = apiGameService.egEnterGame(req);
 		System.out.println(s);
 	}
 
@@ -173,7 +174,7 @@ class TgGameApplicationTests {
 //		req.setPlayerId("1695008845821018113");
 		req.setStart("1693376110349");
 		req.setEnd(String.valueOf(System.currentTimeMillis()));
-		gameService.egRoundRecordByTime(req);
+		apiGameService.egRoundRecordByTime(req);
 	}
 
 	@Test
@@ -183,7 +184,7 @@ class TgGameApplicationTests {
 		req.setTransactionId(UUID.randomUUID().toString());
 		req.setPlayerId("1695008845821018113");
 		req.setMerch("389bet_cny");
-		ApiEgDepositRes apiEgDepositRes = gameService.egDeposit(req);
+		ApiEgDepositRes apiEgDepositRes = apiGameService.egDeposit(req);
 		System.out.println(apiEgDepositRes);
 	}
 
@@ -191,7 +192,7 @@ class TgGameApplicationTests {
 	@Test
 	public void wlEnterGame(){
 
-		String s = gameService.wlEnterGame(1695008845821018113L,null, request);
+		String s = apiGameService.wlEnterGame(1695008845821018113L,null, request);
 		System.out.println(s);
 	}
 
@@ -220,15 +221,15 @@ class TgGameApplicationTests {
 
 	@Test
 	public void wlPayOrder(){
-		ApiWlGameRes b = gameService.wlPayOrder(1695008845821018113L, BigDecimal.valueOf(100));
+		ApiWlGameRes b = apiGameService.wlPayOrder(1695008845821018113L, BigDecimal.valueOf(100));
 		System.out.println(b);
 	}
 
 	@Test
 	public void wlGameRecord(){
 		LocalDateTime now = LocalDateTime.now();
-		LocalDateTime localDateTime = now.minusMinutes(15);
-		ApiWlGameResponse apiWlGameResponse = gameService.wlGameRecord(localDateTime, now);
+		LocalDateTime localDateTime = now.minusDays(3);
+		ApiWlGameResponse apiWlGameResponse = apiGameService.wlGameRecord(localDateTime, now);
 		System.out.println(new Gson().toJson(apiWlGameResponse));
 	}
 
@@ -293,7 +294,7 @@ class TgGameApplicationTests {
 	public void egLogout(){
 
 		ApiEgLogoutReq build = ApiEgLogoutReq.builder().playerId("qu4673689839").merch("389bet_usdt").build();
-		Boolean aBoolean = gameService.egLogout(build);
+		Boolean aBoolean = apiGameService.egLogout(build);
 		System.out.println(aBoolean);
 	}
 
@@ -341,6 +342,21 @@ class TgGameApplicationTests {
 	}
 
 
+
+	@Test
+	public void teamNumber(){
+		Integer integer = userService.teamNumber(1700046938802470914L);
+		System.out.println(integer);
+	}
+
+	@Autowired
+	private GameBetService gameBetService;
+	@Test
+	public void testCommission(){
+		Long gameId = 1701416239266500610L;
+		GameBet gameBet = gameBetService.getById(gameId);
+		gameBetService.loseCommission(gameBet);
+	}
 
 
 }

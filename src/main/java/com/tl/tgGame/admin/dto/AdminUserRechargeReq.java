@@ -20,4 +20,6 @@ public class AdminUserRechargeReq extends PageQueryDTO {
     private Long userId;
 
     private String gameAccount;
+
+    private Long agentId;
 }

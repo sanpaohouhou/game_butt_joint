@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -78,20 +80,21 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
             BigDecimal tax = list.getTax()[i];
             BigDecimal validBet = list.getValidBet()[i];
             Long userId = list.getUid()[i];
+            String flag = list.getFlag()[i];
             LocalDateTime pullTime = TimeUtil.getStringDisplayLocalDateTime(data.getUntil()).plusSeconds(1);
 
             WlBet wlBet = buildWlBet(balance, bet, category, detailUrl, game,
                     gameId, gameStartTime, profit, recordId, recordTime, tax, validBet, userId, pullTime);
             WlBet record = this.getOne(new LambdaQueryWrapper<WlBet>().eq(WlBet::getRecordId, recordId));
-            if (record == null) {
+            if (record == null && (StringUtils.isEmpty(flag) || flag.equals("settle"))) {
+                User user = userService.getById(userId);
+                GameBet gameBet = buildGameBet(wlBet, user.getGameAccount(),usdtPoint);
                 recordList.add(wlBet);
+                gameBets.add(gameBet);
             }
-            User user = userService.getById(userId);
-            GameBet gameBet = buildGameBet(wlBet, user.getGameAccount(),usdtPoint);
-            if(profit.compareTo(BigDecimal.ZERO) > 0){
-
-            }
-            gameBets.add(gameBet);
+        }
+        if(CollectionUtils.isEmpty(recordList)){
+            return false;
         }
         if (!saveBatch(recordList)) {
             ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
@@ -120,7 +123,7 @@ public class WlBetServiceImpl extends ServiceImpl<WlBetMapper, WlBet> implements
                     business = GameBusiness.WL_TY;
                 }
                 Boolean commission = userCommissionService.insertUserCommission(wlBet.getUserId(), wlBet.getUserId(), wlBet.getGameId(), wlBet.getGameName()
-                        , UserCommissionType.BACK_WATER, business.getKey(), backWater, rate, wlBet.getProfit());
+                        , UserCommissionType.BACK_WATER, business.getKey(), backWater, rate, wlBet.getProfit(),wlBet.getId());
                 if (commission) {
                     currencyService.increase(wlBet.getId(), UserType.USER, BusinessEnum.BACK_WATER, backWater, wlBet.getRecordId(), "瓦力用户输钱返水");
                 }

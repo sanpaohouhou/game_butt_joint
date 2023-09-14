@@ -37,7 +37,7 @@ public class UserCommission {
     private String gameId;
 
     private String gameName;
-    //利润类型,佣金,返水
+    //利润类型,佣金,返水,分红
     private UserCommissionType type;
 
     //游戏类型 目前有FC电子,瓦力,EG

@@ -2,6 +2,7 @@ package com.tl.tgGame.project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
@@ -149,6 +150,24 @@ public class RechargeServiceImpl extends ServiceImpl<RechargeMapper, Recharge> i
                         .ge(Objects.nonNull(startTime),Recharge::getCreateTime,startTime)
                         .le(Objects.nonNull(endTime),Recharge::getCreateTime,endTime);;
         return rechargeMapper.countRechargeNumber(wrapper);
+    }
+
+    @Override
+    public Integer countJuniorRechargeNumber(Long inviteUserId, Long userId, LocalDateTime startTime, LocalDateTime endTime) {
+        QueryWrapper<Object> wrapper = new QueryWrapper<>().eq(Objects.nonNull(inviteUserId), "u.invite_user", inviteUserId)
+                .eq(Objects.nonNull(userId), "re.user_id", userId)
+                .ge(Objects.nonNull(startTime), "re.create_time", startTime)
+                .le(Objects.nonNull(endTime), "re.create_time", endTime);
+        return rechargeMapper.countJuniorRechargeNumber(wrapper);
+    }
+
+    @Override
+    public BigDecimal sumJuniorRechargeAmount(Long inviteUserId, Long userId, LocalDateTime startTime, LocalDateTime endTime) {
+        QueryWrapper<Object> wrapper = new QueryWrapper<>().eq(Objects.nonNull(inviteUserId), "u.invite_user", inviteUserId)
+                .eq(Objects.nonNull(userId), "re.user_id", userId)
+                .ge(Objects.nonNull(startTime), "re.create_time", startTime)
+                .le(Objects.nonNull(endTime), "re.create_time", endTime);
+        return rechargeMapper.sumJuniorRechargeAmount(wrapper);
     }
 
     private void txHandle(long uid, String from, String to, Network network, String hash, BigInteger txVal) {

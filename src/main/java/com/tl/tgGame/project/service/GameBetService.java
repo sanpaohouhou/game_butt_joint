@@ -1,8 +1,10 @@
 package com.tl.tgGame.project.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.tl.tgGame.admin.dto.AdminGameReq;
+import com.tl.tgGame.admin.dto.UserExtendBetStatisticsDTO;
+import com.tl.tgGame.project.dto.GameBetStatisticsListRes;
 import com.tl.tgGame.project.entity.GameBet;
-import com.tl.tgGame.project.enums.GameBusiness;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,5 +25,15 @@ public interface GameBetService extends IService<GameBet> {
     BigDecimal sumWinLose(Long userId,LocalDateTime startTime,LocalDateTime endTime,Boolean hasWinLose,String gameBusiness);
 
     Integer todayBetUserCount(LocalDateTime startTime,LocalDateTime endTime);
+
+    void loseCommission(GameBet gameBet);
+
+    void winCommission(GameBet gameBet);
+
+    List<GameBetStatisticsListRes> betStatistics(AdminGameReq req);
+
+    GameBetStatisticsListRes userBetStatistics(Long userId,LocalDateTime startTime, LocalDateTime endTime);
+
+    UserExtendBetStatisticsDTO extendGameBetList(Long inviteUserId, Long userId, LocalDateTime startTime, LocalDateTime endTime);
 
 }

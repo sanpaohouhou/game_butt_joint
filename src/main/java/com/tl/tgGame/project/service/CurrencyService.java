@@ -109,6 +109,11 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         if (!_unfreeze(uid, type, businessEnum, amount, sn, des)) ErrorEnum.CREDIT_LACK.throwException();
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void withdrawalForce(long uid, UserType type, BusinessEnum businessEnum, BigDecimal amount, Object sn, String des) {
+        if (!_withdrawalForce(uid, type, businessEnum, amount, sn, des)) ErrorEnum.CREDIT_LACK.throwException();
+    }
+
     private boolean _increase(long uid, UserType type, BusinessEnum businessEnum, BigDecimal amount, Object sn, String des) {
         Currency currency = getOrCreate(uid, type);
         long result = currencyMapper.increase(uid, type, amount);
@@ -142,6 +147,13 @@ public class CurrencyService extends ServiceImpl<CurrencyMapper, Currency> {
         Currency currency = getOrCreate(uid, type);
         long result = currencyMapper.unfreeze(uid, type, amount);
         currencyLogService.add(uid, type, CurrencyLogType.unfreeze, businessEnum, amount, sn, des, currency.getBalance(), currency.getFreeze(), currency.getRemain());
+        return result > 0L;
+    }
+
+    private boolean _withdrawalForce(long uid, UserType type, BusinessEnum businessEnum, BigDecimal amount, Object sn, String des) {
+        Currency currency = getOrCreate(uid, type);
+        long result = currencyMapper.withdrawForce(uid, type, amount);
+        currencyLogService.add(uid, type, CurrencyLogType.reduce, businessEnum, amount, sn, des, currency.getBalance(), currency.getFreeze(), currency.getRemain());
         return result > 0L;
     }
 

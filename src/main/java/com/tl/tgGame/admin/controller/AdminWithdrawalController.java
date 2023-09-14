@@ -5,10 +5,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tl.tgGame.admin.dto.AuditDTO;
 import com.tl.tgGame.admin.dto.WithdrawalUploadDTO;
 import com.tl.tgGame.common.dto.Response;
+import com.tl.tgGame.project.entity.Agent;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.entity.Withdrawal;
 import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.enums.WithdrawStatus;
+import com.tl.tgGame.project.service.AgentService;
 import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.project.service.WithdrawalService;
 import lombok.With;
@@ -38,6 +40,9 @@ public class AdminWithdrawalController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AgentService agentService;
 
     /**
      * 获取usdt提现记录
@@ -83,6 +88,18 @@ public class AdminWithdrawalController {
         }
         page1.setRecords(list);
         return Response.pageResult(page1);
+    }
+
+    @GetMapping("/agent/withdrawal/list")
+    public Response agentWithdrawalList(@RequestParam(defaultValue = "1") Integer page,
+                                        @RequestParam(defaultValue = "20") Integer size,
+                                        @RequestParam(required = false) Long userId,
+                                        @RequestParam(required = false) Long agentId,
+                                        @RequestParam(required = false) Long id,
+                                        @RequestParam(required = false) WithdrawStatus status,
+                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
+                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime){
+        return Response.pageResult(withdrawalService.agentList(page, size, userId, agentId, id, status, startTime, endTime));
     }
 
     @PostMapping("/withdrawal/audit")

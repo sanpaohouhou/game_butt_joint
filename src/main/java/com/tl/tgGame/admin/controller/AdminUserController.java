@@ -1,16 +1,21 @@
 package com.tl.tgGame.admin.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tl.tgGame.address.AddressService;
 import com.tl.tgGame.admin.dto.*;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.exception.ErrorEnum;
+import com.tl.tgGame.project.dto.GameBackWaterRes;
+import com.tl.tgGame.project.dto.GameBetStatisticsListRes;
 import com.tl.tgGame.project.entity.*;
 import com.tl.tgGame.project.enums.BusinessEnum;
+import com.tl.tgGame.project.enums.UserCommissionType;
 import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.enums.WithdrawStatus;
 import com.tl.tgGame.project.service.*;
+import com.tl.tgGame.system.ConfigConstants;
+import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,8 +28,10 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @version 1.0
@@ -39,16 +46,7 @@ public class AdminUserController {
     private UserService userService;
 
     @Autowired
-    private AddressService addressService;
-
-    @Autowired
     private RechargeService rechargeService;
-
-    @Autowired
-    private WithdrawalService withdrawalService;
-
-    @Autowired
-    private UserProfitService userProfitService;
 
     @Autowired
     private CurrencyService currencyService;
@@ -56,7 +54,11 @@ public class AdminUserController {
     @Autowired
     private GameBetService gameBetService;
 
+    @Autowired
+    private CurrencyLogService currencyLogService;
 
+    @Autowired
+    private WithdrawalService withdrawalService;
 
     /**
      * 用户列表
@@ -85,6 +87,52 @@ public class AdminUserController {
         return Response.pageResult(page);
     }
 
+    @GetMapping("userInfo")
+    public Response userInfo(@RequestParam Long userId,
+                             @RequestParam(defaultValue = "startTime") LocalDateTime startTime,
+                             @RequestParam(defaultValue = "endTime") LocalDateTime endTime) {
+        User user = userService.getById(userId);
+        if (user == null) {
+            ErrorEnum.OBJECT_NOT_FOUND.throwException();
+        }
+        BigDecimal rechargeAmount = rechargeService.sumRecharge(userId, UserType.USER, startTime, endTime);
+        BigDecimal withdrawalAmount = withdrawalService.allWithdrawalAmount(userId, UserType.USER,
+                Arrays.asList(WithdrawStatus.withdraw_success, WithdrawStatus.withdrawing), startTime, endTime);
+        GameBetStatisticsListRes statistics = gameBetService.userBetStatistics(userId, startTime, endTime);
+        UserInfoRes build = UserInfoRes.builder()
+                .betAmount(statistics.getBetAmount())
+                .betNumber(statistics.getBetNumber())
+                .rechargeAmount(rechargeAmount)
+                .profit(statistics.getUserProfit())
+                .withdrawalUrl(user.getWithdrawalUrl())
+                .withdrawalAmount(withdrawalAmount)
+                .validAmount(statistics.getValidAmount()).build();
+        return Response.success(build);
+    }
+
+    /**
+     * 修改用户提现地址
+     */
+    @PostMapping("updateWithdrawalUrl/{userId}")
+    public Response updateWithdrawalUrl(@PathVariable Long userId,String withdrawalUrl){
+        User user = userService.getById(userId);
+        if(user == null){
+            ErrorEnum.OBJECT_NOT_FOUND.throwException();
+        }
+        user.setWithdrawalUrl(withdrawalUrl);
+        boolean b = userService.updateById(user);
+        return Response.success(b);
+    }
+
+    /**
+     * 游戏统计
+     */
+    @GetMapping("userGameStatistics")
+    public Response userGameStatistics(AdminGameReq req){
+        List<GameBetStatisticsListRes> gameBetStatisticsListRes = gameBetService.betStatistics(req);
+        return Response.success(gameBetStatisticsListRes);
+    }
+
     /**
      * 用户转账
      *
@@ -95,9 +143,17 @@ public class AdminUserController {
     public Response chargeRecord(AdminUserRechargeReq req
     ) {
         Long userId = req.getUserId();
-        if(!StringUtils.isEmpty(req.getGameAccount())){
+        if (!StringUtils.isEmpty(req.getGameAccount())) {
             User user = userService.queryByMemberAccount(req.getGameAccount());
-            if(Objects.isNull(user)){
+            if (Objects.isNull(user)) {
+                ErrorEnum.OBJECT_NOT_FOUND.throwException();
+            }
+            userId = user.getId();
+        }
+
+        if(req.getAgentId() != null){
+            User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, req.getAgentId()));
+            if (Objects.isNull(user)) {
                 ErrorEnum.OBJECT_NOT_FOUND.throwException();
             }
             userId = user.getId();
@@ -109,7 +165,7 @@ public class AdminUserController {
                         .le(Objects.nonNull(req.getEndTime()), Recharge::getCreateTime, req.getEndTime())
                         .orderByDesc(Recharge::getId));
         List<Recharge> records = page.getRecords();
-        if(CollectionUtils.isEmpty(records)){
+        if (CollectionUtils.isEmpty(records)) {
             return Response.pageResult(page);
         }
         List<Recharge> recharges = new ArrayList<>();
@@ -122,37 +178,13 @@ public class AdminUserController {
         return Response.pageResult(page);
     }
 
-    /**
-     * 用户推广
-     */
-    @GetMapping("userExtend/list")
-    public Response userExtend(AdminUserExtendReq req) {
-        Page<User> page = userService.page(new Page<>(req.getPage(), req.getSize()));
-        return Response.pageResult(page);
-    }
 
     /**
-     * 推广详情
+     * 用户快速充值
+     *
+     * @param dto
+     * @return
      */
-    @GetMapping("userExtendInfo")
-    public Response userExtendInfo(Long userId) {
-        return Response.success();
-    }
-
-    /** k
-     * 用户获利
-     */
-    @GetMapping("userMakeProfit")
-    public Response userMakeProfit(AdminUserMakeProfitReq req) {
-        Page<UserProfit> page = userProfitService.page(new Page<>(req.getPage(), req.getSize()),
-                new LambdaQueryWrapper<UserProfit>()
-                        .eq(Objects.nonNull(req.getGameAccount()), UserProfit::getGameAccount, req.getGameAccount())
-                        .eq(Objects.nonNull(req.getGameName()), UserProfit::getGameName, req.getGameName())
-                        .ge(Objects.nonNull(req.getStartTime()), UserProfit::getCreateTime, req.getStartTime())
-                        .le(Objects.nonNull(req.getEndTime()), UserProfit::getCreateTime, req.getEndTime()));
-        return Response.pageResult(page);
-    }
-
     @PostMapping("/user/recharge")
     @Transactional(rollbackFor = Exception.class)
     public Response userRecharge(@RequestBody @Valid ChargeDTO dto) {
@@ -172,11 +204,17 @@ public class AdminUserController {
                 dto.getHash(),
                 dto.getNetwork(),
                 dto.getScreen(),
-                dto.getNote(),currency);
+                dto.getNote(), currency);
         currencyService.increase(dto.getUserId(), UserType.USER, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "充值");
         return Response.success(recharge);
     }
 
+    /**
+     * 用户详情
+     *
+     * @param gameAccount
+     * @return
+     */
     @GetMapping("/{gameAccount}")
     public Response getUser(@PathVariable String gameAccount) {
         User user = userService.queryByMemberAccount(gameAccount);
@@ -188,14 +226,47 @@ public class AdminUserController {
                     .ge(GameBet::getRecordTime, todayBegin)
                     .le(GameBet::getRecordTime, now));
             int allBetCount = gameBetService.count(new LambdaQueryWrapper<GameBet>().eq(GameBet::getUserId, user.getId()));
-            BigDecimal todayProfit = gameBetService.sumWinLose(user.getId(), todayBegin, now, null,null);
-            BigDecimal allProfit = gameBetService.sumWinLose(user.getId(), null, null, null,null);
+            BigDecimal todayProfit = gameBetService.sumWinLose(user.getId(), todayBegin, now, null, null);
+            BigDecimal allProfit = gameBetService.sumWinLose(user.getId(), null, null, null, null);
             user.setAllBetCount(allBetCount);
             user.setAllProfit(allProfit);
             user.setTodayBetCount(todayBetCount);
             user.setTodayProfit(todayProfit);
         }
         return Response.success(user);
+    }
+
+
+    /**
+     * 保证金明细(账户操作明细)
+     *
+     * @param page
+     * @param size
+     * @param userType
+     * @param userId
+     * @param sn
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    @GetMapping("/currency-log/list")
+    public Response currencyLogList(@RequestParam(defaultValue = "1") Integer page,
+                                    @RequestParam(defaultValue = "20") Integer size,
+                                    @RequestParam(required = false) UserType userType,
+                                    @RequestParam(required = false) Long userId,
+                                    @RequestParam(required = false) String sn,
+                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
+                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime
+    ) {
+        return Response.pageResult(currencyLogService.page(new Page<>(page, size),
+                new LambdaQueryWrapper<CurrencyLog>()
+                        .eq(Objects.nonNull(userId), CurrencyLog::getUid, userId)
+                        .eq(Objects.nonNull(userType), CurrencyLog::getUserType, userType)
+                        .eq(org.apache.commons.lang3.StringUtils.isNotBlank(sn), CurrencyLog::getSn, sn)
+                        .ge(Objects.nonNull(startTime), CurrencyLog::getCreateTime, startTime)
+                        .le(Objects.nonNull(endTime), CurrencyLog::getCreateTime, endTime)
+                        .orderByDesc(CurrencyLog::getId)
+        ));
     }
 
 }

@@ -23,22 +23,21 @@ import java.util.Objects;
 @Service
 public class UserCommissionServiceImpl extends ServiceImpl<UserCommissionMapper, UserCommission> implements UserCommissionService {
 
-    @Autowired
-    private UserCommissionMapper userCommissionMapper;
-
 
     @Override
     public BigDecimal sumAmount(Long userId, UserCommissionType type, String gameBusiness, LocalDateTime startTime, LocalDateTime endTime) {
-        LambdaQueryWrapper<UserCommission> wrapper = new LambdaQueryWrapper<UserCommission>().eq(UserCommission::getUserId, userId)
+        LambdaQueryWrapper<UserCommission> wrapper = new LambdaQueryWrapper<UserCommission>()
+                .eq(UserCommission::getUserId, userId)
                 .eq(Objects.nonNull(type) , UserCommission::getType, type)
                 .eq(Objects.nonNull(gameBusiness),UserCommission::getGameBusiness,gameBusiness)
                 .ge(Objects.nonNull(startTime),UserCommission::getCreateTime,startTime)
                 .le(Objects.nonNull(endTime),UserCommission::getCreateTime,endTime);
-        return userCommissionMapper.sumAmount(wrapper);
+        return getBaseMapper().sumAmount(wrapper);
     }
 
     @Override
-    public Boolean insertUserCommission(Long userId,Long fromUserId, String gameId, String gameName, UserCommissionType type,String gameBusiness, BigDecimal profit, BigDecimal rate, BigDecimal actualAmount) {
+    public Boolean insertUserCommission(Long userId,Long fromUserId, String gameId, String gameName, UserCommissionType type,String gameBusiness,
+                                        BigDecimal profit, BigDecimal rate, BigDecimal actualAmount,Long betId) {
         UserCommission commission = UserCommission.builder()
                 .actualAmount(actualAmount)
                 .fromUserId(fromUserId)
@@ -50,6 +49,7 @@ public class UserCommissionServiceImpl extends ServiceImpl<UserCommissionMapper,
                 .gameBusiness(gameBusiness)
                 .type(type)
                 .userId(userId)
+                .betId(betId)
                 .build();
         return save(commission);
     }

@@ -119,4 +119,13 @@ public class Withdrawal implements Serializable {
      */
     private Long orderId;
 
+    @TableField(exist = false)
+    private Long agentId;
+
+    @TableField(exist = false)
+    private Integer level;
+
+    @TableField(exist = false)
+    private Long pAgentId;
+
 }

@@ -8,6 +8,7 @@ package com.tl.tgGame.project.enums;
 public enum UserCommissionType {
 
     COMMISSION,
-    BACK_WATER
+    BACK_WATER,
+    DIVIDEND,
 
 }

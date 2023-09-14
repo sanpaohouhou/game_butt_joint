@@ -20,4 +20,8 @@ public class AdminBetReq extends PageQueryDTO {
     private String gameAccount;
 
     private String gameName;
+
+    private String gameBusiness;
+
+    private Long id;
 }

@@ -70,4 +70,15 @@ public enum GameBusiness {
         return null;
     }
 
+    public static final String gameName(String gameName){
+        for (GameBusiness business: GameBusiness.values()) {
+            if(business.getGameName().equals(gameName)){
+                return business.getKey();
+            }
+        }
+        return null;
+    }
+
+
+
 }

@@ -2,13 +2,12 @@ package com.tl.tgGame.project.controller;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.tl.tgGame.auth.annotation.Uid;
 import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.service.GameApiService;
-import com.tl.tgGame.project.service.GameService;
+import com.tl.tgGame.project.service.ApiGameService;
 import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,7 +35,7 @@ public class ApiGameController {
     private GameApiService gameApiService;
 
     @Autowired
-    private GameService gameService;
+    private ApiGameService apiGameService;
 
     @Autowired
     private ConfigService configService;
@@ -92,20 +90,26 @@ public class ApiGameController {
      * 获取eg游戏列表
      */
     @GetMapping("/egGameList")
-    public Response egGameList() {
-        ApiEgGameListRes apiEgGameListRes = gameService.egGameList();
-        if (apiEgGameListRes.getCode() != null) {
-            return Response.success();
-        }
-        String egGameList = configService.get(ConfigConstants.EG_GAME_LIST);
-        Type type = new TypeToken<List<EgGameListDTO>>(){}.getType();
-        List<EgGameListDTO> egGameListDTOS = new Gson().fromJson(egGameList, type);
-        Map<String, EgGameListDTO> map = egGameListDTOS.stream().collect(Collectors.toMap(EgGameListDTO::getGameId, o -> o));
+    public Response egGameList(@RequestParam(defaultValue = "FC") String type) {
         List<EgGameListDTO> list = new ArrayList<>();
-        for (ApiEgGameNameRes res : apiEgGameListRes.getData()) {
-            EgGameListDTO gameListDTO = map.get(res.getGameId());
-            list.add(gameListDTO);
+        if(type.equals("FC")){
+
         }
+        if(type.equals("EG")){
+            ApiEgGameListRes apiEgGameListRes = apiGameService.egGameList();
+            if (apiEgGameListRes.getCode() != null) {
+                return Response.success();
+            }
+            String egGameList = configService.get(ConfigConstants.EG_GAME_LIST);
+            Type type1 = new TypeToken<List<EgGameListDTO>>(){}.getType();
+            List<EgGameListDTO> egGameListDTOS = new Gson().fromJson(egGameList, type1);
+            Map<String, EgGameListDTO> map = egGameListDTOS.stream().collect(Collectors.toMap(EgGameListDTO::getGameId, o -> o));
+            for (ApiEgGameNameRes res : apiEgGameListRes.getData()) {
+                EgGameListDTO gameListDTO = map.get(res.getGameId());
+                list.add(gameListDTO);
+            }
+        }
+
         return Response.success(list);
     }
 
@@ -118,7 +122,7 @@ public class ApiGameController {
         String decrypt = AESUtil.decrypt(token, securityKey);
         String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
         User user = userService.getById(decrypt);
-        String url = gameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
+        String url = apiGameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
         return Response.success(url);
     }
 
@@ -130,7 +134,7 @@ public class ApiGameController {
         String token = authTokenService.token();
         String decrypt = AESUtil.decrypt(token, securityKey);
         User user = userService.getById(decrypt);
-        String login = gameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
+        String login = apiGameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
         return Response.success(login);
     }
 

@@ -1,13 +1,12 @@
 package com.tl.tgGame.tgBot.service.telegram;
 
-import com.google.common.collect.Lists;
 import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.project.dto.ApiEgCreateUserReq;
 import com.tl.tgGame.project.dto.ApiLoginReq;
 import com.tl.tgGame.project.enums.FcGameName;
 import com.tl.tgGame.project.enums.GameBusiness;
 import com.tl.tgGame.project.service.CurrencyService;
-import com.tl.tgGame.project.service.GameService;
+import com.tl.tgGame.project.service.ApiGameService;
 import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
@@ -102,7 +101,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private UserService userService;
 
     @Autowired
-    private GameService gameService;
+    private ApiGameService apiGameService;
 
     @Autowired
     private CurrencyService currencyService;
@@ -132,8 +131,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
             String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
             if(!StringUtils.isEmpty(value)){
-                if(!(value.equals("EG") && callbackQuery.getGameShortName().equals("EG_GAME")) &&
-                        !(value.equals("WL") && Arrays.asList("WL_GAME","WL_BJL","WL_TY").contains(callbackQuery.getGameShortName()))){
+                if(!(value.contains("EG") && callbackQuery.getGameShortName().equals("EG_GAME")) &&
+                        !(value.contains("WL") && Arrays.asList("WL_GAME","WL_BJL","WL_TY").contains(callbackQuery.getGameShortName()))){
                     userService.gameWithdrawal(from.getId(), value);
                 }
             }
@@ -152,7 +151,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 if (!user.getHasJoinEg()) {
                     String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
-                    Boolean createUser = gameService.egCreateUser(ApiEgCreateUserReq.builder().isBot(user.getIsBot()).playerId(user.getGameAccount()).merch(merch)
+                    Boolean createUser = apiGameService.egCreateUser(ApiEgCreateUserReq.builder().isBot(user.getIsBot()).playerId(user.getGameAccount()).merch(merch)
                             .currency("USDT").build());
                     if (createUser) {
                         user.setHasJoinEg(true);
@@ -172,7 +171,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
-                String wlEnterGame = gameService.wlEnterGame(user.getId(), null, request);
+                String wlEnterGame = apiGameService.wlEnterGame(user.getId(), null, request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
@@ -181,7 +180,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_BJL")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
-                String wlEnterGame = gameService.wlEnterGame(user.getId(), "81", request);
+                String wlEnterGame = apiGameService.wlEnterGame(user.getId(), "81", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
@@ -190,7 +189,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_TY")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
-                String wlEnterGame = gameService.wlEnterGame(user.getId(), "100", request);
+                String wlEnterGame = apiGameService.wlEnterGame(user.getId(), "100", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
@@ -297,7 +296,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                                 userService.gameWithdrawal(message2.getFrom().getId(), value);
                             }
                             com.tl.tgGame.project.entity.User user = userService.checkTgId(message2.getFrom().getId());
-                            String login = gameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
+                            String login = apiGameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
                             userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
                             InlineKeyboardButton inlineKeyboardButton4 = InlineKeyboardButton.builder().url(login).text("\uD83C\uDFC6开始游戏\uD83D\uDD25").build();
                             InlineKeyboardButton inlineKeyboardButton5 = InlineKeyboardButton.builder().url(url).text("\uD83E\uDD29个人中心\uD83C\uDF08").build();
@@ -361,7 +360,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                                 userService.gameWithdrawal(message2.getFrom().getId(), value1);
                             }
                             com.tl.tgGame.project.entity.User user1 = userService.checkTgId(message2.getFrom().getId());
-                            String login1 = gameService.login(ApiLoginReq.builder().MemberAccount(user1.getGameAccount())
+                            String login1 = apiGameService.login(ApiLoginReq.builder().MemberAccount(user1.getGameAccount())
                                     .GameID(Integer.valueOf(FcGameName.DSBY.getGameId()))
                                     .LoginGameHall(false).LanguageID(2).build());
                             userService.gameRecharge(user1.getTgId(), GameBusiness.FC.getKey());

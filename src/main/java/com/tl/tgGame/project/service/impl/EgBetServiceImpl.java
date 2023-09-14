@@ -89,7 +89,7 @@ public class EgBetServiceImpl extends ServiceImpl<EgBetMapper, EgBet> implements
             if(backWater.compareTo(BigDecimal.ZERO) > 0){
                 Boolean commissionResult = userCommissionService.insertUserCommission(
                         egBet.getUserId(), egBet.getUserId(), egBet.getGameId(), egBet.getGameName(),
-                        UserCommissionType.BACK_WATER, GameBusiness.EG.getKey(), backWater, gameRate, egNetWin);
+                        UserCommissionType.BACK_WATER, GameBusiness.EG.getKey(), backWater, gameRate, egNetWin,egBet.getId());
                 if(commissionResult){
                     currencyService.increase(egBet.getUserId(), UserType.USER,BusinessEnum.BACK_WATER,backWater,egBet.getRoundId(),"eg电子用户返水");
                 }
