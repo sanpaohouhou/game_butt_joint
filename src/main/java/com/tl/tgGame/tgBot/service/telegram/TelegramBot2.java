@@ -183,7 +183,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                             .build());
                     SendMessage message = SendMessage.builder()
                             .chatId(callbackQuery.getMessage().getChatId())
-                            .text("尊贵的用户，系统已收到您的充值，正在等待网络确认。")
+                            .text("尊贵的用户，正在等待网络确认，支付成功后系统将会在1-2分钟内确认，确认成功之后会通知您！")
                             .replyMarkup(InlineKeyboardMarkup.builder().keyboardRow(
                                             Collections.singletonList(InlineKeyboardButton.builder()
                                                     .url("https://t.me/cin89886").text("唯一充提财务").build()))
@@ -488,13 +488,13 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                             .photo(new InputFile(new ByteArrayInputStream(baos.toByteArray()), filePath))
                             .caption("<b>充值地址：</b><code>" + tron + "</code>\n" +
                                     "\n" +
-                                    "<b>尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账！</b>\n" +
+                                    "<b>⚠️尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账‼️</b>\n" +
                                     "\n" +
-                                    "<b>充值地址，单击即可复制，请务必复制或输入正确的充值地址，否则造成的损失平台概不负责！</b>\n" +
+                                    "<b>⚠️充值地址，单击即可复制，请务必复制或输入正确的充值地址，否则造成的损失平台概不负责‼️</b>\n" +
                                     "\n" +
-                                    "<b>如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。</b>\n" +
+                                    "<b>⚠️转账成功后请您返回此页面，点击“转账完成”按钮，请务必完成此项操作，否则系统将无法为您自动充值‼️</b>" +
                                     "\n" +
-                                    "<b>转账成功后请您返回此页面，点击“转账完成”按钮，请务必完成此项操作，否则系统将无法为您自动充值。</b>\n")
+                                    "如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。\n")
                             .parseMode("HTML")
                             .replyMarkup(InlineKeyboardMarkup.builder()
                                     .keyboard(inlineKeyButtons)
