@@ -61,7 +61,7 @@ public class AdminUserExtendController {
     /**
      * 用户推广
      */
-    @GetMapping("userExtend/list")
+    @GetMapping("/list")
     public Response userExtend(AdminUserExtendReq req) {
         Page<User> page = userService.page(new Page<>(req.getPage(), req.getSize()));
         List<User> records = page.getRecords();
@@ -76,7 +76,7 @@ public class AdminUserExtendController {
             String inviteUrl = invite + "?start=" + user.getGameAccount();
             List<User> users = userService.queryByInviteUser(user.getId(), req.getStartTime(), req.getEndTime());
             UserExtendBetStatisticsDTO userExtendBetStatisticsDTO = gameBetService.extendGameBetList(user.getId(), null, req.getStartTime(), req.getEndTime());
-            GameBackWaterRes gameBackWaterRes = currencyGameProfitService.gameBackWaterStatistics(user.getId(), null);
+            GameBackWaterRes gameBackWaterRes = currencyGameProfitService.juniorGameBackWaterStatistics(user.getId(), null);
             Integer rechargeNumber = rechargeService.countJuniorRechargeNumber(user.getId(), null, req.getStartTime(), req.getEndTime());
             BigDecimal rechargeAmount = rechargeService.sumJuniorRechargeAmount(user.getId(), null, req.getStartTime(), req.getEndTime());
             Integer withdrawalNumber = withdrawalService.countJuniorWithdrawalAmount(user.getId(), null, req.getStartTime(), req.getEndTime());
@@ -104,7 +104,7 @@ public class AdminUserExtendController {
     /**
      * 用户推广下级列表
      */
-    @GetMapping("/userExtend/juniorList")
+    @GetMapping("/juniorList")
     public Response juniorList(AdminUserExtendReq req) {
         Page<User> page = userService.page(new Page<>(req.getPage(), req.getSize()),
                 new LambdaQueryWrapper<User>()

@@ -20,7 +20,7 @@ public class GameBackWaterRes {
 
     private String gameBusiness;
 
-    private BigDecimal allWaitBackWater;
+    private BigDecimal allWaitBackWater = BigDecimal.ZERO;
 
-    private BigDecimal allBackWater;
+    private BigDecimal allBackWater = BigDecimal.ZERO;
 }

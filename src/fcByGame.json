@@ -1,0 +1,29 @@
+[
+{
+  "gameId":"21008",
+  "name":"星际捕鱼",
+  "image":"https://tg-game-dev.s3.ap-northeast-1.amazonaws.com/image/4_xjby.png",
+  "multiple":"3000X",
+  "onlineNumber":"3910"
+},{
+  "gameId":"21003",
+  "name":"大圣捕鱼",
+  "image":"https://tg-game-dev.s3.ap-northeast-1.amazonaws.com/image/1_dsby.png",
+  "multiple":"1000X",
+  "onlineNumber":"2801"
+},
+  {
+    "gameId":"21004",
+    "name":"宝船捕鱼",
+    "image":"https://tg-game-dev.s3.ap-northeast-1.amazonaws.com/image/3_fcby.png",
+    "multiple":"1000X",
+    "onlineNumber":"20918"
+  },
+  {
+    "gameId":"21006",
+    "name":"激斗捕鱼",
+    "image":"https://tg-game-dev.s3.ap-northeast-1.amazonaws.com/image/2_jdby.png",
+    "multiple":"2000X",
+    "onlineNumber":"9827"
+  }
+]

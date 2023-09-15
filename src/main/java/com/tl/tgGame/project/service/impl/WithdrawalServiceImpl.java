@@ -311,7 +311,7 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
     }
 
     @Override
-    public Page<Withdrawal> agentList(Integer page, Integer size, Long userId, Long agentId,
+    public Page<Withdrawal> agentWithdrawalList(Integer page, Integer size, Long userId, Long agentId,
                                       Long id, WithdrawStatus status, LocalDateTime startTime, LocalDateTime endTime) {
         QueryWrapper<Object> wrapper = new QueryWrapper<>().eq("u.has_agent", true)
                 .eq(Objects.nonNull(userId), "wi.uid", userId)

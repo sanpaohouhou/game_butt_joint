@@ -20,15 +20,15 @@ public class UserInfoRes {
 
     private String withdrawalUrl;
 
-    private BigDecimal rechargeAmount;
+    private BigDecimal rechargeAmount = BigDecimal.ZERO;
 
-    private BigDecimal withdrawalAmount;
+    private BigDecimal withdrawalAmount= BigDecimal.ZERO;
 
-    private Integer betNumber;
+    private Integer betNumber = 0;
 
-    private BigDecimal betAmount;
+    private BigDecimal betAmount = BigDecimal.ZERO;
 
-    private BigDecimal profit;
+    private BigDecimal profit = BigDecimal.ZERO;
 
-    private BigDecimal validAmount;
+    private BigDecimal validAmount = BigDecimal.ZERO;
 }

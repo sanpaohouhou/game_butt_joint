@@ -14,13 +14,12 @@ import com.tl.tgGame.project.dto.BotGameStatisticsInfo;
 import com.tl.tgGame.project.dto.BotPersonInfo;
 import com.tl.tgGame.project.dto.GameBusinessStatisticsInfo;
 import com.tl.tgGame.project.entity.Currency;
+import com.tl.tgGame.project.entity.CurrencyGameProfit;
+import com.tl.tgGame.project.enums.BusinessEnum;
 import com.tl.tgGame.project.enums.GameBusiness;
 import com.tl.tgGame.project.enums.Network;
 import com.tl.tgGame.project.enums.UserType;
-import com.tl.tgGame.project.service.CurrencyService;
-import com.tl.tgGame.project.service.RechargeService;
-import com.tl.tgGame.project.service.UserService;
-import com.tl.tgGame.project.service.WithdrawalService;
+import com.tl.tgGame.project.service.*;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.tgBot.entity.UserBot;
@@ -35,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.util.CollectionUtils;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -58,6 +58,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -150,6 +151,9 @@ public class TelegramBot2 extends TelegramLongPollingBot {
     @Resource
     private WalletAPI walletAPI;
 
+    @Autowired
+    private CurrencyGameProfitService currencyGameProfitService;
+
     private static final List<String> KEYS = Arrays.asList("开始游戏", "个人资料", "游戏报表"
             , "获利查询", "推广链接", "推广数据", "/start", "USDT充值", "USDT提现", "绑定地址");
 
@@ -194,7 +198,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
                 String[] split = callbackQuery.getData().split("\\|");
                 String[] texts = split[1].split("\\.");
-//                Address address = addressService.get(user.getId());
+
                 StringBuilder append = new StringBuilder()
                         // TODO: 2023/8/28 这个地址以后在进行更换
                         .append("充值地址: ").append("回头换成运营的固定地址").append("\r\n")
@@ -225,8 +229,33 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 SendMessage message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                         .text("提现待审核,请稍等~~~").build();
                 execute(message);
-//                }
             }
+            if (callbackQuery.getData().equals("个人资料:一键返水")) {
+                com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
+                List<CurrencyGameProfit> currencyGameProfits = currencyGameProfitService.queryByUserId(user.getId());
+                if (CollectionUtils.isEmpty(currencyGameProfits)) {
+                    AnswerCallbackQuery answer = new AnswerCallbackQuery();
+                    answer.setCallbackQueryId(callbackQuery.getId());
+                    answer.setText("返水失败,请重新操作..待返水: 0");
+                    answer.setShowAlert(true);
+                    execute(answer);
+                }
+                BigDecimal allBackWater = BigDecimal.ZERO;
+                for (CurrencyGameProfit currencyGameProfit : currencyGameProfits) {
+                    allBackWater = allBackWater.add(currencyGameProfit.getBalance());
+                    currencyGameProfitService.withdrawal(currencyGameProfit.getUserId(),currencyGameProfit.getGameBusiness(),currencyGameProfit.getBalance());
+                }
+                if(allBackWater.compareTo(BigDecimal.ZERO) > 0){
+                    currencyService.increase(user.getId(),UserType.USER, BusinessEnum.BACK_WATER,allBackWater, LocalDateTime.now(),"一键返水");
+                }else {
+                    AnswerCallbackQuery answer = new AnswerCallbackQuery();
+                    answer.setCallbackQueryId(callbackQuery.getId());
+                    answer.setText("返水失败,请重新操作..待返水: 0");
+                    answer.setShowAlert(true);
+                    execute(answer);
+                }
+            }
+
         } catch (TelegramApiException e) {
             e.printStackTrace();
             ErrorEnum.SYSTEM_ERROR.throwException();
@@ -298,7 +327,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                             from.getId(), chat.getId().toString(), null, null);
                 }
             }
-            if (StringUtils.isEmpty(text)) {
+            if (StringUtils.isEmpty(text) || text.equals("/cancel") || text.contains("/start")) {
                 SendMessage message3 = SendMessage.builder().text("\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25")
                         .replyMarkup(keyboardMarkup).chatId(update.getMessage().getChatId().toString())
                         .build();
@@ -320,6 +349,11 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 if (!org.springframework.util.StringUtils.isEmpty(value)) {
                     userService.gameWithdrawal(from.getId(), value);
                 }
+                InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().callbackData("个人资料:一键返水").text("一键返水").build();
+                List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
+                inlineKeyboardButtons.add(inlineKeyboardButton1);
+                InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons).build();
+
                 BotPersonInfo botPersonInfo = userService.getbotPersonInfo(user);
                 StringBuilder builder = new StringBuilder();
                 StringBuilder append = builder.append("游戏账号: ").append(botPersonInfo.getGameAccount()).append("\r\n")
@@ -335,7 +369,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .append("\r\n")
                         .append(" 用户返水及推广佣金会因不同游戏设置不同比例，详情请点击“获利查询”查看详况 ").append("\r\n");
                 SendMessage message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
-                        .text(append.toString()).build();
+                        .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
                 execute(message);
             }
             if (text.equals("游戏报表")) {
@@ -577,12 +611,12 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                                 "尊贵的用户，您的推广链接为：" + link + "?start=" + user.getGameAccount()).build();
                 execute(message6);
             }
-            if (text.equals("/cancel") || text.contains("/start")) {
-                SendMessage message3 = SendMessage.builder().text("\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25")
-                        .replyMarkup(keyboardMarkup).chatId(update.getMessage().getChatId().toString())
-                        .build();
-                execute(message3);
-            }
+//            if (text.equals("/cancel") || text.contains("/start")) {
+//                SendMessage message3 = SendMessage.builder().text("\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25")
+//                        .replyMarkup(keyboardMarkup).chatId(update.getMessage().getChatId().toString())
+//                        .build();
+//                execute(message3);
+//            }
         } catch (TelegramApiException e) {
             log.error("个人中心机器人报错exception:{},输入文本text:{}", e, update.getMessage().getText());
         }

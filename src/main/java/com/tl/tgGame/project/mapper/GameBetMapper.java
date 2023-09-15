@@ -42,15 +42,15 @@ public interface GameBetMapper extends BaseMapper<GameBet> {
 
     @Select("SELECT `game_business`, COUNT(*) AS betNumber,IFNULL(SUM(`bet`),'0') AS `betAmount`, " +
             " IFNULL(SUM(`profit`),'0') AS `userProfit`, " +
-            " IFNULL(SUM(`valid_bet`),'0') AS `validAmount`,IFNULL(SUM(`top_commission`),'0') AS `userCommission` " +
-            " IFNULL(SUM(`backWaterAmount`),'0') AS backWaterAmount" +
+            " IFNULL(SUM(`valid_bet`),'0') AS `validAmount`,IFNULL(SUM(`top_commission`),'0') AS `userCommission`," +
+            " IFNULL(SUM(`back_water_amount`),'0') AS backWaterAmount" +
             " FROM `game_bet` ${ew.customSqlSegment}")
     List<GameBetStatisticsListRes> betStatistics(@Param(Constants.WRAPPER) Wrapper<GameBet> wrapper);
 
     @Select("SELECT COUNT(*) AS betNumber,IFNULL(SUM(`bet`),'0') AS `betAmount`, " +
             " IFNULL(SUM(`profit`),'0') AS `userProfit`, " +
-            " IFNULL(SUM(`valid_bet`),'0') AS `validAmount`,IFNULL(SUM(`top_commission`),'0') AS `userCommission` " +
-            " IFNULL(SUM(`backWaterAmount`),'0') AS backWaterAmount" +
+            " IFNULL(SUM(`valid_bet`),'0') AS `validAmount`,IFNULL(SUM(`top_commission`),'0') AS `userCommission` ," +
+            " IFNULL(SUM(`back_water_amount`),'0') AS backWaterAmount" +
             " FROM `game_bet` ${ew.customSqlSegment}")
     GameBetStatisticsListRes userBetStatistics(@Param(Constants.WRAPPER) Wrapper<GameBet> wrapper);
 

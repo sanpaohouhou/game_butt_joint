@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class EgGameListDTO {
+public class ApiGameListDTO {
 
     private String gameId;
     private String name;

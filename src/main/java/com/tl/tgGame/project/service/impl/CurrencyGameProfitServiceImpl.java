@@ -8,6 +8,7 @@ import com.tl.tgGame.project.dto.GameBackWaterRes;
 import com.tl.tgGame.project.entity.CurrencyGameProfit;
 import com.tl.tgGame.project.mapper.CurrencyGameProfitMapper;
 import com.tl.tgGame.project.service.CurrencyGameProfitService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,10 +64,25 @@ public class CurrencyGameProfitServiceImpl extends ServiceImpl<CurrencyGameProfi
     }
 
     @Override
-    public GameBackWaterRes gameBackWaterStatistics(Long inviteUserId,Long userId) {
+    public GameBackWaterRes juniorGameBackWaterStatistics(Long inviteUserId,Long userId) {
         QueryWrapper<Object> wrapper = new QueryWrapper<>().eq(Objects.nonNull(inviteUserId), "u.invite_user", inviteUserId)
                 .eq(Objects.nonNull(userId), "cgp.user_id", userId);
-        return getBaseMapper().gameBackWaterStatistics(wrapper);
+        GameBackWaterRes gameBackWaterRes = getBaseMapper().juniorGameBackWaterStatistics(wrapper);
+        if(gameBackWaterRes == null){
+            gameBackWaterRes = new GameBackWaterRes();
+        }
+        return gameBackWaterRes;
+    }
+
+    @Override
+    public GameBackWaterRes userBackWater(Long userId, String gameBusiness) {
+        LambdaQueryWrapper<CurrencyGameProfit> wrapper = new LambdaQueryWrapper<CurrencyGameProfit>().eq(userId != null, CurrencyGameProfit::getUserId, userId)
+                .eq(!StringUtils.isEmpty(gameBusiness), CurrencyGameProfit::getGameBusiness, gameBusiness);
+        GameBackWaterRes gameBackWaterRes = getBaseMapper().userBackWater(wrapper);
+        if(gameBackWaterRes == null){
+            gameBackWaterRes = new GameBackWaterRes();
+        }
+        return gameBackWaterRes;
     }
 
 

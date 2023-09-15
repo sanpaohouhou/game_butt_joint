@@ -1,7 +1,9 @@
 package com.tl.tgGame.project.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.tl.tgGame.auth.annotation.Uid;
 import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.project.dto.*;
@@ -16,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,23 +93,33 @@ public class ApiGameController {
     /**
      * 获取eg游戏列表
      */
-    @GetMapping("/egGameList")
-    public Response egGameList(@RequestParam(defaultValue = "FC") String type) {
-        List<EgGameListDTO> list = new ArrayList<>();
-        if(type.equals("FC")){
-
+    @GetMapping("/gameList")
+    public Response apiGameList(@RequestParam(defaultValue = "FC") String type) throws IOException {
+        List<ApiGameListDTO> list = new ArrayList<>();
+        if (type.equals("FC")) {
+            String path = "fcGameList.json";
+            ObjectMapper objectMapper = new ObjectMapper();
+            list = objectMapper.readValue(new File(path),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, ApiGameListDTO.class));
         }
-        if(type.equals("EG")){
+        if (type.equals("FC_BY")) {
+            String path = "fcByGame.json";
+            ObjectMapper objectMapper = new ObjectMapper();
+            list = objectMapper.readValue(new File(path),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, ApiGameListDTO.class));
+        }
+        if (type.equals("EG")) {
             ApiEgGameListRes apiEgGameListRes = apiGameService.egGameList();
             if (apiEgGameListRes.getCode() != null) {
                 return Response.success();
             }
             String egGameList = configService.get(ConfigConstants.EG_GAME_LIST);
-            Type type1 = new TypeToken<List<EgGameListDTO>>(){}.getType();
-            List<EgGameListDTO> egGameListDTOS = new Gson().fromJson(egGameList, type1);
-            Map<String, EgGameListDTO> map = egGameListDTOS.stream().collect(Collectors.toMap(EgGameListDTO::getGameId, o -> o));
+            Type type1 = new TypeToken<List<ApiGameListDTO>>() {
+            }.getType();
+            List<ApiGameListDTO> apiGameListDTOS = new Gson().fromJson(egGameList, type1);
+            Map<String, ApiGameListDTO> map = apiGameListDTOS.stream().collect(Collectors.toMap(ApiGameListDTO::getGameId, o -> o));
             for (ApiEgGameNameRes res : apiEgGameListRes.getData()) {
-                EgGameListDTO gameListDTO = map.get(res.getGameId());
+                ApiGameListDTO gameListDTO = map.get(res.getGameId());
                 list.add(gameListDTO);
             }
         }
@@ -114,28 +128,38 @@ public class ApiGameController {
     }
 
     /**
-     * 通过游戏id获取eg游戏url
+     * 通过游戏id获取游戏url
      */
     @GetMapping("/gameUrl")
-    public Response gameUrl(@RequestParam String gameId) {
+    public Response gameUrl(@RequestParam String gameId,
+                            @RequestParam String type) {
+
         String token = authTokenService.token();
         String decrypt = AESUtil.decrypt(token, securityKey);
-        String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
         User user = userService.getById(decrypt);
-        String url = apiGameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
+
+        String url = null;
+        if (type.equals("FC") || type.equals("FC_BY")) {
+            url = apiGameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).GameID(Integer.valueOf(gameId)).LoginGameHall(true).LanguageID(2).build());
+        }
+        if (type.equals("EG")) {
+            String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
+            url = apiGameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
+        }
         return Response.success(url);
     }
 
-    /**
-     * 获取fc游戏链接
-     */
-    @GetMapping("/fcLogin")
-    public Response fcLogin(){
-        String token = authTokenService.token();
-        String decrypt = AESUtil.decrypt(token, securityKey);
-        User user = userService.getById(decrypt);
-        String login = apiGameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).LoginGameHall(true).LanguageID(2).build());
-        return Response.success(login);
+
+    public static void main(String[] args) {
+        String path = "./src/fcGameList.json";
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            List<ApiGameListDTO> gameLists = objectMapper.readValue(new File(path),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, ApiGameListDTO.class));
+            System.out.println(gameLists);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

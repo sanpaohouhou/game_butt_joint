@@ -89,8 +89,8 @@ public class AdminUserController {
 
     @GetMapping("userInfo")
     public Response userInfo(@RequestParam Long userId,
-                             @RequestParam(defaultValue = "startTime") LocalDateTime startTime,
-                             @RequestParam(defaultValue = "endTime") LocalDateTime endTime) {
+                             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
+                             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
         User user = userService.getById(userId);
         if (user == null) {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
@@ -99,7 +99,11 @@ public class AdminUserController {
         BigDecimal withdrawalAmount = withdrawalService.allWithdrawalAmount(userId, UserType.USER,
                 Arrays.asList(WithdrawStatus.withdraw_success, WithdrawStatus.withdrawing), startTime, endTime);
         GameBetStatisticsListRes statistics = gameBetService.userBetStatistics(userId, startTime, endTime);
-        UserInfoRes build = UserInfoRes.builder()
+        if(statistics == null){
+            statistics = new GameBetStatisticsListRes();
+        }
+        UserInfoRes build = UserInfoRes
+                .builder()
                 .betAmount(statistics.getBetAmount())
                 .betNumber(statistics.getBetNumber())
                 .rechargeAmount(rechargeAmount)

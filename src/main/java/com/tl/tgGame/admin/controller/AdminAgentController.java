@@ -57,7 +57,7 @@ public class AdminAgentController {
 
     @PostMapping("addAgent")
     public Response addAgent(@RequestBody @Valid AddAgentDTO addAgentDTO) {
-        return Response.success(agentService.addAgent(addAgentDTO.getAgentName(), addAgentDTO.getUsername(),
+        return Response.success(agentService.addAgent(addAgentDTO.getAgentName(), addAgentDTO.getUserName(),
                 addAgentDTO.getMobile(), addAgentDTO.getPassword(), addAgentDTO.getGameAccount(), addAgentDTO.getDividendRate(),
                 addAgentDTO.getRemark(), null));
     }
@@ -110,7 +110,7 @@ public class AdminAgentController {
         Withdrawal withdrawal = withdrawalService.addWithdrawal(
                 dto.getUserId(),
                 dto.getAmount(),
-                UserType.AGENT,
+                UserType.USER,
                 null,
                 dto.getAddress(),
                 dto.getHash(),
@@ -130,12 +130,8 @@ public class AdminAgentController {
         List<Long> userIds = new ArrayList<>();
         if (req.getAgentUserId() != null) {
             List<User> list = userService.list(new LambdaQueryWrapper<User>().like(User::getInviteChain, req.getAgentUserId()));
-            for (User user:list) {
-                String[] split = user.getInviteChain().split(":");
-                if(!user.getAgentId().equals(req.getAgentUserId()) && split.length <= 3){
-                    userIds.add(user.getId());
-                }
-            }
+            userIds = list.stream().filter(i -> !Objects.equals(i.getInviteChain(), String.valueOf(req.getAgentUserId())))
+                    .map(User::getId).collect(Collectors.toList());
         }
         Page<GameBet> page = gameBetService.page(new Page<>(req.getPage(), req.getSize()),
                 new LambdaQueryWrapper<GameBet>().in(!CollectionUtils.isEmpty(userIds), GameBet::getUserId, userIds)
@@ -157,23 +153,17 @@ public class AdminAgentController {
                     gameBet.setDividendAmount(one.getProfit());
                 }
             }
-            Agent agent = agentService.queryByUserId(gameBet.getUserId());
-            if(agent != null){
-                gameBet.setLevel(1);
-            }else {
-                gameBet.setLevel(2);
+            User user = userService.getById(gameBet.getUserId());
+            if (user != null) {
+                String inviteChain = user.getInviteChain();
+                String[] split = inviteChain.split(":");
+                for (int i = 0; i < split.length; i++) {
+                    if (String.valueOf(gameBet.getUserId()).equals(split[i])) {
+                        gameBet.setLevel(i);
+                        break;
+                    }
+                }
             }
-
-//            if (user != null) {
-//                String inviteChain = user.getInviteChain();
-//                String[] split = inviteChain.split(":");
-//                for (int i = 0; i < split.length; i++) {
-//                    if (String.valueOf(gameBet.getUserId()).equals(split[i])) {
-//                        gameBet.setLevel(i);
-//                        break;
-//                    }
-//                }
-//            }
             list.add(gameBet);
         }
         page.setRecords(list);

@@ -24,25 +24,25 @@ public class GameBetStatisticsListRes {
     /**
      * 下注次数
      */
-    private Integer betNumber;
+    private Integer betNumber = 0;
     /**
      * 投注额
      */
-    private BigDecimal betAmount;
+    private BigDecimal betAmount = BigDecimal.ZERO;
     /**
      * 玩家盈亏
      */
-    private BigDecimal userProfit;
+    private BigDecimal userProfit= BigDecimal.ZERO;
     /**
      * 有效金额
      */
-    private BigDecimal validAmount;
+    private BigDecimal validAmount= BigDecimal.ZERO;
     /**
      * 已返水
      */
-    private BigDecimal backWaterAmount;
+    private BigDecimal backWaterAmount= BigDecimal.ZERO;
     /**
      * 用户佣金
      */
-    private BigDecimal userCommission;
+    private BigDecimal userCommission= BigDecimal.ZERO;
 }

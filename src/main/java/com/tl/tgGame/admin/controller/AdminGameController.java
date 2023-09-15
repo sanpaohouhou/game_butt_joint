@@ -35,9 +35,6 @@ public class AdminGameController {
     @Autowired
     private GameBetService gameBetService;
 
-    @Autowired
-    private CurrencyGameProfitService currencyGameProfitService;
-
 
     @GetMapping("gameRate")
     public Response gameRate(AdminGameReq req) {

@@ -91,7 +91,7 @@ public class AgentController {
      */
     @PostMapping("/addAgent")
     public Response addAgent(@Uid Long agentId, @RequestBody @Valid AddAgentDTO addAgentDTO) {
-        return Response.success(agentService.addAgent(addAgentDTO.getAgentName(), addAgentDTO.getUsername(),
+        return Response.success(agentService.addAgent(addAgentDTO.getAgentName(), addAgentDTO.getUserName(),
                 addAgentDTO.getMobile(), addAgentDTO.getPassword(), addAgentDTO.getGameAccount(), addAgentDTO.getDividendRate(),
                 addAgentDTO.getRemark(), agentId));
     }
@@ -125,13 +125,8 @@ public class AgentController {
     public Response agentTeamBetList(@Uid Long agentId, AdminQueryBetReq req) {
 
         List<User> users = userService.list(new LambdaQueryWrapper<User>().like(User::getInviteChain, agentId));
-        List<Long> userIds = new ArrayList<>();
-        for (User user:users) {
-            String[] split = user.getInviteChain().split(":");
-            if(!user.getAgentId().equals(agentId) && split.length <= 3){
-                userIds.add(user.getId());
-            }
-        }
+        List<Long> userIds = users.stream().filter(i->!i.getAgentId().equals(agentId)).map(User::getId).collect(Collectors.toList());
+
         Page<GameBet> page = gameBetService.page(new Page<>(req.getPage(), req.getSize()),
                 new LambdaQueryWrapper<GameBet>().in(!CollectionUtils.isEmpty(userIds), GameBet::getUserId, userIds)
                         .ge(req.getStartTime() != null, GameBet::getRecordTime, req.getStartTime())
@@ -153,11 +148,16 @@ public class AgentController {
                     gameBet.setDividendAmount(one.getProfit());
                 }
             }
-            Agent agent = agentService.queryByUserId(gameBet.getUserId());
-            if(agent != null){
-                gameBet.setLevel(1);
-            }else {
-                gameBet.setLevel(2);
+            User user = userService.getById(gameBet.getUserId());
+            if (user != null) {
+                String inviteChain = user.getInviteChain();
+                String[] split = inviteChain.split(":");
+                for (int i = 0; i < split.length; i++) {
+                    if (String.valueOf(gameBet.getUserId()).equals(split[i])) {
+                        gameBet.setLevel(i);
+                        break;
+                    }
+                }
             }
             list.add(gameBet);
         }

@@ -23,5 +23,7 @@ public interface CurrencyGameProfitService extends IService<CurrencyGameProfit> 
 
     void withdrawal(Long userId, String gameBusiness, BigDecimal amount);
 
-    GameBackWaterRes gameBackWaterStatistics(Long inviteUserId,Long userId);
+    GameBackWaterRes juniorGameBackWaterStatistics(Long inviteUserId,Long userId);
+
+    GameBackWaterRes userBackWater(Long userId,String gameBusiness);
 }

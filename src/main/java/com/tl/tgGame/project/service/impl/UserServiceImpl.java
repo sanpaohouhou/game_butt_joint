@@ -10,6 +10,7 @@ import com.tl.tgGame.common.lock.RedisLock;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.Currency;
+import com.tl.tgGame.project.entity.CurrencyGameProfit;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.enums.*;
 import com.tl.tgGame.project.mapper.UserMapper;
@@ -76,6 +77,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     private DefaultIdentifierGenerator defaultIdentifierGenerator;
 
+    @Autowired
+    private CurrencyGameProfitService currencyGameProfitService;
+
     @Override
     public User insertUser(String firstName, String lastName, String username, Boolean isBot, Long tgId, String tgGroup,Long inviteUser,String inviteChain) {
         String gameAccount = convertAccount();
@@ -121,31 +125,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         BigDecimal sumRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, null, null).setScale(2, RoundingMode.DOWN);
         //总提现
         BigDecimal sumWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), null, null).setScale(2, RoundingMode.DOWN);
-        ;
+
         //提现待审核金额
         BigDecimal withdrawalWaitAuth = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER,
                 List.of(WithdrawStatus.created, WithdrawStatus.review_success, WithdrawStatus.withdrawing), null, null).setScale(2, RoundingMode.DOWN);
-        ;
+
         //总佣金
         BigDecimal allCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
-        ;
-        //总返水
-        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, null, null).setScale(2, RoundingMode.DOWN);
-        ;
+
+//        //总返水
+//        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, null, null).setScale(2, RoundingMode.DOWN);
+
         //待返水
-        BigDecimal waitBackWater = gameBetService.sumWinLose(user.getId(), null, null, false,null).setScale(2, RoundingMode.DOWN);
-        ;
-        BigDecimal backWaterRate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
+        GameBackWaterRes backWater = currencyGameProfitService.userBackWater(user.getId(),null);
+
 
         return BotPersonInfo.builder()
                 .balance(currency.getBalance().setScale(2, RoundingMode.DOWN))
                 .allCommission(allCommission)
-                .allBackWater(allBackWater)
+                .allBackWater(backWater.getAllBackWater())
                 .allRecharge(sumRecharge)
                 .allWithdrawal(sumWithdrawal)
-                .allProfit(allCommission.add(allBackWater))
+                .allProfit(allCommission.add(backWater.getAllBackWater()))
                 .waitAuthWithdrawal(withdrawalWaitAuth)
-                .waitBackWater(waitBackWater.negate().multiply(backWaterRate).setScale(2, RoundingMode.DOWN))
+                .waitBackWater(backWater.getAllWaitBackWater())
                 .withdrawalUrl(user.getWithdrawalUrl() == null ? "" : user.getWithdrawalUrl())
                 .gameAccount(user.getGameAccount()).build();
     }
@@ -223,16 +226,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //总佣金
         BigDecimal allCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, gameBusiness, null, null);
         //总返水
-        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, gameBusiness, null, null);
+//        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, gameBusiness, null, null);
         //待返水
-        BigDecimal waitBackWater = gameBetService.sumWinLose(user.getId(), null,null, false,gameBusiness).setScale(2, RoundingMode.DOWN);
-        BigDecimal rate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
+        GameBackWaterRes backWater = currencyGameProfitService.userBackWater(user.getId(), gameBusiness);
+//        BigDecimal waitBackWater = gameBetService.sumWinLose(user.getId(), null,null, false,gameBusiness).setScale(2, RoundingMode.DOWN);
+//        BigDecimal rate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
         return GameBusinessStatisticsInfo.builder()
                 .gameBusiness(GameBusiness.of(gameBusiness))
                 .backWaterRate(BigDecimal.valueOf(2) + "%")
                 .juniorCommissionRate(BigDecimal.valueOf(2) + "%")
-                .backWater(allBackWater)
-                .waitBackWater(waitBackWater.negate().multiply(rate).setScale(2,RoundingMode.DOWN))
+                .backWater(backWater.getAllBackWater().setScale(2,RoundingMode.DOWN))
+                .waitBackWater(backWater.getAllWaitBackWater().setScale(2,RoundingMode.DOWN))
                 .juniorCommission(allCommission).build();
     }
 

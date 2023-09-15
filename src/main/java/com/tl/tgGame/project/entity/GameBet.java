@@ -31,6 +31,7 @@ GameBet {
     /**
      * 用户id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
     /**
      *游戏id

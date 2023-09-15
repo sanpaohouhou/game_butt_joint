@@ -273,7 +273,11 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 .ge(startTime != null, GameBet::getRecordTime, startTime)
                 .le(endTime != null, GameBet::getRecordTime, endTime)
                 .groupBy(GameBet::getGameBusiness);
-        return getBaseMapper().userBetStatistics(wrapper);
+        GameBetStatisticsListRes statistics = getBaseMapper().userBetStatistics(wrapper);
+        if(statistics == null){
+            statistics = new GameBetStatisticsListRes();
+        }
+        return statistics;
     }
 
     @Override
@@ -283,7 +287,11 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 .eq(Objects.nonNull(userId), "gb.user_id", userId)
                 .ge(Objects.nonNull(startTime), "gb.record_time", startTime)
                 .le(Objects.nonNull(endTime), "gb.record_time", endTime);
-        return getBaseMapper().extendBetStatistics(wrapper);
+        UserExtendBetStatisticsDTO userExtendBetStatisticsDTO = getBaseMapper().extendBetStatistics(wrapper);
+        if(userExtendBetStatisticsDTO == null){
+            userExtendBetStatisticsDTO = new UserExtendBetStatisticsDTO();
+        }
+        return userExtendBetStatisticsDTO;
     }
 
     private void winDividend(GameBet gameBet, Long userId, UserCommissionType type, BusinessEnum businessEnum,

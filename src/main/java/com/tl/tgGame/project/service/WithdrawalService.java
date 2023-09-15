@@ -84,6 +84,6 @@ public interface WithdrawalService extends IService<Withdrawal> {
      */
     Integer countJuniorWithdrawalAmount(Long inviteUserId,Long userId,LocalDateTime startTime,LocalDateTime endTime);
 
-    Page<Withdrawal> agentList(Integer page, Integer size, Long userId, Long agentId, Long id,
+    Page<Withdrawal> agentWithdrawalList(Integer page, Integer size, Long userId, Long agentId, Long id,
                                WithdrawStatus status, LocalDateTime startTime, LocalDateTime endTime);
 }

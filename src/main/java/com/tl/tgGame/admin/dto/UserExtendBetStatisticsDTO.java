@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class UserExtendBetStatisticsDTO {
 
-    private BigDecimal allTopCommission;
+    private BigDecimal allTopCommission = BigDecimal.ZERO;
 
-    private BigDecimal allProfit;
+    private BigDecimal allProfit = BigDecimal.ZERO;
 }

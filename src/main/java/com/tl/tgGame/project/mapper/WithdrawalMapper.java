@@ -25,7 +25,7 @@ public interface WithdrawalMapper extends BaseMapper<Withdrawal> {
     @Select(" SELECT COUNT(DISTINCT `uid`) FROM `withdrawal` AS wi JOIN `user` u ON wi.uid = u.id ${ew.customSqlSegment}")
     Integer countJuniorWithdrawalAmount(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
 
-    @Select("SELECT wi.*, u.`level`,u.`agent_id` FROM `withdrawal` AS wi JOIN `user` AS u ON wi.uid = u.id ${ew.customSqlSegment}")
+    @Select("SELECT wi.* FROM `withdrawal` AS wi JOIN `user` AS u ON wi.uid = u.id ${ew.customSqlSegment}")
     List<Withdrawal> agentList(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
 
     @Select("SELECT count(*) FROM `withdrawal` AS wi JOIN `user` AS u ON wi.uid = u.id ${ew.customSqlSegment}")
