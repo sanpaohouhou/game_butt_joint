@@ -13,9 +13,7 @@ import com.tl.tgGame.project.service.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,6 +37,15 @@ public class AdminGameController {
     @GetMapping("gameRate")
     public Response gameRate(AdminGameReq req) {
         return Response.pageResult(gameService.queryByList(req));
+    }
+
+    /**
+     * 编辑反彩比例
+     */
+    @PostMapping("updateGameRate")
+    public Response updateGameRate(@RequestBody Game game){
+        Game game1 = gameService.updateGame(game);
+        return Response.success(game1);
     }
 
 

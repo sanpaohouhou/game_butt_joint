@@ -29,6 +29,7 @@ public class GameServiceImpl extends ServiceImpl<GameMapper, Game> implements Ga
         if(game1 == null){
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
+        game1.setStatus(game.getStatus());
         game1.setBackWaterRate(game.getBackWaterRate());
         game1.setTopCommissionRate(game.getTopCommissionRate());
         game1.setUpdateTime(LocalDateTime.now());
