@@ -273,6 +273,10 @@ public class AdminUserController {
         Page<CurrencyLog> page1 = currencyLogService.page(new Page<>(page, size),
                 new LambdaQueryWrapper<CurrencyLog>()
                         .eq(Objects.nonNull(userId), CurrencyLog::getUid, userId)
+                        .ne(CurrencyLog::getUid,0)
+                        .notIn(CurrencyLog::getBusiness,Arrays.asList(BusinessEnum.FC_RECHARGE,BusinessEnum.FC_WITHDRAWAL,
+                                BusinessEnum.WL_RECHARGE,BusinessEnum.WL_WITHDRAWAL,BusinessEnum.EG_RECHARGE,
+                                BusinessEnum.EG_WITHDRAWAL))
                         .eq(Objects.nonNull(userType), CurrencyLog::getUserType, userType)
                         .eq(Objects.nonNull(business), CurrencyLog::getBusiness, business)
                         .eq(org.apache.commons.lang3.StringUtils.isNotBlank(sn), CurrencyLog::getSn, sn)
@@ -285,7 +289,7 @@ public class AdminUserController {
         }
         List<CurrencyLog> list = new ArrayList<>();
         for (CurrencyLog currencyLog : records) {
-            User user = userService.getById(currencyLog.getGameAccount());
+            User user = userService.getById(currencyLog.getUid());
             currencyLog.setGameAccount(user.getGameAccount());
             list.add(currencyLog);
         }

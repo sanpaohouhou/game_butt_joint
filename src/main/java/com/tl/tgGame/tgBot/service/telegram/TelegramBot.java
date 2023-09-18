@@ -113,9 +113,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     private HttpServletRequest request;
 
     @Autowired
-    private AuthTokenService authTokenService;
-
-    @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
@@ -345,6 +342,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                         case "\uD83C\uDF08FC捕鱼":
                             SendGame build6 = SendGame.builder().chatId(update.getMessage().getChatId())
                                     .gameShortName("FC_BY")
+                                    .allowSendingWithoutReply(false)
                                     .replyMarkup(build)
                                     .build();
                             execute(build6);
