@@ -19,5 +19,10 @@ public enum BusinessEnum {
     EG_RECHARGE,//eg游戏充值
     EG_WITHDRAWAL,//eg游戏提现
     WL_RECHARGE,//wl游戏充值
-    WL_WITHDRAWAL//瓦力游戏提现
+    WL_WITHDRAWAL,//瓦力游戏提现
+
+    FC_BET,
+    EG_BET,
+    WL_BET
+
 }

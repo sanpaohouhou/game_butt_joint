@@ -80,6 +80,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private CurrencyGameProfitService currencyGameProfitService;
 
+    @Autowired
+    private CurrencyLogService currencyLogService;
+
     @Override
     public User insertUser(String firstName, String lastName, String username, Boolean isBot, Long tgId, String tgGroup,Long inviteUser,String inviteChain) {
         String gameAccount = convertAccount();
@@ -377,7 +380,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (user == null) {
                 return false;
             }
-            switch (gameType) {
+            String[] split = gameType.split(":");
+            Boolean result = false;
+            BigDecimal afterAmount = BigDecimal.ZERO;
+            BusinessEnum businessEnum = BusinessEnum.FC_BET;
+            String sn = "";
+            switch (split[0]) {
                 case "FC":
                     ApiSetPointReq build = ApiSetPointReq.builder()
                             .MemberAccount(user.getGameAccount())
@@ -385,11 +393,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                             .build();
                     ApiSetPointRes apiSetPointRes = apiGameService.setPoints(build);
                     if (apiSetPointRes.getResult().equals(0)) {
-                        log.info("FC提现余额增加BankID:{},amount:{}", apiSetPointRes.getBankID(), apiSetPointRes.getPoints());
+                        log.info("FC提现余额增加BankID:{},amount:{}", apiSetPointRes.getTrsID(), apiSetPointRes.getPoints());
                         currencyService.increase(user.getId(), UserType.USER, BusinessEnum.FC_WITHDRAWAL, BigDecimal.valueOf(apiSetPointRes.getPoints()).negate(),
-                                apiSetPointRes.getBankID(), "Fc电子提现之后金额:" + apiSetPointRes.getAfterPoint());
-                        log.info("FC提现余额增加成功BankID:{},amount:{}", apiSetPointRes.getBankID(), apiSetPointRes.getPoints());
-                        return true;
+                                apiSetPointRes.getTrsID(), "Fc电子提现之后金额:" + apiSetPointRes.getAfterPoint());
+                        log.info("FC提现余额增加成功BankID:{},amount:{}", apiSetPointRes.getTrsID(), apiSetPointRes.getPoints());
+                        afterAmount = BigDecimal.valueOf(apiSetPointRes.getPoints());
+                        sn = String.valueOf(apiSetPointRes.getBankID());
+                        result = true;
                     }
                     break;
                 case "WL":
@@ -406,7 +416,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                             currencyService.increase(user.getId(), UserType.USER, BusinessEnum.WL_WITHDRAWAL,
                                     gupAmount, wlGameRes.getOrderId(), "WL电子提现金额:" + transferable);
                             log.info("WL提现余额增加成功OrderID:{},amount:{}", wlGameRes.getOrderId(), gupAmount);
-                            return true;
+                            afterAmount = gupAmount;
+                            businessEnum = BusinessEnum.WL_BET;
+                            sn = wlGameRes.getOrderId();
+                            result = true;
                         }
                     }
                     break;
@@ -423,11 +436,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         currencyService.increase(user.getId(), UserType.USER, BusinessEnum.EG_WITHDRAWAL, new BigDecimal(apiEgDepositRes.getAmount())
                                 , transactionId, "EG电子提现之前金额:" + apiEgDepositRes.getBeforeBalance());
                         log.info("EG提现余额增加TransactionId:{},amount:{}", transactionId, apiEgDepositRes.getAmount());
-                        return true;
+                        afterAmount = new BigDecimal(apiEgDepositRes.getAmount());
+                        businessEnum = BusinessEnum.EG_BET;
+                        sn = transactionId;
+                        result = true;
                     }
                     break;
             }
-            return false;
+            if(result){
+                BigDecimal beforeAmount = new BigDecimal(split[1]);
+                BigDecimal remainAmount = afterAmount.subtract(beforeAmount);
+                CurrencyLogType currencyLogType = remainAmount.compareTo(BigDecimal.ZERO) > 0
+                        ? CurrencyLogType.increase : CurrencyLogType.reduce;
+                currencyLogService.add(user.getId(),UserType.USER,currencyLogType,
+                        businessEnum,remainAmount,sn,split[0] + "投注",beforeAmount,null,beforeAmount);
+            }
+            return result;
         } finally {
             redisLock._redissonUnLock(key);
         }

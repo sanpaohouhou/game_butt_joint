@@ -271,8 +271,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         LambdaQueryWrapper<GameBet> wrapper = new LambdaQueryWrapper<GameBet>()
                 .eq(userId != null,GameBet::getUserId,userId)
                 .ge(startTime != null, GameBet::getRecordTime, startTime)
-                .le(endTime != null, GameBet::getRecordTime, endTime)
-                .groupBy(GameBet::getGameBusiness);
+                .le(endTime != null, GameBet::getRecordTime, endTime);
         GameBetStatisticsListRes statistics = getBaseMapper().userBetStatistics(wrapper);
         if(statistics == null){
             statistics = new GameBetStatisticsListRes();

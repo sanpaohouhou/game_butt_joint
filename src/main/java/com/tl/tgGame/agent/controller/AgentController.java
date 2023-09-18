@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -73,15 +74,15 @@ public class AgentController {
      * 获取首页统计数据
      */
     @GetMapping("homeStatistics")
-    public Response homeStatistics(@Uid Long uid) {
-        Agent agent = agentService.getById(uid);
+    public Response homeStatistics(@Uid Long agentId) {
+        Agent agent = agentService.getById(agentId);
         if (agent == null) {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
         agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND, null, null, null));
         agent.setCurrency(currencyService.get(agent.getUserId(), UserType.USER));
         agent.setTeamNumber(userService.teamNumber(agent.getUserId()));
-        agent.setInviteUrl(configService.get(ConfigConstants.BOT_GROUP_INVITE_LINK + "?start=" + agent.getGameAccount()));
+        agent.setInviteUrl(configService.get(ConfigConstants.BOT_GROUP_INVITE_LINK ) + "?start=" + agent.getGameAccount());
         agent.setAddress(walletAPI.getUserAddress(agent.getUserId()));
         return Response.success(agent);
     }
@@ -169,14 +170,17 @@ public class AgentController {
      * 保证金列表
      */
     @GetMapping("bail/list")
-    public Response bailList(@Uid Long agentId,
+    public Response bailList(Long agentId,
                              @RequestParam(defaultValue = "1", value = "page") Integer page,
                              @RequestParam(defaultValue = "10", value = "size") Integer size,
                              @RequestParam(required = false) BusinessEnum business,
                              @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
                              @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
-        Page<CurrencyLog> pages = currencyLogService.lambdaQuery().eq(CurrencyLog::getUid, agentId)
+        Agent agent = agentService.getById(agentId);
+        Page<CurrencyLog> pages = currencyLogService.lambdaQuery().eq(CurrencyLog::getUid, agent.getUserId())
                 .eq(Objects.nonNull(business), CurrencyLog::getBusiness, business)
+                .notIn(CurrencyLog::getBusiness, Arrays.asList(BusinessEnum.FC_RECHARGE,BusinessEnum.FC_WITHDRAWAL,
+                        BusinessEnum.WL_RECHARGE,BusinessEnum.WL_WITHDRAWAL,BusinessEnum.EG_RECHARGE,BusinessEnum.EG_WITHDRAWAL))
                 .ge(Objects.nonNull(startTime), CurrencyLog::getCreateTime, startTime)
                 .le(Objects.nonNull(endTime), CurrencyLog::getCreateTime, endTime)
                 .orderByDesc(CurrencyLog::getId)
@@ -185,6 +189,7 @@ public class AgentController {
         if (CollectionUtils.isEmpty(records)) {
             return Response.pageResult(pages);
         }
+        List<CurrencyLog> list = new ArrayList<>();
         for (CurrencyLog currencyLog : records) {
             if (currencyLog.getBusiness() != null && currencyLog.getBusiness().equals(BusinessEnum.RECHARGE)) {
                 Recharge recharge = rechargeService.getById(currencyLog.getSn());
@@ -201,8 +206,9 @@ public class AgentController {
                 currencyLog.setHash(withdrawal.getHash());
                 currencyLog.setStatus(withdrawal.getStatus());
             }
+            list.add(currencyLog);
         }
-        pages.setRecords(records);
+        pages.setRecords(list);
         return Response.pageResult(pages);
     }
 

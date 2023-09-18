@@ -17,6 +17,8 @@ import com.tl.tgGame.project.entity.GameBet;
 import com.tl.tgGame.project.entity.WlBet;
 import com.tl.tgGame.project.schedule.GameRecordSchedule;
 import com.tl.tgGame.project.service.*;
+import com.tl.tgGame.system.ConfigConstants;
+import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.tgBot.service.BotMessageService;
 import com.tl.tgGame.util.AESUtil;
 import com.tl.tgGame.util.RedisKeyGenerator;
@@ -342,11 +344,17 @@ class TgGameApplicationTests {
 	}
 
 
+	@Autowired
+	private ConfigService configService;
 
 	@Test
 	public void teamNumber(){
-		Integer integer = userService.teamNumber(1700046938802470914L);
-		System.out.println(integer);
+//		Integer integer = userService.teamNumber(1700046938802470914L);
+//		System.out.println(integer);
+		String wlParamKey = configService.getAndDecrypt(ConfigConstants.WL_PARAM_KEY);
+		String wlReqKey = configService.getAndDecrypt(ConfigConstants.WL_REQ_KEY);
+		System.out.println(wlReqKey);
+		System.out.println(wlParamKey);
 	}
 
 	@Autowired
