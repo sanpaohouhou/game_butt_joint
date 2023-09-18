@@ -102,4 +102,7 @@ public class CurrencyLog extends Model<CurrencyLog> {
     @TableField(exist = false)
     private WithdrawStatus status;
 
+    @TableField(exist = false)
+    private String gameAccount;
+
 }

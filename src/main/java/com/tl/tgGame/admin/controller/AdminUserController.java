@@ -99,7 +99,7 @@ public class AdminUserController {
         BigDecimal withdrawalAmount = withdrawalService.allWithdrawalAmount(userId, UserType.USER,
                 Arrays.asList(WithdrawStatus.withdraw_success, WithdrawStatus.withdrawing), startTime, endTime);
         GameBetStatisticsListRes statistics = gameBetService.userBetStatistics(userId, startTime, endTime);
-        if(statistics == null){
+        if (statistics == null) {
             statistics = new GameBetStatisticsListRes();
         }
         UserInfoRes build = UserInfoRes
@@ -118,9 +118,9 @@ public class AdminUserController {
      * 修改用户提现地址
      */
     @PostMapping("updateWithdrawalUrl/{userId}")
-    public Response updateWithdrawalUrl(@PathVariable Long userId,String withdrawalUrl){
+    public Response updateWithdrawalUrl(@PathVariable Long userId, String withdrawalUrl) {
         User user = userService.getById(userId);
-        if(user == null){
+        if (user == null) {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
         user.setWithdrawalUrl(withdrawalUrl);
@@ -132,7 +132,7 @@ public class AdminUserController {
      * 游戏统计
      */
     @GetMapping("userGameStatistics")
-    public Response userGameStatistics(AdminGameReq req){
+    public Response userGameStatistics(AdminGameReq req) {
         List<GameBetStatisticsListRes> gameBetStatisticsListRes = gameBetService.betStatistics(req);
         return Response.success(gameBetStatisticsListRes);
     }
@@ -155,7 +155,7 @@ public class AdminUserController {
             userId = user.getId();
         }
 
-        if(req.getAgentId() != null){
+        if (req.getAgentId() != null) {
             User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, req.getAgentId()));
             if (Objects.isNull(user)) {
                 ErrorEnum.OBJECT_NOT_FOUND.throwException();
@@ -259,18 +259,38 @@ public class AdminUserController {
                                     @RequestParam(required = false) UserType userType,
                                     @RequestParam(required = false) Long userId,
                                     @RequestParam(required = false) String sn,
+                                    @RequestParam(required = false) String gameAccount,
+                                    @RequestParam(required = false) BusinessEnum business,
                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime
     ) {
-        return Response.pageResult(currencyLogService.page(new Page<>(page, size),
+        if (!StringUtils.isEmpty(gameAccount)) {
+            User user = userService.queryByMemberAccount(gameAccount);
+            if (user != null) {
+                userId = user.getId();
+            }
+        }
+        Page<CurrencyLog> page1 = currencyLogService.page(new Page<>(page, size),
                 new LambdaQueryWrapper<CurrencyLog>()
                         .eq(Objects.nonNull(userId), CurrencyLog::getUid, userId)
                         .eq(Objects.nonNull(userType), CurrencyLog::getUserType, userType)
+                        .eq(Objects.nonNull(business), CurrencyLog::getBusiness, business)
                         .eq(org.apache.commons.lang3.StringUtils.isNotBlank(sn), CurrencyLog::getSn, sn)
                         .ge(Objects.nonNull(startTime), CurrencyLog::getCreateTime, startTime)
                         .le(Objects.nonNull(endTime), CurrencyLog::getCreateTime, endTime)
-                        .orderByDesc(CurrencyLog::getId)
-        ));
+                        .orderByDesc(CurrencyLog::getId));
+        List<CurrencyLog> records = page1.getRecords();
+        if (CollectionUtils.isEmpty(records)) {
+            return Response.pageResult(page1);
+        }
+        List<CurrencyLog> list = new ArrayList<>();
+        for (CurrencyLog currencyLog : records) {
+            User user = userService.getById(currencyLog.getGameAccount());
+            currencyLog.setGameAccount(user.getGameAccount());
+            list.add(currencyLog);
+        }
+        page1.setRecords(list);
+        return Response.pageResult(page1);
     }
 
 }
