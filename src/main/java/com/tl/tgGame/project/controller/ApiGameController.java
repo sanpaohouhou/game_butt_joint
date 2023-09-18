@@ -97,13 +97,13 @@ public class ApiGameController {
     public Response apiGameList(@RequestParam(defaultValue = "FC") String type) throws IOException {
         List<ApiGameListDTO> list = new ArrayList<>();
         if (type.equals("FC")) {
-            String path = "fcGameList.json";
+            String path = "./src/fcGameList.json";
             ObjectMapper objectMapper = new ObjectMapper();
             list = objectMapper.readValue(new File(path),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, ApiGameListDTO.class));
         }
         if (type.equals("FC_BY")) {
-            String path = "fcByGame.json";
+            String path = "./src/fcByGame.json";
             ObjectMapper objectMapper = new ObjectMapper();
             list = objectMapper.readValue(new File(path),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, ApiGameListDTO.class));
