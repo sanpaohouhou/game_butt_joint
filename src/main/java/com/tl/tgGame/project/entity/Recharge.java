@@ -91,4 +91,7 @@ public class Recharge implements Serializable {
 
     @TableField(exist = false)
     private String gameAccount;
+
+    @TableField(exist = false)
+    private Long agentId;
 }

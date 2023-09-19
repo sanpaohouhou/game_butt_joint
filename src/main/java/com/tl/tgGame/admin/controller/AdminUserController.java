@@ -60,6 +60,9 @@ public class AdminUserController {
     @Autowired
     private WithdrawalService withdrawalService;
 
+    @Autowired
+    private AgentService agentService;
+
     /**
      * 用户列表
      *
@@ -176,6 +179,7 @@ public class AdminUserController {
         for (Recharge recharge : records) {
             User user = userService.getById(recharge.getUserId());
             recharge.setGameAccount(user.getGameAccount());
+            recharge.setAgentId(user.getAgentId());
             recharges.add(recharge);
         }
         page.setRecords(recharges);
@@ -295,6 +299,29 @@ public class AdminUserController {
         }
         page1.setRecords(list);
         return Response.pageResult(page1);
+    }
+
+
+    @PostMapping("/partner/withdraw")
+    @Transactional(rollbackFor = Exception.class)
+    public Response partnerWithdraw(@RequestBody @Valid ChargeDTO dto) {
+        Agent agent = agentService.queryByUserId(dto.getUserId());
+        if (agent == null) {
+            ErrorEnum.USER_NOT_JOIN.throwException("代理商不存在");
+        }
+        Withdrawal withdrawal = withdrawalService.addWithdrawal(
+                dto.getUserId(),
+                dto.getAmount(),
+                UserType.USER,
+                null,
+                dto.getAddress(),
+                dto.getHash(),
+                dto.getNetwork(),
+                dto.getScreen(),
+                dto.getNote()
+        );
+        currencyService.withdraw(dto.getUserId(), UserType.USER, BusinessEnum.WITHDRAW, dto.getAmount(), withdrawal.getId(), "保证金提现");
+        return Response.success(withdrawal);
     }
 
 }
