@@ -100,11 +100,12 @@ public class AgentController {
 
     @PostMapping("updateAgent")
     public Response updateAgent(@Uid Long agentId,@RequestBody @Valid AddAgentDTO addAgentDTO){
-        Agent agent = agentService.getById(addAgentDTO.getAgentId());
+        Agent agent = agentService.getById(addAgentDTO.getId());
         if(!agentId.equals(agent.getInviteId())){
             ErrorEnum.PARAM_ERROR.throwException();
         }
-        return Response.success(agentService.updateAgent(addAgentDTO.getAgentId(),addAgentDTO.getAgentName(),
+        return Response.success(agentService.updateAgent(addAgentDTO.getId(),addAgentDTO.getAgentName(),
+                addAgentDTO.getPassword(),
                 addAgentDTO.getRemark(), addAgentDTO.getMobile(), addAgentDTO.getDividendRate()));
     }
 

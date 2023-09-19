@@ -64,8 +64,8 @@ public class AdminAgentController {
 
     @PostMapping("updateAgent")
     public Response updateAgent(@RequestBody @Valid AddAgentDTO addAgentDTO){
-        return Response.success(agentService.updateAgent(addAgentDTO.getAgentId(),addAgentDTO.getAgentName(),
-                addAgentDTO.getRemark(), addAgentDTO.getMobile(), addAgentDTO.getDividendRate()));
+        return Response.success(agentService.updateAgent(addAgentDTO.getId(),addAgentDTO.getAgentName(),
+               addAgentDTO.getPassword(),addAgentDTO.getRemark(), addAgentDTO.getMobile(), addAgentDTO.getDividendRate()));
     }
 
     @GetMapping("queryByList")

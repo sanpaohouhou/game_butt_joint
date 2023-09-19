@@ -126,13 +126,16 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
     }
 
     @Override
-    public Agent updateAgent(Long agentId, String agentName,String remark, String mobile, BigDecimal dividendRate) {
+    public Agent updateAgent(Long agentId, String agentName,String password,String remark, String mobile, BigDecimal dividendRate) {
         Agent agent = getById(agentId);
         if (agent == null) {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
         if(dividendRate.compareTo(BigDecimal.valueOf(1L)) >= 0){
             ErrorEnum.PARAM_ERROR.throwException("分红占比请小于1");
+        }
+        if(!StringUtils.isEmpty(password)){
+            agent.setPassword(passwordEncoder.encode(password));
         }
         agent.setAgentName(agentName);
         agent.setRemark(remark);
