@@ -8,6 +8,7 @@ import com.tl.tgGame.admin.dto.AdminQueryBetReq;
 import com.tl.tgGame.auth.annotation.Uid;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.exception.ErrorEnum;
+import com.tl.tgGame.project.dto.UserUsdtWithdrawDTO;
 import com.tl.tgGame.project.entity.*;
 import com.tl.tgGame.project.enums.BusinessEnum;
 import com.tl.tgGame.project.enums.UserCommissionType;
@@ -225,6 +226,11 @@ public class AgentController {
         }
         pages.setRecords(list);
         return Response.pageResult(pages);
+    }
+
+    @PostMapping("/withdraw")
+    public Response withdraw(@Uid Long uid, @RequestBody @Valid UserUsdtWithdrawDTO param) {
+        return Response.success(withdrawalService.withdraw(uid, UserType.USER, param.getNetwork(), param.getTo(), param.getAmount()));
     }
 
 

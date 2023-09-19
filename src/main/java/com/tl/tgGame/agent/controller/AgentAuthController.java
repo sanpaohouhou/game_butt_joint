@@ -10,9 +10,12 @@ import com.tl.tgGame.auth.totp.service.TotpService;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.entity.Agent;
+import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.service.AgentService;
+import com.tl.tgGame.project.service.CurrencyService;
 import com.tl.tgGame.util.Maps;
 import dev.samstevens.totp.exceptions.QrGenerationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +34,9 @@ public class AgentAuthController {
     private PasswordEncoder passwordEncoder;
     @Resource
     private TotpService totpService;
+
+    @Autowired
+    private CurrencyService currencyService;
 
     @PostMapping("/login")
     public Response login(@RequestBody @Valid AdminLoginDTO dto) throws QrGenerationException {
@@ -53,7 +59,8 @@ public class AgentAuthController {
     @GetMapping("/my")
     @AgentRequired
     public Response my(@Uid Long id) {
-        return Response.success(agentService.getById(id));
+        Agent agent = agentService.getById(id);
+        return Response.success(agent);
     }
 
     @PostMapping("/change-password")
