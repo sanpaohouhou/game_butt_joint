@@ -138,7 +138,8 @@ public class AgentController {
     @GetMapping("team/betList")
     public Response agentTeamBetList(@Uid Long agentId, AdminQueryBetReq req) {
 
-        List<User> users = userService.list(new LambdaQueryWrapper<User>().like(User::getInviteChain, agentId));
+        List<User> users = userService.list(new LambdaQueryWrapper<User>()
+                .like(User::getInviteChain, req.getAgentUserId()).eq(Objects.nonNull(req.getUserId()),User::getId,req.getUserId()));
         List<Long> userIds = users.stream().filter(i->!i.getAgentId().equals(agentId)).map(User::getId).collect(Collectors.toList());
 
         Page<GameBet> page = gameBetService.page(new Page<>(req.getPage(), req.getSize()),
@@ -183,7 +184,7 @@ public class AgentController {
      * 保证金列表
      */
     @GetMapping("bail/list")
-    public Response bailList(Long agentId,
+    public Response bailList(@Uid Long agentId,
                              @RequestParam(defaultValue = "1", value = "page") Integer page,
                              @RequestParam(defaultValue = "10", value = "size") Integer size,
                              @RequestParam(required = false) BusinessEnum business,
