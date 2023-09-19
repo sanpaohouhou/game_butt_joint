@@ -101,6 +101,7 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
                 .id(id)
                 .agentName(agentName)
                 .inviteChain(inviteChain)
+                .inviteId(pAgentId)
                 .createTime(LocalDateTime.now())
                 .dividendRate(dividendRate)
                 .mobile(mobile)
