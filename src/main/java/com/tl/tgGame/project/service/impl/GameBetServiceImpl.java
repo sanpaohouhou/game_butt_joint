@@ -118,12 +118,14 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         BigDecimal remainProfit = gameBet.getProfit().subtract(backWater).negate();
         BigDecimal profit = remainProfit;
         if (user.getInviteUser() == null) {
+            gameBet.setHasSettled(true);
+            updateById(gameBet);
             return;
         }
-        User pUser = userService.getById(user.getInviteUser());
-        if(!pUser.getHasAgent()){
-            return;
-        }
+//        User pUser = userService.getById(user.getInviteUser());
+//        if(!pUser.getHasAgent()){
+//            return;
+//        }
         String[] inviteChain = user.getInviteChain().split(":");
         BigDecimal remainRate = BigDecimal.ZERO;
         for (int i = 0; i < inviteChain.length; i++) {
@@ -188,6 +190,8 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         BigDecimal profit = gameBet.getProfit();
         //赢钱给上级返佣金
         if (user.getInviteUser() == null) {
+            gameBet.setHasSettled(true);
+            updateById(gameBet);
             return;
         }
         User pUser = userService.getById(user.getInviteUser());
@@ -202,9 +206,9 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
             remainProfit = gameBet.getProfit().subtract(topCommission);
             profit = remainProfit;
         }
-        if(!pUser.getHasAgent()){
-            return;
-        }
+//        if(!pUser.getHasAgent()){
+//            return;
+//        }
         String[] inviteChain = user.getInviteChain().split(":");
         BigDecimal remainRate = BigDecimal.ZERO;
         for (int i = 0; i < inviteChain.length; i++) {
@@ -252,7 +256,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         boolean update = update(new LambdaUpdateWrapper<GameBet>().set(GameBet::getHasSettled, true)
                 .set(GameBet::getUpdateTime, LocalDateTime.now()).set(GameBet::getTopCommission, topCommission)
                 .eq(GameBet::getHasSettled, false).eq(GameBet::getId, gameBet.getId()));
-        if (update) {
+        if (!update) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
     }
