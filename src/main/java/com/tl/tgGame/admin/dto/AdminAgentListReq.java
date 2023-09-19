@@ -19,6 +19,8 @@ public class AdminAgentListReq extends PageQueryDTO{
 
     private Long agentId;
 
+    private Long pAgentId;
+
     private String agentName;
 
     private Integer level = 1;

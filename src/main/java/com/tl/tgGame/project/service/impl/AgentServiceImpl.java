@@ -148,6 +148,7 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
     public Page<Agent> queryByList(AdminAgentListReq req) {
         Page<Agent> page = page(new Page<>(req.getPage(), req.getSize()), new LambdaQueryWrapper<Agent>()
                 .eq(Agent::getLevel, req.getLevel())
+                .eq(Objects.nonNull(req.getPAgentId()),Agent::getInviteId,req.getPAgentId())
                 .eq(Objects.nonNull(req.getAgentId()), Agent::getId, req.getAgentId())
                 .like(!StringUtils.isEmpty(req.getAgentName()), Agent::getAgentName, req.getAgentName())
                 .orderByDesc(Agent::getCreateTime));

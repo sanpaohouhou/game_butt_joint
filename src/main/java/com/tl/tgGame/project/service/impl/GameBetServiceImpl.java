@@ -168,6 +168,12 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
             }
             commission(gameBet, user1.getId(), UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, dividendAmount, rate, "代理商" + agent.getLevel() + "级分红:" + gameBet.getRecordId());
         }
+        boolean update = update(new LambdaUpdateWrapper<GameBet>().set(GameBet::getHasSettled, true)
+                .set(GameBet::getUpdateTime, LocalDateTime.now()).set(GameBet::getBackWaterAmount, backWater)
+                .eq(GameBet::getHasSettled, false).eq(GameBet::getId, gameBet.getId()));
+        if (update) {
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
     }
 
     //用户赢钱

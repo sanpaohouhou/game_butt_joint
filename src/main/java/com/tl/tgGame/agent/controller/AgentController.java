@@ -18,6 +18,7 @@ import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.wallet.WalletAPI;
 import com.tl.tgGame.wallet.dto.RechargeCheckDTO;
 import com.tl.tgGame.wallet.dto.SingleResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.CollectionUtils;
@@ -97,11 +98,23 @@ public class AgentController {
                 addAgentDTO.getRemark(), agentId));
     }
 
+    @PostMapping("updateAgent")
+    public Response updateAgent(@Uid Long agentId,@RequestBody @Valid AddAgentDTO addAgentDTO){
+        Agent agent = agentService.getById(addAgentDTO.getAgentId());
+        if(!agentId.equals(agent.getInviteId())){
+            ErrorEnum.PARAM_ERROR.throwException();
+        }
+        return Response.success(agentService.updateAgent(addAgentDTO.getAgentId(),addAgentDTO.getAgentName(),
+                addAgentDTO.getRemark(), addAgentDTO.getMobile(), addAgentDTO.getDividendRate()));
+    }
+
     /**
      * 代理管理
      */
     @GetMapping("queryByList")
-    public Response queryByList(AdminAgentListReq req) {
+    public Response queryByList(@Uid Long agentId,AdminAgentListReq req) {
+        req.setPAgentId(agentId);
+        req.setLevel(2);
         return Response.pageResult(agentService.queryByList(req));
     }
 

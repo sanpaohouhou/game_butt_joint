@@ -7,9 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -31,6 +33,7 @@ public class GameCommissionSchedule {
     @Autowired
     private RedissonClient redisLock;
 
+    @Scheduled(fixedDelay = 30000)
     public void commission() {
         String lockKey = "commissionPenny:lock";
         RLock lock = redisLock.getLock(lockKey);
@@ -43,7 +46,11 @@ public class GameCommissionSchedule {
                 }
                 for (GameBet bet : bets) {
                     try {
-//                        gameBetService.fcCommission(bet);
+                        if(bet.getProfit().compareTo(BigDecimal.ZERO) > 0){
+                            gameBetService.winCommission(bet);
+                        }else {
+                            gameBetService.loseCommission(bet);
+                        }
                     } catch (Exception e) {
                         log.info("佣金分成系统异常exception:{},recordId:{}", e, bet.getRecordId());
                     }
