@@ -62,6 +62,12 @@ public class AdminAgentController {
                 addAgentDTO.getRemark(), null));
     }
 
+    @PostMapping("updateAgent")
+    public Response updateAgent(@RequestBody @Valid AddAgentDTO addAgentDTO){
+        return Response.success(agentService.updateAgent(addAgentDTO.getAgentId(),addAgentDTO.getAgentName(),
+                addAgentDTO.getRemark(), addAgentDTO.getMobile(), addAgentDTO.getDividendRate()));
+    }
+
     @GetMapping("queryByList")
     public Response queryByList(AdminAgentListReq req) {
         return Response.pageResult(agentService.queryByList(req));

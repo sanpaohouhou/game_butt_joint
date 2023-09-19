@@ -21,7 +21,7 @@ public interface AgentService extends IService<Agent> {
     Agent addAgent(String agentName, String userName, String mobile,
                    String password,String gameAccount, BigDecimal dividendRate,String remark,Long pAgentId);
 
-    Agent updateAgent(Long agentId,String agentName,String userName,String remark,String mobile,BigDecimal dividendRate);
+    Agent updateAgent(Long agentId,String agentName,String remark,String mobile,BigDecimal dividendRate);
 
     Page<Agent> queryByList(AdminAgentListReq req);
 

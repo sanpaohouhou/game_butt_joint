@@ -32,4 +32,6 @@ public class AddAgentDTO {
 
     @NotBlank(message = "请输入密码")
     private String password;
+
+    private Long agentId;
 }

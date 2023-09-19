@@ -87,6 +87,9 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         if (user == null) {
             ErrorEnum.USER_NOT_JOIN.throwException();
         }
+        if(dividendRate.compareTo(BigDecimal.valueOf(1L)) >= 0){
+            ErrorEnum.PARAM_ERROR.throwException("分红占比请小于1");
+        }
         Long id = idGeneratorService.incrementId();
         String inviteChain = id.toString();
         Integer level = 1;
@@ -122,13 +125,15 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
     }
 
     @Override
-    public Agent updateAgent(Long agentId, String agentName, String userName, String remark, String mobile, BigDecimal dividendRate) {
+    public Agent updateAgent(Long agentId, String agentName,String remark, String mobile, BigDecimal dividendRate) {
         Agent agent = getById(agentId);
         if (agent == null) {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
+        if(dividendRate.compareTo(BigDecimal.valueOf(1L)) >= 0){
+            ErrorEnum.PARAM_ERROR.throwException("分红占比请小于1");
+        }
         agent.setAgentName(agentName);
-        agent.setUserName(userName);
         agent.setRemark(remark);
         agent.setMobile(mobile);
         agent.setDividendRate(dividendRate);
