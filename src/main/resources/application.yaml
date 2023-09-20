@@ -3,9 +3,9 @@ spring:
     name: tgGame
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://18.182.49.51:29831/game_butt_joint?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
-    username: admin
-    password: tianli123456TL
+    url: jdbc:mysql://127.0.0.1:3306/game_butt_joint?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss

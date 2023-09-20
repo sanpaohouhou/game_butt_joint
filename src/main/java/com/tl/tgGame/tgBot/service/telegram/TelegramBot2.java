@@ -617,8 +617,9 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 InlineKeyboardMarkup build = InlineKeyboardMarkup.builder().keyboardRow(
                         Collections.singletonList(InlineKeyboardButton.builder()
                                 .url("https://t.me/cin89886").text("唯一专属客服").build())).build();
-                SendMessage.builder().replyMarkup(build).text("尊贵的用户，请联系本群唯一专属客服，确认代理合作细节。")
+                SendMessage message = SendMessage.builder().replyMarkup(build).text("尊贵的用户，请联系本群唯一专属客服，确认代理合作细节。")
                         .chatId(update.getMessage().getChatId()).build();
+                execute(message);
             }
         } catch (TelegramApiException e) {
             log.error("个人中心机器人报错exception:{},输入文本text:{}", e, update.getMessage().getText());

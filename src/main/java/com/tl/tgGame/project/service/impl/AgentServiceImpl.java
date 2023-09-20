@@ -170,7 +170,7 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         List<Agent> list = new ArrayList<>();
         String inviteLink = configService.get(ConfigConstants.BOT_GROUP_INVITE_LINK);
         for (Agent agent : records) {
-            Currency currency = currencyService.get(agent.getUserId(), UserType.USER);
+            Currency currency = currencyService.get(agent.getUserId(), UserType.AGENT);
             agent.setInviteUrl(inviteLink + "?start="+agent.getGameAccount());
             agent.setCurrency(currency);
             agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND,null,null,null));
