@@ -173,7 +173,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         boolean update = update(new LambdaUpdateWrapper<GameBet>().set(GameBet::getHasSettled, true)
                 .set(GameBet::getUpdateTime, LocalDateTime.now()).set(GameBet::getBackWaterAmount, backWater)
                 .eq(GameBet::getHasSettled, false).eq(GameBet::getId, gameBet.getId()));
-        if (update) {
+        if (!update) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
     }
