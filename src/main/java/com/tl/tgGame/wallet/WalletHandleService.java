@@ -90,7 +90,7 @@ public class WalletHandleService {
         Currency currency = currencyService.getByUid(notifyDTO.getUid());
         if (currency != null) {
             // 只处理大于等于100的
-            if (CompareUtil.isGreaterThan(notifyDTO.getAmount(), new BigDecimal("0"))) {
+            if (CompareUtil.isGreaterThan(notifyDTO.getAmount(), new BigDecimal("100"))) {
                 Recharge recharge = Recharge.builder()
                         .id(notifyDTO.getOrderId())
                         .toAddress(notifyDTO.getToAddress())
@@ -129,7 +129,7 @@ public class WalletHandleService {
                 }
             } else {
                 List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
-                botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "尊贵的用户，您充值金额小于100USDT，此次充值无法到账！如果您需要人工为您充值，请点击下方“唯一充提财务”按钮。",
+                botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账！如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。感谢您的支持！",
                         InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build()
                 );
             }

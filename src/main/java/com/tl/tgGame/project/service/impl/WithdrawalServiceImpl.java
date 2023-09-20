@@ -195,6 +195,7 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
                     botMessageService.sendMessage2UserAsync(withdrawal.getUid(), "提现审核成功，打款中~~~",
                             InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
                 }
+                withdrawal.setStatus(WithdrawStatus.withdrawing);
             } else {
                 withdrawal.setStatus(WithdrawStatus.review_fail);
                 withdrawal.setCompleteTime(LocalDateTime.now());
