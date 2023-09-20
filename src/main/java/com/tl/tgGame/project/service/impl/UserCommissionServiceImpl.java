@@ -1,6 +1,7 @@
 package com.tl.tgGame.project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tl.tgGame.project.entity.UserCommission;
 import com.tl.tgGame.project.enums.UserCommissionType;
@@ -33,6 +34,17 @@ public class UserCommissionServiceImpl extends ServiceImpl<UserCommissionMapper,
                 .ge(Objects.nonNull(startTime),UserCommission::getCreateTime,startTime)
                 .le(Objects.nonNull(endTime),UserCommission::getCreateTime,endTime);
         return getBaseMapper().sumAmount(wrapper);
+    }
+
+    @Override
+    public BigDecimal sumJuniorAmount(Long inviteUserId, Long userId, UserCommissionType type, String gameBusiness, LocalDateTime startTime, LocalDateTime endTime) {
+        QueryWrapper<Object> wrapper = new QueryWrapper<>().eq("u.invite_user", inviteUserId)
+                .eq(Objects.nonNull(userId), "uc.user_id", userId)
+                .eq(Objects.nonNull(type), "uc.type", type)
+                .eq(Objects.nonNull(gameBusiness), "uc.game_business", gameBusiness)
+                .ge(Objects.nonNull(startTime), "uc.create_time", startTime)
+                .le(Objects.nonNull(endTime), "uc.create_time", endTime);
+        return getBaseMapper().sumJuniorAmount(wrapper);
     }
 
     @Override

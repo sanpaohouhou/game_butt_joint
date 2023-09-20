@@ -19,6 +19,11 @@ public interface UserCommissionService extends IService<UserCommission>{
      */
     BigDecimal sumAmount(Long userId, UserCommissionType type, String gameBusiness, LocalDateTime startTime, LocalDateTime endTime);
 
+    /**
+     *查询下级返佣和返水
+     */
+    BigDecimal sumJuniorAmount(Long inviteUserId,Long userId,UserCommissionType type,String gameBusiness,LocalDateTime startTime,LocalDateTime endTime);
+
     Boolean insertUserCommission(Long userId,Long fromUserId, String gameId, String gameName, UserCommissionType type,
                                  String gameBusiness, BigDecimal profit, BigDecimal rate, BigDecimal actualAmount,Long betId);
 }

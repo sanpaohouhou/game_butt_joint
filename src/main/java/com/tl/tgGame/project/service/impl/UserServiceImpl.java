@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -250,7 +251,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public BotExtendStatisticsInfo getExtendStatistics(User user) {
-
         /**
          * 当月下注金额
          */
@@ -260,37 +260,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
          * 当天下注金额
          */
         LocalDateTime todayBegin = TimeUtil.getTodayBegin();
-
-        //当月总充值
-        BigDecimal monthAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
-        ;
-        //当日总充值
-        BigDecimal todayAllRecharge = rechargeService.sumRecharge(user.getId(), UserType.USER, todayBegin, endTime).setScale(2, RoundingMode.DOWN);
-        ;
-        //当月总提现
-        BigDecimal monthWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2, RoundingMode.DOWN);
-        ;
-        //今日总提现
-        BigDecimal todayWithdrawal = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2, RoundingMode.DOWN);
-        ;
         //总邀请
         List<User> users = queryByInviteUser(user.getId(), null, null);
+        if(CollectionUtils.isEmpty(users)){
+            return new BotExtendStatisticsInfo();
+        }
+
+        //当月总充值
+        BigDecimal monthAllRecharge = rechargeService.sumJuniorRechargeAmount(user.getId(),null, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
+
+        //当日总充值
+        BigDecimal todayAllRecharge = rechargeService.sumJuniorRechargeAmount(user.getId(), null,todayBegin, endTime).setScale(2, RoundingMode.DOWN);
+
+        //当月总提现
+        BigDecimal monthWithdrawal = withdrawalService.sumJuniorWithdrawalAmount(user.getId(), null, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2, RoundingMode.DOWN);
+
+        //今日总提现
+        BigDecimal todayWithdrawal = withdrawalService.sumJuniorWithdrawalAmount(user.getId(), null, List.of(WithdrawStatus.withdraw_success), monthBegin, endTime).setScale(2, RoundingMode.DOWN);
         //当月总邀请
         List<User> monthUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //当日总邀请
         List<User> todayUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //总佣金
-        BigDecimal todayCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
+        BigDecimal todayCommission = userCommissionService.sumJuniorAmount(user.getId(), null,UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
         //总返水
-        BigDecimal todayBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, todayBegin, endTime).setScale(2, RoundingMode.DOWN);
+        BigDecimal todayBackWater = userCommissionService.sumJuniorAmount(user.getId(), null,UserCommissionType.BACK_WATER, null, todayBegin, endTime).setScale(2, RoundingMode.DOWN);
         //当月总盈利
-        BigDecimal monthAllProfit = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
-
-
+//        BigDecimal monthAllProfit = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
 
         return BotExtendStatisticsInfo.builder()
                 .monthAllRecharge(monthAllRecharge)
-                .monthAllProfit(monthAllProfit)
                 .monthJoinGroup(monthUsers.size())
                 .monthALlWithdrawal(monthWithdrawal)
                 .peopleNumber(users.size())

@@ -18,4 +18,7 @@ public interface UserCommissionMapper extends BaseMapper<UserCommission> {
 
     @Select("SELECT IFNULL(SUM(`profit`), '0') FROM `user_commission` ${ew.customSqlSegment}")
     BigDecimal sumAmount(@Param(Constants.WRAPPER) Wrapper<UserCommission> wrapper);
+
+    @Select(" SELECT IFNULL(SUM(`profit`),'0') FROM `user_commission` AS uc JOIN `user` u ON uc.user_id = u.id ${ew.customSqlSegment}")
+    BigDecimal sumJuniorAmount(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
 }

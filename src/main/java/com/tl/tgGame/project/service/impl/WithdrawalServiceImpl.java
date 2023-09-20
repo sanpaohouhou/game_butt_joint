@@ -303,12 +303,24 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
     }
 
     @Override
-    public Integer countJuniorWithdrawalAmount(Long inviteUserId, Long userId, LocalDateTime startTime, LocalDateTime endTime) {
+    public Integer countJuniorWithdrawalNumber(Long inviteUserId, Long userId, List<WithdrawStatus> statuses,
+                                               LocalDateTime startTime, LocalDateTime endTime) {
         QueryWrapper<Object> wrapper = new QueryWrapper<>().eq(Objects.nonNull(inviteUserId), "u.invite_user", inviteUserId)
+                .in("wi.status", statuses)
                 .eq(Objects.nonNull(userId), "wi.uid", userId)
                 .ge(Objects.nonNull(startTime), "wi.create_time", startTime)
                 .le(Objects.nonNull(endTime), "wi.create_time", endTime);
-        return withdrawalMapper.countJuniorWithdrawalAmount(wrapper);
+        return withdrawalMapper.countJuniorWithdrawalNumber(wrapper);
+    }
+
+    @Override
+    public BigDecimal sumJuniorWithdrawalAmount(Long inviteUserId, Long userId,List<WithdrawStatus> statuses, LocalDateTime startTime, LocalDateTime endTime) {
+        QueryWrapper<Object> wrapper = new QueryWrapper<>().eq(Objects.nonNull(inviteUserId), "u.invite_user", inviteUserId)
+                .in("wi.status", statuses)
+                .eq(Objects.nonNull(userId), "wi.uid", userId)
+                .ge(Objects.nonNull(startTime), "wi.create_time", startTime)
+                .le(Objects.nonNull(endTime), "wi.create_time", endTime);
+        return withdrawalMapper.sumJuniorRechargeAmount(wrapper);
     }
 
 //    @Override

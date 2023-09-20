@@ -239,13 +239,15 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                     allBackWater = allBackWater.add(currencyGameProfit.getBalance());
                     currencyGameProfitService.withdrawal(currencyGameProfit.getUserId(),currencyGameProfit.getGameBusiness(),currencyGameProfit.getBalance());
                 }
+                AnswerCallbackQuery answer = new AnswerCallbackQuery();
+                answer.setCallbackQueryId(callbackQuery.getId());
+                answer.setShowAlert(true);
                 if(allBackWater.compareTo(BigDecimal.ZERO) > 0){
                     currencyService.increase(user.getId(),UserType.USER, BusinessEnum.BACK_WATER,allBackWater, LocalDateTime.now(),"一键返水");
+                    answer.setText("成功返水:" + allBackWater);
+                    execute(answer);
                 }else {
-                    AnswerCallbackQuery answer = new AnswerCallbackQuery();
-                    answer.setCallbackQueryId(callbackQuery.getId());
                     answer.setText("返水失败,请重新操作..待返水: 0");
-                    answer.setShowAlert(true);
                     execute(answer);
                 }
             }
@@ -592,9 +594,9 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .append("当月总存款: ").append(extendStatistics.getMonthAllRecharge()).append("\r\n")
                         .append("当日总提款: ").append(extendStatistics.getTodayAllWithdrawal()).append("\r\n")
                         .append("当月总提款: ").append(extendStatistics.getMonthALlWithdrawal()).append("\r\n")
-                        .append("当日总返水: ").append(extendStatistics.getTodayAllBackWater()).append("\r\n")
-                        .append("当日总彩金: ").append(extendStatistics.getTodayAllProfit()).append("\r\n")
-                        .append("当月总彩金: ").append(extendStatistics.getMonthAllProfit()).append("\r\n");
+                        .append("当日总返水: ").append(extendStatistics.getTodayAllBackWater()).append("\r\n");
+//                        .append("当日总彩金: ").append(extendStatistics.getTodayAllProfit()).append("\r\n")
+//                        .append("当月总彩金: ").append(extendStatistics.getMonthAllProfit()).append("\r\n");
                 SendMessage message7 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                         .text(append3.toString()).build();
                 execute(message7);

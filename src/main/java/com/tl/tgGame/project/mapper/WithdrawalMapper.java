@@ -23,7 +23,10 @@ public interface WithdrawalMapper extends BaseMapper<Withdrawal> {
     BigDecimal sumWithdrawal(@Param(Constants.WRAPPER) Wrapper<Withdrawal> wrapper);
 
     @Select(" SELECT COUNT(DISTINCT `uid`) FROM `withdrawal` AS wi JOIN `user` u ON wi.uid = u.id ${ew.customSqlSegment}")
-    Integer countJuniorWithdrawalAmount(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
+    Integer countJuniorWithdrawalNumber(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
+
+    @Select(" SELECT IFNULL(SUM(`amount`),'0') FROM `withdrawal` AS wi JOIN `user` u ON wi.uid = u.id ${ew.customSqlSegment}")
+    BigDecimal sumJuniorRechargeAmount(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
 
     @Select("SELECT wi.* FROM `withdrawal` AS wi JOIN `user` AS u ON wi.uid = u.id ${ew.customSqlSegment}")
     List<Withdrawal> agentList(@Param(Constants.WRAPPER) Wrapper<?> wrapper);

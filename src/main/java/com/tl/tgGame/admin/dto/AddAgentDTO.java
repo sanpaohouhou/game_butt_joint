@@ -30,7 +30,6 @@ public class AddAgentDTO {
     @NotBlank(message = "请输入用户名")
     private String userName;
 
-    @NotBlank(message = "请输入密码")
     private String password;
 
     private Long id;

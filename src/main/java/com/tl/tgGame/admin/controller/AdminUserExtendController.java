@@ -79,7 +79,8 @@ public class AdminUserExtendController {
             GameBackWaterRes gameBackWaterRes = currencyGameProfitService.juniorGameBackWaterStatistics(user.getId(), null);
             Integer rechargeNumber = rechargeService.countJuniorRechargeNumber(user.getId(), null, req.getStartTime(), req.getEndTime());
             BigDecimal rechargeAmount = rechargeService.sumJuniorRechargeAmount(user.getId(), null, req.getStartTime(), req.getEndTime());
-            Integer withdrawalNumber = withdrawalService.countJuniorWithdrawalAmount(user.getId(), null, req.getStartTime(), req.getEndTime());
+            Integer withdrawalNumber = withdrawalService.countJuniorWithdrawalNumber(user.getId(), null,Arrays.asList(WithdrawStatus.withdraw_success),
+                    req.getStartTime(), req.getEndTime());
             extend.setInviteUrl(inviteUrl);
             extend.setInviteNumber(users.size());
             extend.setAllProfit(userExtendBetStatisticsDTO.getAllProfit());

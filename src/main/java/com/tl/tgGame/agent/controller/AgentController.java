@@ -197,6 +197,7 @@ public class AgentController {
                 .eq(Objects.nonNull(business), CurrencyLog::getBusiness, business)
                 .notIn(CurrencyLog::getBusiness, Arrays.asList(BusinessEnum.FC_RECHARGE,BusinessEnum.FC_WITHDRAWAL,
                         BusinessEnum.WL_RECHARGE,BusinessEnum.WL_WITHDRAWAL,BusinessEnum.EG_RECHARGE,BusinessEnum.EG_WITHDRAWAL))
+                .eq(CurrencyLog::getUserType,UserType.AGENT)
                 .ge(Objects.nonNull(startTime), CurrencyLog::getCreateTime, startTime)
                 .le(Objects.nonNull(endTime), CurrencyLog::getCreateTime, endTime)
                 .orderByDesc(CurrencyLog::getId)
@@ -230,7 +231,7 @@ public class AgentController {
 
     @PostMapping("/withdraw")
     public Response withdraw(@Uid Long uid, @RequestBody @Valid UserUsdtWithdrawDTO param) {
-        return Response.success(withdrawalService.withdraw(uid, UserType.USER, param.getNetwork(), param.getTo(), param.getAmount()));
+        return Response.success(withdrawalService.withdraw(uid, UserType.AGENT, param.getNetwork(), param.getTo(), param.getAmount()));
     }
 
 
