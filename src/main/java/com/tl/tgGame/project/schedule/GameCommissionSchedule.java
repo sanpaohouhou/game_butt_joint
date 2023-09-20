@@ -33,7 +33,7 @@ public class GameCommissionSchedule {
     @Autowired
     private RedissonClient redisLock;
 
-//    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 30000)
     public void commission() {
         String lockKey = "commissionPenny:lock";
         RLock lock = redisLock.getLock(lockKey);
