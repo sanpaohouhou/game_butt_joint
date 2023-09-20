@@ -90,7 +90,7 @@ public class WalletHandleService {
         Currency currency = currencyService.getByUid(notifyDTO.getUid());
         if (currency != null) {
             // 只处理大于等于100的
-            if (CompareUtil.isGreaterThan(notifyDTO.getAmount(), new BigDecimal("100"))) {
+            if (!CompareUtil.isLessThan(notifyDTO.getAmount(), new BigDecimal("100"))) {
                 Recharge recharge = Recharge.builder()
                         .id(notifyDTO.getOrderId())
                         .toAddress(notifyDTO.getToAddress())
