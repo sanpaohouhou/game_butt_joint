@@ -1,6 +1,7 @@
 package com.tl.tgGame.admin.dto;
 
 import com.tl.tgGame.common.dto.PageQueryDTO;
+import com.tl.tgGame.project.enums.UserType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,4 +23,6 @@ public class AdminUserRechargeReq extends PageQueryDTO {
     private String gameAccount;
 
     private Long agentId;
+
+    private UserType userType;
 }

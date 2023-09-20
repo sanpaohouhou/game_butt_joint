@@ -2,10 +2,7 @@ package com.tl.tgGame.admin.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tl.tgGame.admin.dto.AddAgentDTO;
-import com.tl.tgGame.admin.dto.AdminAgentListReq;
-import com.tl.tgGame.admin.dto.AdminQueryBetReq;
-import com.tl.tgGame.admin.dto.ChargeDTO;
+import com.tl.tgGame.admin.dto.*;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.entity.*;
@@ -79,44 +76,54 @@ public class AdminAgentController {
         if (agent == null) {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
-        agent.setCurrency(currencyService.get(agent.getUserId(), UserType.USER));
+        agent.setCurrency(currencyService.get(agent.getUserId(), UserType.AGENT));
         agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND, null, null, null));
         return Response.success(agent);
     }
 
+    /**
+     * 保证金充值
+     * @param dto
+     * @return
+     */
     @PostMapping("/partner/recharge")
     @Transactional(rollbackFor = Exception.class)
     public Response partnerRecharge(@RequestBody @Valid ChargeDTO dto) {
-        Agent agent = agentService.getById(dto.getUserId());
+        Agent agent = agentService.queryByUserId(dto.getUserId());
         if (agent == null) {
-            ErrorEnum.USER_NOT_JOIN.throwException();
+            ErrorEnum.USER_NOT_JOIN.throwException("代理商不存在");
         }
-        Currency currency = currencyService.get(agent.getUserId(), UserType.USER);
+        Currency currency = currencyService.get(agent.getUserId(), UserType.AGENT);
         Recharge recharge = rechargeService.addRecharge(
                 agent.getUserId(),
                 dto.getAmount(),
-                UserType.USER,
+                UserType.AGENT,
                 null,
                 dto.getAddress(),
                 dto.getHash(),
                 dto.getNetwork(),
                 dto.getScreen(),
                 dto.getNote(),currency);
-        currencyService.increase(agent.getUserId(), UserType.USER, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "代理商保证金充值");
+        currencyService.increase(agent.getUserId(), UserType.AGENT, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "代理商保证金充值");
         return Response.success(recharge);
     }
 
+    /**
+     * 保证金提现
+     * @param dto
+     * @return
+     */
     @PostMapping("/partner/withdraw")
     @Transactional(rollbackFor = Exception.class)
     public Response partnerWithdraw(@RequestBody @Valid ChargeDTO dto) {
-        Agent agent = agentService.getById(dto.getUserId());
+        Agent agent = agentService.queryByUserId(dto.getUserId());
         if (agent == null) {
-            ErrorEnum.USER_NOT_JOIN.throwException();
+            ErrorEnum.USER_NOT_JOIN.throwException("代理商不存在");
         }
         Withdrawal withdrawal = withdrawalService.addWithdrawal(
                 dto.getUserId(),
                 dto.getAmount(),
-                UserType.USER,
+                UserType.AGENT,
                 null,
                 dto.getAddress(),
                 dto.getHash(),
@@ -124,7 +131,7 @@ public class AdminAgentController {
                 dto.getScreen(),
                 dto.getNote()
         );
-        currencyService.withdraw(agent.getUserId(), UserType.USER, BusinessEnum.WITHDRAW, dto.getAmount(), withdrawal.getId(), "代理商保证金提现");
+        currencyService.withdraw(agent.getUserId(), UserType.AGENT, BusinessEnum.WITHDRAW, dto.getAmount(), withdrawal.getId(), "代理商保证金提现");
         return Response.success(withdrawal);
     }
 

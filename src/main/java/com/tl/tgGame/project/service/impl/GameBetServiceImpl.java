@@ -307,14 +307,14 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                              BigDecimal amount, BigDecimal rate, String des) {
         userCommissionService.insertUserCommission(userId, gameBet.getUserId(), gameBet.getGameId(), gameBet.getGameName(),
                 type, gameBet.getGameBusiness(), amount.negate(), rate, gameBet.getProfit(), gameBet.getId());
-        currencyService.withdrawalForce(userId, UserType.USER, businessEnum,
+        currencyService.withdrawalForce(userId, UserType.AGENT, businessEnum,
                 amount, gameBet.getRecordId(), des);
     }
 
     private void commission(GameBet gameBet, Long userId, UserCommissionType type, BusinessEnum businessEnum, BigDecimal amount, BigDecimal rate, String des) {
         userCommissionService.insertUserCommission(userId, gameBet.getUserId(), gameBet.getGameId(), gameBet.getGameName(),
                 type, gameBet.getGameBusiness(), amount, rate, gameBet.getProfit(), gameBet.getId());
-        currencyService.increase(userId, UserType.USER, businessEnum,
+        currencyService.increase(userId, UserType.AGENT, businessEnum,
                 amount, gameBet.getRecordId(), des);
     }
 

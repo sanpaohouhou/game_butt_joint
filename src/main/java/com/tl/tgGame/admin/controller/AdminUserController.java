@@ -168,6 +168,7 @@ public class AdminUserController {
         Page<Recharge> page = rechargeService.page(new Page<>(req.getPage(), req.getSize()),
                 new LambdaQueryWrapper<Recharge>()
                         .eq(Objects.nonNull(userId), Recharge::getUserId, userId)
+                        .eq(Objects.nonNull(req.getUserType()),Recharge::getUserType,req.getUserType())
                         .ge(Objects.nonNull(req.getStartTime()), Recharge::getCreateTime, req.getStartTime())
                         .le(Objects.nonNull(req.getEndTime()), Recharge::getCreateTime, req.getEndTime())
                         .orderByDesc(Recharge::getId));
@@ -262,6 +263,7 @@ public class AdminUserController {
                                     @RequestParam(defaultValue = "20") Integer size,
                                     @RequestParam(required = false) UserType userType,
                                     @RequestParam(required = false) Long userId,
+                                    @RequestParam(required = false) Long agentId,
                                     @RequestParam(required = false) String sn,
                                     @RequestParam(required = false) String gameAccount,
                                     @RequestParam(required = false) BusinessEnum business,
@@ -274,12 +276,16 @@ public class AdminUserController {
                 userId = user.getId();
             }
         }
+        if(agentId != null){
+            User one = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, agentId));
+            userId = one.getId();
+        }
         Page<CurrencyLog> page1 = currencyLogService.page(new Page<>(page, size),
                 new LambdaQueryWrapper<CurrencyLog>()
                         .eq(Objects.nonNull(userId), CurrencyLog::getUid, userId)
-                        .ne(CurrencyLog::getUid,0)
-                        .notIn(CurrencyLog::getBusiness,Arrays.asList(BusinessEnum.FC_RECHARGE,BusinessEnum.FC_WITHDRAWAL,
-                                BusinessEnum.WL_RECHARGE,BusinessEnum.WL_WITHDRAWAL,BusinessEnum.EG_RECHARGE,
+                        .ne(CurrencyLog::getUid, 0)
+                        .notIn(CurrencyLog::getBusiness, Arrays.asList(BusinessEnum.FC_RECHARGE, BusinessEnum.FC_WITHDRAWAL,
+                                BusinessEnum.WL_RECHARGE, BusinessEnum.WL_WITHDRAWAL, BusinessEnum.EG_RECHARGE,
                                 BusinessEnum.EG_WITHDRAWAL))
                         .eq(Objects.nonNull(userType), CurrencyLog::getUserType, userType)
                         .eq(Objects.nonNull(business), CurrencyLog::getBusiness, business)
@@ -294,34 +300,14 @@ public class AdminUserController {
         List<CurrencyLog> list = new ArrayList<>();
         for (CurrencyLog currencyLog : records) {
             User user = userService.getById(currencyLog.getUid());
-            currencyLog.setGameAccount(user.getGameAccount());
+            if (user != null) {
+                currencyLog.setGameAccount(user.getGameAccount());
+            }
             list.add(currencyLog);
         }
         page1.setRecords(list);
         return Response.pageResult(page1);
     }
 
-
-    @PostMapping("/partner/withdraw")
-    @Transactional(rollbackFor = Exception.class)
-    public Response partnerWithdraw(@RequestBody @Valid ChargeDTO dto) {
-        Agent agent = agentService.queryByUserId(dto.getUserId());
-        if (agent == null) {
-            ErrorEnum.USER_NOT_JOIN.throwException("代理商不存在");
-        }
-        Withdrawal withdrawal = withdrawalService.addWithdrawal(
-                dto.getUserId(),
-                dto.getAmount(),
-                UserType.USER,
-                null,
-                dto.getAddress(),
-                dto.getHash(),
-                dto.getNetwork(),
-                dto.getScreen(),
-                dto.getNote()
-        );
-        currencyService.withdraw(dto.getUserId(), UserType.USER, BusinessEnum.WITHDRAW, dto.getAmount(), withdrawal.getId(), "保证金提现");
-        return Response.success(withdrawal);
-    }
 
 }

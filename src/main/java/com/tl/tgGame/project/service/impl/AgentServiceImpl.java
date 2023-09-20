@@ -93,7 +93,10 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         Long id = idGeneratorService.incrementId();
         String inviteChain = id.toString();
         Integer level = 1;
+        String userInviteChain = user.getId().toString();
         if (pAgentId != null) {
+            User one1 = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, pAgentId));
+            userInviteChain = one1.getInviteChain() + ":" + userInviteChain;
             inviteChain = pAgentId + ":" + inviteChain;
             level = 2;
         }
@@ -119,6 +122,7 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         }
         user.setHasAgent(true);
         user.setAgentId(id);
+        user.setInviteChain(userInviteChain);
         if (!userService.updateById(user)) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }

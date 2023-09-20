@@ -262,35 +262,41 @@ public class TelegramBot2 extends TelegramLongPollingBot {
         KeyboardRow keyboardRow = new KeyboardRow();
         KeyboardRow keyboardRow1 = new KeyboardRow();
         KeyboardRow keyboardRow2 = new KeyboardRow();
+        KeyboardRow keyboardRow3 = new KeyboardRow();
 
         KeyboardButton keyboardButton1 = KeyboardButton.builder().text("开始游戏").build();
+
         KeyboardButton keyboardButton2 = KeyboardButton.builder().text("个人资料").build();
         KeyboardButton keyboardButton3 = KeyboardButton.builder().text("游戏报表").build();
-
         KeyboardButton keyboardButton4 = KeyboardButton.builder().text("获利查询").build();
+
         KeyboardButton keyboardButton5 = KeyboardButton.builder().text("USDT充值").build();
         KeyboardButton keyboardButton6 = KeyboardButton.builder().text("USDT提现").build();
-
         KeyboardButton keyboardButton7 = KeyboardButton.builder().text("绑定地址").build();
+
         KeyboardButton keyboardButton8 = KeyboardButton.builder().text("推广链接").build();
         KeyboardButton keyboardButton9 = KeyboardButton.builder().text("推广数据").build();
+        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("代理申请").build();
 
 
         keyboardRow.add(keyboardButton1);
-        keyboardRow.add(keyboardButton2);
-        keyboardRow.add(keyboardButton3);
 
+        keyboardRow1.add(keyboardButton2);
+        keyboardRow1.add(keyboardButton3);
         keyboardRow1.add(keyboardButton4);
-        keyboardRow1.add(keyboardButton5);
-        keyboardRow1.add(keyboardButton6);
 
+        keyboardRow2.add(keyboardButton5);
+        keyboardRow2.add(keyboardButton6);
         keyboardRow2.add(keyboardButton7);
-        keyboardRow2.add(keyboardButton8);
-        keyboardRow2.add(keyboardButton9);
+
+        keyboardRow3.add(keyboardButton8);
+        keyboardRow3.add(keyboardButton9);
+        keyboardRow3.add(keyboardButton10);
 
         list.add(keyboardRow);
         list.add(keyboardRow1);
         list.add(keyboardRow2);
+        list.add(keyboardRow3);
         ReplyKeyboardMarkup keyboardMarkup = ReplyKeyboardMarkup.builder().keyboard(list)
                 .resizeKeyboard(true).build();
         try {
@@ -395,7 +401,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 KeyboardRow keyboardRow11 = new KeyboardRow();
                 KeyboardRow keyboardRow12 = new KeyboardRow();
 
-                KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC9EFC电子").build();
+                KeyboardButton keyboardButton11 = KeyboardButton.builder().text("\uD83D\uDC9EFC电子").build();
                 KeyboardButton keyboardButton12 = KeyboardButton.builder().text("\uD83C\uDFB0WL棋牌").build();
                 KeyboardButton keyboardButton13 = KeyboardButton.builder().text("\uD83D\uDC21EG电子").build();
 
@@ -403,9 +409,9 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 KeyboardButton keyboardButton15 = KeyboardButton.builder().text("⚽\uFE0FWL体育").build();
                 KeyboardButton keyboardButton16 = KeyboardButton.builder().text("\uD83C\uDF08FC捕鱼").build();
 
-                KeyboardButton keyboardButton11 = KeyboardButton.builder().text("\uD83D\uDD3A返回上级\uD83D\uDD19").build();
+                KeyboardButton keyboardButton17 = KeyboardButton.builder().text("\uD83D\uDD3A返回上级\uD83D\uDD19").build();
 
-                keyboardRow10.add(keyboardButton10);
+                keyboardRow10.add(keyboardButton11);
                 keyboardRow10.add(keyboardButton12);
                 keyboardRow10.add(keyboardButton13);
 
@@ -414,7 +420,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 keyboardRow11.add(keyboardButton15);
                 keyboardRow11.add(keyboardButton16);
 
-                keyboardRow12.add(keyboardButton11);
+                keyboardRow12.add(keyboardButton17);
 
 
                 list1.add(keyboardRow10);
@@ -605,12 +611,13 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                                 "尊贵的用户，您的推广链接为：" + link + "?start=" + user.getGameAccount()).build();
                 execute(message6);
             }
-//            if (text.equals("/cancel") || text.contains("/start")) {
-//                SendMessage message3 = SendMessage.builder().text("\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25")
-//                        .replyMarkup(keyboardMarkup).chatId(update.getMessage().getChatId().toString())
-//                        .build();
-//                execute(message3);
-//            }
+            if(text.equals("代理申请")){
+                InlineKeyboardMarkup build = InlineKeyboardMarkup.builder().keyboardRow(
+                        Collections.singletonList(InlineKeyboardButton.builder()
+                                .url("https://t.me/cin89886").text("唯一专属客服").build())).build();
+                SendMessage.builder().replyMarkup(build).text("尊贵的用户，请联系本群唯一专属客服，确认代理合作细节。")
+                        .chatId(update.getMessage().getChatId()).build();
+            }
         } catch (TelegramApiException e) {
             log.error("个人中心机器人报错exception:{},输入文本text:{}", e, update.getMessage().getText());
         }

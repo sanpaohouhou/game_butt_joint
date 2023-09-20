@@ -311,39 +311,39 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
         return withdrawalMapper.countJuniorWithdrawalAmount(wrapper);
     }
 
-    @Override
-    public Page<Withdrawal> agentWithdrawalList(Integer page, Integer size, Long userId, Long agentId,
-                                      Long id, WithdrawStatus status, LocalDateTime startTime, LocalDateTime endTime) {
-        page = (page - 1) * size;
-        QueryWrapper<Object> wrapper = new QueryWrapper<>().eq("u.has_agent", true)
-                .eq(Objects.nonNull(userId), "wi.uid", userId)
-                .eq(Objects.nonNull(agentId), "u.agent_id", agentId)
-                .eq(Objects.nonNull(id), "wi.id", id)
-                .eq(Objects.nonNull(startTime), "wi.status", status)
-                .ge(Objects.nonNull(startTime), "wi.create_time", startTime)
-                .le(Objects.nonNull(endTime), "wi.create_time", endTime);
-
-        QueryWrapper<Object> countWrapper = wrapper.orderByDesc("wi.id").last(" LIMIT " + page + "," + size);
-        List<Withdrawal> withdrawals = withdrawalMapper.agentList(wrapper);
-        Page<Withdrawal> page1 = new Page<>();
-        page1.setPages(page);
-        page1.setSize(size);
-        if (CollectionUtils.isEmpty(withdrawals)) {
-            return page1;
-        }
-        List<Withdrawal> list = new ArrayList<>();
-        for (Withdrawal withdrawal : withdrawals) {
-            Agent agent = agentService.queryByUserId(withdrawal.getUid());
-            if(agent != null){
-                withdrawal.setPAgentId(agent.getInviteId());
-                withdrawal.setAgentId(agent.getId());
-                withdrawal.setLevel(agent.getLevel());
-            }
-            list.add(withdrawal);
-        }
-        Integer total = withdrawalMapper.agentCount(countWrapper);
-        page1.setRecords(list);
-        page1.setTotal(total);
-        return page1;
-    }
+//    @Override
+//    public Page<Withdrawal> agentWithdrawalList(Integer page, Integer size, Long userId, Long agentId,
+//                                      Long id, WithdrawStatus status, LocalDateTime startTime, LocalDateTime endTime) {
+//        page = (page - 1) * size;
+//        QueryWrapper<Object> wrapper = new QueryWrapper<>().eq("u.has_agent", true)
+//                .eq(Objects.nonNull(userId), "wi.uid", userId)
+//                .eq(Objects.nonNull(agentId), "u.agent_id", agentId)
+//                .eq(Objects.nonNull(id), "wi.id", id)
+//                .eq(Objects.nonNull(startTime), "wi.status", status)
+//                .ge(Objects.nonNull(startTime), "wi.create_time", startTime)
+//                .le(Objects.nonNull(endTime), "wi.create_time", endTime);
+//
+//        QueryWrapper<Object> countWrapper = wrapper.orderByDesc("wi.id").last(" LIMIT " + page + "," + size);
+//        List<Withdrawal> withdrawals = withdrawalMapper.agentList(wrapper);
+//        Page<Withdrawal> page1 = new Page<>();
+//        page1.setPages(page);
+//        page1.setSize(size);
+//        if (CollectionUtils.isEmpty(withdrawals)) {
+//            return page1;
+//        }
+//        List<Withdrawal> list = new ArrayList<>();
+//        for (Withdrawal withdrawal : withdrawals) {
+//            Agent agent = agentService.queryByUserId(withdrawal.getUid());
+//            if(agent != null){
+//                withdrawal.setPAgentId(agent.getInviteId());
+//                withdrawal.setAgentId(agent.getId());
+//                withdrawal.setLevel(agent.getLevel());
+//            }
+//            list.add(withdrawal);
+//        }
+//        Integer total = withdrawalMapper.agentCount(countWrapper);
+//        page1.setRecords(list);
+//        page1.setTotal(total);
+//        return page1;
+//    }
 }

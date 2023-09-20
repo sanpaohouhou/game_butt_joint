@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tl.tgGame.admin.dto.AuditDTO;
 import com.tl.tgGame.admin.dto.WithdrawalUploadDTO;
 import com.tl.tgGame.common.dto.Response;
+import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.entity.Withdrawal;
 import com.tl.tgGame.project.enums.UserType;
@@ -52,6 +53,7 @@ public class AdminWithdrawalController {
     public Response withdrawalList(@RequestParam(defaultValue = "1") Integer page,
                                    @RequestParam(defaultValue = "20") Integer size,
                                    @RequestParam(required = false) Long userId,
+                                   @RequestParam(required = false) Long agentId,
                                    @RequestParam(required = false) Long id,
                                    @RequestParam(required = false) String gameAccount,
                                    @RequestParam(required = false) UserType userType,
@@ -60,6 +62,13 @@ public class AdminWithdrawalController {
                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
         if (!StringUtils.isEmpty(gameAccount)) {
             User user = userService.queryByMemberAccount(gameAccount);
+            userId = user.getId();
+        }
+        if (agentId != null) {
+            User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, agentId));
+            if (Objects.isNull(user)) {
+                ErrorEnum.OBJECT_NOT_FOUND.throwException();
+            }
             userId = user.getId();
         }
         Page<Withdrawal> page1 = withdrawalService.page(new Page<>(page, size),
@@ -85,17 +94,18 @@ public class AdminWithdrawalController {
         return Response.pageResult(page1);
     }
 
-    @GetMapping("/agent/withdrawal/list")
-    public Response agentWithdrawalList(@RequestParam(defaultValue = "1") Integer page,
-                                        @RequestParam(defaultValue = "20") Integer size,
-                                        @RequestParam(required = false) Long userId,
-                                        @RequestParam(required = false) Long agentId,
-                                        @RequestParam(required = false) Long id,
-                                        @RequestParam(required = false) WithdrawStatus status,
-                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
-                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
-        return Response.pageResult(withdrawalService.agentWithdrawalList(page, size, userId, agentId, id, status, startTime, endTime));
-    }
+    //弃用
+//    @GetMapping("/agent/withdrawal/list")
+//    public Response agentWithdrawalList(@RequestParam(defaultValue = "1") Integer page,
+//                                        @RequestParam(defaultValue = "20") Integer size,
+//                                        @RequestParam(required = false) Long userId,
+//                                        @RequestParam(required = false) Long agentId,
+//                                        @RequestParam(required = false) Long id,
+//                                        @RequestParam(required = false) WithdrawStatus status,
+//                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
+//                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
+//        return Response.pageResult(withdrawalService.agentWithdrawalList(page, size, userId, agentId, id, status, startTime, endTime));
+//    }
 
     @PostMapping("/withdrawal/audit")
     public Response withdrawAudit(@RequestBody @Valid AuditDTO param) {

@@ -11,6 +11,7 @@ import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.Currency;
 import com.tl.tgGame.project.entity.CurrencyGameProfit;
+import com.tl.tgGame.project.entity.Game;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.enums.*;
 import com.tl.tgGame.project.mapper.UserMapper;
@@ -82,6 +83,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private CurrencyLogService currencyLogService;
+
+    @Autowired
+    private GameService gameService;
 
     @Override
     public User insertUser(String firstName, String lastName, String username, Boolean isBot, Long tgId, String tgGroup,Long inviteUser,String inviteChain) {
@@ -234,10 +238,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         GameBackWaterRes backWater = currencyGameProfitService.userBackWater(user.getId(), gameBusiness);
 //        BigDecimal waitBackWater = gameBetService.sumWinLose(user.getId(), null,null, false,gameBusiness).setScale(2, RoundingMode.DOWN);
 //        BigDecimal rate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
+        Game game = gameService.queryByName(GameBusiness.of(gameBusiness));
         return GameBusinessStatisticsInfo.builder()
                 .gameBusiness(GameBusiness.of(gameBusiness))
-                .backWaterRate(BigDecimal.valueOf(2) + "%")
-                .juniorCommissionRate(BigDecimal.valueOf(2) + "%")
+                .backWaterRate(game.getBackWaterRate() + "%")
+                .juniorCommissionRate(game.getTopCommissionRate() + "%")
                 .backWater(backWater.getAllBackWater().setScale(2,RoundingMode.DOWN))
                 .waitBackWater(backWater.getAllWaitBackWater().setScale(2,RoundingMode.DOWN))
                 .juniorCommission(allCommission).build();
@@ -467,6 +472,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Integer teamNumber(Long userId) {
         return count(new LambdaQueryWrapper<User>().like(User::getInviteChain,userId)
+                .ne(User::getId,userId)
                 .eq(User::getHasGroup,true));
     }
 

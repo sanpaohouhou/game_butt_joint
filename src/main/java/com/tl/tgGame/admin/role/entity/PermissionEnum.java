@@ -8,13 +8,23 @@ public enum PermissionEnum {
     USER_MANAGE("用户管理", null,"usermanage"),
         USER_LIST("用户列表", USER_MANAGE,"userList"),
         USER_RECHARGE("用户充值", USER_MANAGE,"userRecharge"),
-        USER_WITHDRAW("用户提现", USER_MANAGE,"userWithdraw"),
         USER_PROMOTION("用户推广", USER_MANAGE,"userPromotion"),
         USER_PROFIT("用户获利", USER_MANAGE,"userProfit"),
 
+    FINANCE_MANAGE("财务管理", null, "financial"),
+
+        FINANCE_BILL("帐变列表",FINANCE_MANAGE,"finanBill"),
+        FINAN_MARGIN("保证金管理",FINANCE_MANAGE,"finanMargin"),
+        USER_WITHDRAW("用户提现", FINANCE_MANAGE,"userWithdraw"),
+
+    PROXY("代理管理",null,"proxy"),
+        PROXY_MANAGE("代理管理",PROXY,"proxyManage"),
+        PROXY_ASSET_MANAGE("代理资金管理",PROXY,"proxyAssetManage"),
+
     GAME_MANAGE("游戏管理", null,"game"),
         GAME_LIST("游戏列表", GAME_MANAGE,"gameList"),
-        BET_LIST("下注列表", GAME_MANAGE,"betRecord"),
+        BET_LIST("游戏记录", GAME_MANAGE,"betRecord"),
+        GAME_AN_TI("反彩比例",GAME_MANAGE,"gameAnti"),
 
     SYS_MANAGE("系统管理", null,"account"),
         ROLE_MANAGE("角色管理", SYS_MANAGE,"role"),
