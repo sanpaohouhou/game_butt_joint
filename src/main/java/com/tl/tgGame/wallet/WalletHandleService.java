@@ -112,7 +112,7 @@ public class WalletHandleService {
                         recharge.getAmount(),
                         recharge.getId(),
                         "充值-" + notifyDTO.getNetwork());
-                if (currency.getUserType().equals(UserType.PARTNER)){
+                if (currency.getUserType().equals(UserType.AGENT)){
                     return;
                 }
                 String beginGameLink = configService.get(ConfigConstants.BOT_BEGIN_GAME_GROUP_LINK);
@@ -131,7 +131,7 @@ public class WalletHandleService {
                             "祝您福气满满，财源滚滚‼️", null);
                 }
             } else {
-                if (currency.getUserType().equals(UserType.PARTNER)){
+                if (currency.getUserType().equals(UserType.AGENT)){
                     return;
                 }
                 List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
