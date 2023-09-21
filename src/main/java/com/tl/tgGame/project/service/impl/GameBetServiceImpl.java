@@ -168,7 +168,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 rate = remainRate;
                 dividendAmount = profit;
             }
-            commission(gameBet, user1.getId(), UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, dividendAmount, rate, "代理商" + agent.getLevel() + "级分红:" + gameBet.getRecordId());
+            commission(gameBet, agent.getId(), UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, dividendAmount, rate, "代理商" + agent.getLevel() + "级分红:" + gameBet.getRecordId());
         }
         boolean update = update(new LambdaUpdateWrapper<GameBet>().set(GameBet::getHasSettled, true)
                 .set(GameBet::getUpdateTime, LocalDateTime.now()).set(GameBet::getBackWaterAmount, backWater.negate())
@@ -251,7 +251,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 rate = remainRate;
                 dividendAmount = profit;
             }
-            winDividend(gameBet, user1.getId(), UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, dividendAmount, rate, "合伙人占成结算");
+            winDividend(gameBet, agent.getId(), UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, dividendAmount, rate, "合伙人占成结算");
         }
         boolean update = update(new LambdaUpdateWrapper<GameBet>().set(GameBet::getHasSettled, true)
                 .set(GameBet::getUpdateTime, LocalDateTime.now()).set(GameBet::getTopCommission, topCommission)

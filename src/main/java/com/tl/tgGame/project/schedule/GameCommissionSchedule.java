@@ -25,9 +25,6 @@ import java.util.List;
 public class GameCommissionSchedule {
 
     @Autowired
-    private ApiGameService apiGameService;
-
-    @Autowired
     private GameBetService gameBetService;
 
     @Autowired

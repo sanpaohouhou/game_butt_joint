@@ -82,7 +82,7 @@ public class AgentController {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
         agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND, null, null, null));
-        agent.setCurrency(currencyService.getOrCreate(agent.getUserId(), UserType.AGENT));
+        agent.setCurrency(currencyService.getOrCreate(agent.getId(), UserType.AGENT));
         agent.setTeamNumber(userService.teamNumber(agent.getUserId()));
         agent.setInviteUrl(configService.get(ConfigConstants.BOT_GROUP_INVITE_LINK ) + "?start=" + agent.getGameAccount());
         agent.setAddress(walletAPI.getUserAddress(agent.getId()));
@@ -193,7 +193,7 @@ public class AgentController {
                              @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
                              @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
         Agent agent = agentService.getById(agentId);
-        Page<CurrencyLog> pages = currencyLogService.lambdaQuery().eq(CurrencyLog::getUid, agent.getUserId())
+        Page<CurrencyLog> pages = currencyLogService.lambdaQuery().eq(CurrencyLog::getUid, agent.getId())
                 .eq(Objects.nonNull(business), CurrencyLog::getBusiness, business)
                 .notIn(CurrencyLog::getBusiness, Arrays.asList(BusinessEnum.FC_RECHARGE,BusinessEnum.FC_WITHDRAWAL,
                         BusinessEnum.WL_RECHARGE,BusinessEnum.WL_WITHDRAWAL,BusinessEnum.EG_RECHARGE,BusinessEnum.EG_WITHDRAWAL))
@@ -223,6 +223,7 @@ public class AgentController {
                 currencyLog.setHash(withdrawal.getHash());
                 currencyLog.setStatus(withdrawal.getStatus());
             }
+            currencyLog.setBalance(currencyLog.getAmount().add(currencyLog.getBalance()));
             list.add(currencyLog);
         }
         pages.setRecords(list);

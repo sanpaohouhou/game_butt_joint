@@ -187,29 +187,6 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 }
 
             }
-//
-//            if (callbackQuery.getData().contains("USDT充值:转账金额确认")) {
-//                com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
-//                String[] split = callbackQuery.getData().split("\\|");
-//                String[] texts = split[1].split("\\.");
-//
-//                StringBuilder append = new StringBuilder()
-//                        // TODO: 2023/8/28 这个地址以后在进行更换
-//                        .append("充值地址: ").append("回头换成运营的固定地址").append("\r\n")
-//                        .append("充值分数: ").append(texts[0]).append("\r\n")
-//                        .append("付款金额: ").append(texts[1]).append("\r\n")
-//                        .append("充值有效时长: ").append("30分钟").append("\r\n")
-//                        .append("尊贵的用户，充值地址与付款金额，单击即可复制，请务必复制! 付款完成后请务必截图，请点击下方“唯一充提财务”按钮，发送财务确认后到账").append("\r\n");
-//                InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build();
-//                List<InlineKeyboardButton> inlineKeyboardButtons1 = new ArrayList<>();
-//                inlineKeyboardButtons1.add(inlineKeyboardButton1);
-//                List<List<InlineKeyboardButton>> lists = new ArrayList<>();
-//                lists.add(inlineKeyboardButtons1);
-//                InlineKeyboardMarkup inlineKeyboardMarkup = InlineKeyboardMarkup.builder().keyboard(lists).build();
-//                SendMessage message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId())
-//                        .text(append.toString()).replyMarkup(inlineKeyboardMarkup).build();
-//                execute(message);
-//            }
             if (callbackQuery.getData().contains("USDT提现:确认提现")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(callbackQuery.getMessage().getChatId());
                 String[] split = callbackQuery.getData().split("\\|");
@@ -366,7 +343,6 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .append("总返水: ").append(botPersonInfo.getAllBackWater()).append("\r\n")
                         .append("待返水: ").append(botPersonInfo.getWaitBackWater()).append("\r\n")
                         .append("总佣金: ").append(botPersonInfo.getAllCommission()).append("\r\n")
-                        .append("总彩金: ").append(botPersonInfo.getAllProfit()).append("\r\n")
                         .append("提现待审核: ").append(botPersonInfo.getWaitAuthWithdrawal()).append("\r\n")
                         .append("\r\n")
                         .append(" 用户返水及推广佣金会因不同游戏设置不同比例，详情请点击“获利查询”查看详况 ").append("\r\n");
