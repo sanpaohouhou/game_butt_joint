@@ -90,6 +90,12 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         if(dividendRate.compareTo(BigDecimal.valueOf(1L)) >= 0){
             ErrorEnum.PARAM_ERROR.throwException("分红占比请小于1");
         }
+        if(pAgentId == null && user.getInviteUser() != null){
+            User user1 = userService.getById(user.getInviteUser());
+            if(Objects.nonNull(user1) && user1.getHasAgent()){
+                ErrorEnum.PARAM_ERROR.throwException("该用户上级代理为"+user1.getGameAccount()+"不可添加为代理");
+            }
+        }
         Long id = idGeneratorService.incrementId();
         String inviteChain = id.toString();
         Integer level = 1;

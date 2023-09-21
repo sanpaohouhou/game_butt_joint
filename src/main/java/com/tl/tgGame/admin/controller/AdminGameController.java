@@ -57,7 +57,8 @@ public class AdminGameController {
                 .eq(req.getId() != null, GameBet::getId, req.getId())
                 .eq(!StringUtils.isEmpty(req.getGameBusiness()),GameBet::getGameBusiness,req.getGameBusiness())
                 .ge(Objects.nonNull(req.getStartTime()), GameBet::getCreateTime, req.getStartTime())
-                .le(Objects.nonNull(req.getEndTime()), GameBet::getCreateTime, req.getEndTime()));
+                .le(Objects.nonNull(req.getEndTime()), GameBet::getCreateTime, req.getEndTime())
+                .orderByDesc(GameBet::getId));
         return Response.pageResult(page);
     }
 
