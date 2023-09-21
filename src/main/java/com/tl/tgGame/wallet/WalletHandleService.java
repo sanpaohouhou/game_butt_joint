@@ -6,6 +6,7 @@ import com.tl.tgGame.project.entity.Recharge;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.entity.Withdrawal;
 import com.tl.tgGame.project.enums.BusinessEnum;
+import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.enums.WithdrawStatus;
 import com.tl.tgGame.project.service.CurrencyService;
 import com.tl.tgGame.project.service.RechargeService;
@@ -111,7 +112,9 @@ public class WalletHandleService {
                         recharge.getAmount(),
                         recharge.getId(),
                         "充值-" + notifyDTO.getNetwork());
-
+                if (currency.getUserType().equals(UserType.PARTNER)){
+                    return;
+                }
                 String beginGameLink = configService.get(ConfigConstants.BOT_BEGIN_GAME_GROUP_LINK);
                 String chat = configService.getOrDefault(ConfigConstants.BOT_BEGIN_GAME_GROUP_CHAT, null);
                 String point = recharge.getAmount().stripTrailingZeros().toPlainString();
@@ -128,6 +131,9 @@ public class WalletHandleService {
                             "祝您福气满满，财源滚滚‼️", null);
                 }
             } else {
+                if (currency.getUserType().equals(UserType.PARTNER)){
+                    return;
+                }
                 List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
                 botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账！如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。感谢您的支持！",
                         InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build()
