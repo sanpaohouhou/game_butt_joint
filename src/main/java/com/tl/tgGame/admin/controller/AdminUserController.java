@@ -158,17 +158,9 @@ public class AdminUserController {
             }
             userId = user.getId();
         }
-
-//        if (req.getAgentId() != null) {
-//            User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, req.getAgentId()));
-//            if (Objects.isNull(user)) {
-//                ErrorEnum.OBJECT_NOT_FOUND.throwException();
-//            }
-//            userId = user.getId();
-//        }
         Page<Recharge> page = rechargeService.page(new Page<>(req.getPage(), req.getSize()),
                 new LambdaQueryWrapper<Recharge>()
-                        .eq(Objects.nonNull(req.getAgentId()),Recharge::getAgentId,req.getAgentId())
+                        .eq(Objects.nonNull(req.getAgentId()),Recharge::getUserId,req.getAgentId())
                         .eq(Objects.nonNull(userId), Recharge::getUserId, userId)
                         .eq(Objects.nonNull(req.getUserType()),Recharge::getUserType,req.getUserType())
                         .ge(Objects.nonNull(req.getStartTime()), Recharge::getCreateTime, req.getStartTime())
@@ -188,8 +180,8 @@ public class AdminUserController {
             }
             if(user != null){
                 recharge.setGameAccount(user.getGameAccount());
+                recharge.setAgentId(user.getAgentId());
             }
-            recharge.setAgentId(user.getAgentId());
             recharges.add(recharge);
         }
         page.setRecords(recharges);
