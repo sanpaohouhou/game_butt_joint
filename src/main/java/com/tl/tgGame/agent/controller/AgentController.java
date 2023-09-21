@@ -160,7 +160,7 @@ public class AgentController {
                 UserCommission one = userCommissionService.getOne(new LambdaQueryWrapper<UserCommission>()
                         .eq(UserCommission::getBetId, gameBet.getId())
                         .eq(UserCommission::getType, UserCommissionType.DIVIDEND)
-                        .eq(UserCommission::getUserId, req.getAgentId()));
+                        .eq(UserCommission::getUserId, req.getAgentUserId()));
                 if (one != null) {
                     gameBet.setDividendAmount(one.getProfit());
                 }
