@@ -153,7 +153,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                     String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                     AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                    answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt +"&type=" + GameBusiness.FC_BY.getKey());
+                    answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt +"&type=" + "FCBY");
                     answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                     execute(answerCallbackQuery);
                 }

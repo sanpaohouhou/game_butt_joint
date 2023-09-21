@@ -152,7 +152,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 commission(gameBet, 0L, UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, platformProfit, platformRate, "平台分红");
                 profit = profit.subtract(platformProfit);
             }
-            if (sonUid != null) {
+            if (sonUid != null && !sonUid.equals(gameBet.getUserId().toString())) {
                 User sonUser = userService.getById(sonUid);
                 if (sonUser.getHasAgent()) {
                     Agent sonAgent = agentService.queryByUserId(Long.valueOf(sonUid)); //60
@@ -235,7 +235,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 winDividend(gameBet, 0L, UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, platformProfit, platformRate, "平台分红");
                 profit = profit.subtract(platformProfit);
             }
-            if (sonUid != null) {
+            if (sonUid != null && !sonUid.equals(gameBet.getUserId().toString())) {
                 User sonUser = userService.getById(sonUid);
                 if (sonUser.getHasAgent()) {
                     Agent sonAgent = agentService.queryByUserId(Long.valueOf(sonUid)); //60

@@ -102,7 +102,7 @@ public class ApiGameController {
             list = objectMapper.readValue(new File(path),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, ApiGameListDTO.class));
         }
-        if (type.equals("FC_BY")) {
+        if (type.equals("FCBY")) {
             String path = "./src/fcByGame.json";
             ObjectMapper objectMapper = new ObjectMapper();
             list = objectMapper.readValue(new File(path),
@@ -139,7 +139,7 @@ public class ApiGameController {
         User user = userService.getById(decrypt);
 
         String url = null;
-        if (type.equals("FC") || type.equals("FC_BY")) {
+        if (type.equals("FC") || type.equals("FCBY")) {
             url = apiGameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).GameID(Integer.valueOf(gameId)).LoginGameHall(true).LanguageID(2).build());
         }
         if (type.equals("EG")) {

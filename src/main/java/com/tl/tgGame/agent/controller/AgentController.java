@@ -82,7 +82,7 @@ public class AgentController {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
         agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND, null, null, null));
-        agent.setCurrency(currencyService.get(agent.getUserId(), UserType.USER));
+        agent.setCurrency(currencyService.get(agent.getUserId(), UserType.AGENT));
         agent.setTeamNumber(userService.teamNumber(agent.getUserId()));
         agent.setInviteUrl(configService.get(ConfigConstants.BOT_GROUP_INVITE_LINK ) + "?start=" + agent.getGameAccount());
         agent.setAddress(walletAPI.getUserAddress(agent.getUserId()));

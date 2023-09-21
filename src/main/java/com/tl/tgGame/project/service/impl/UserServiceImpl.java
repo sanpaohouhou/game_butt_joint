@@ -242,8 +242,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Game game = gameService.queryByName(GameBusiness.of(gameBusiness));
         return GameBusinessStatisticsInfo.builder()
                 .gameBusiness(GameBusiness.of(gameBusiness))
-                .backWaterRate(game.getBackWaterRate() + "%")
-                .juniorCommissionRate(game.getTopCommissionRate() + "%")
+                .backWaterRate(game.getBackWaterRate().multiply(BigDecimal.valueOf(100)).setScale(2,RoundingMode.DOWN) + "%")
+                .juniorCommissionRate(game.getTopCommissionRate().multiply(BigDecimal.valueOf(100)).setScale(2,RoundingMode.DOWN) + "%")
                 .backWater(backWater.getAllBackWater().setScale(2,RoundingMode.DOWN))
                 .waitBackWater(backWater.getAllWaitBackWater().setScale(2,RoundingMode.DOWN))
                 .juniorCommission(allCommission).build();

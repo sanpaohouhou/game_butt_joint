@@ -113,6 +113,7 @@ public class AdminUserController {
                 .profit(statistics.getUserProfit())
                 .withdrawalUrl(user.getWithdrawalUrl())
                 .withdrawalAmount(withdrawalAmount)
+                .backWaterAmount(statistics.getBackWaterAmount())
                 .validAmount(statistics.getValidAmount()).build();
         return Response.success(build);
     }

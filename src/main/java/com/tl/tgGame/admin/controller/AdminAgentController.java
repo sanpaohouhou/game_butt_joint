@@ -10,6 +10,9 @@ import com.tl.tgGame.project.enums.BusinessEnum;
 import com.tl.tgGame.project.enums.UserCommissionType;
 import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.service.*;
+import com.tl.tgGame.system.ConfigConstants;
+import com.tl.tgGame.system.ConfigService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -52,6 +55,9 @@ public class AdminAgentController {
     @Autowired
     private GameBetService gameBetService;
 
+    @Autowired
+    private ConfigService configService;
+
     @PostMapping("addAgent")
     public Response addAgent(@RequestBody @Valid AddAgentDTO addAgentDTO) {
         return Response.success(agentService.addAgent(addAgentDTO.getAgentName(), addAgentDTO.getUserName(),
@@ -67,7 +73,27 @@ public class AdminAgentController {
 
     @GetMapping("queryByList")
     public Response queryByList(AdminAgentListReq req) {
-        return Response.pageResult(agentService.queryByList(req));
+        Page<Agent> page = agentService.page(new Page<>(req.getPage(), req.getSize()), new LambdaQueryWrapper<Agent>()
+                .eq(Agent::getLevel, req.getLevel())
+                .eq(Objects.nonNull(req.getPAgentId()),Agent::getInviteId,req.getPAgentId())
+                .eq(Objects.nonNull(req.getAgentId()), Agent::getId, req.getAgentId())
+                .like(!StringUtils.isEmpty(req.getAgentName()), Agent::getAgentName, req.getAgentName())
+                .orderByDesc(Agent::getCreateTime));
+        List<Agent> records = page.getRecords();
+        if (CollectionUtils.isEmpty(records)) {
+            return Response.pageResult(page);
+        }
+        List<Agent> list = new ArrayList<>();
+        String inviteLink = configService.get(ConfigConstants.BOT_GROUP_INVITE_LINK);
+        for (Agent agent : records) {
+            Currency currency = currencyService.get(agent.getUserId(), UserType.AGENT);
+            agent.setInviteUrl(inviteLink + "?start="+agent.getGameAccount());
+            agent.setCurrency(currency);
+            agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND,null,null,null));
+            list.add(agent);
+        }
+        page.setRecords(list);
+        return Response.pageResult(page);
     }
 
     @GetMapping("/{agentId}")

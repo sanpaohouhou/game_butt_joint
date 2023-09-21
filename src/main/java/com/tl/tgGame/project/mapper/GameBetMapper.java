@@ -35,7 +35,8 @@ public interface GameBetMapper extends BaseMapper<GameBet> {
     @Select("SELECT COUNT(DISTINCT `user_id`) FROM `game_bet` ${ew.customSqlSegment}")
     Integer todayBetUserCount(@Param(Constants.WRAPPER) Wrapper<GameBet> wrapper);
 
-    @Select("SELECT IFNULL(SUM(`profit`),'0') , IFNULL(SUM(`top_commission`),'0') FROM `game_bet` AS gb JOIN `user`" +
+    @Select("SELECT IFNULL(SUM(`profit`),'0') AS `allProfit`, IFNULL(SUM(`top_commission`),'0') AS `allTopCommission` " +
+            " FROM `game_bet` AS gb JOIN `user`" +
             " u ON gb.user_id = u.id ${ew.customSqlSegment}")
     UserExtendBetStatisticsDTO extendBetStatistics(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
 

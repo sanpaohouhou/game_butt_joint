@@ -361,7 +361,7 @@ class TgGameApplicationTests {
 	private GameBetService gameBetService;
 	@Test
 	public void testCommission(){
-		Long gameId = 1701416239266500610L;
+		Long gameId = 1704453532604534785L;
 		GameBet gameBet = gameBetService.getById(gameId);
 		gameBetService.loseCommission(gameBet);
 	}

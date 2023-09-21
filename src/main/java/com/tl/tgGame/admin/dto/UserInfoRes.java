@@ -31,4 +31,6 @@ public class UserInfoRes {
     private BigDecimal profit = BigDecimal.ZERO;
 
     private BigDecimal validAmount = BigDecimal.ZERO;
+
+    private BigDecimal backWaterAmount = BigDecimal.ZERO;
 }
