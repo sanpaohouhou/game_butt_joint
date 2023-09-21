@@ -73,7 +73,7 @@ public class AdminWithdrawalController {
 //        }
         Page<Withdrawal> page1 = withdrawalService.page(new Page<>(page, size),
                 new LambdaQueryWrapper<Withdrawal>()
-                        .eq(Objects.nonNull(agentId),Withdrawal::getUid,agentId)
+                        .eq(Objects.nonNull(agentId), Withdrawal::getUid, agentId)
                         .eq(Objects.nonNull(userId), Withdrawal::getUid, userId)
                         .eq(Objects.nonNull(status), Withdrawal::getStatus, status)
                         .eq(Objects.nonNull(id), Withdrawal::getId, id)
@@ -88,8 +88,15 @@ public class AdminWithdrawalController {
         }
         List<Withdrawal> list = new ArrayList<>();
         for (Withdrawal withdrawal : records) {
-            User user = userService.getById(withdrawal.getUid());
-            withdrawal.setGameAccount(user.getGameAccount());
+            User user = null;
+            if (withdrawal.getUserType().equals(UserType.USER)) {
+                user = userService.getById(withdrawal.getUid());
+            } else if (withdrawal.getUserType().equals(UserType.AGENT)) {
+                user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, withdrawal.getUid()));
+            }
+            if (user != null) {
+                withdrawal.setGameAccount(user.getGameAccount());
+            }
             list.add(withdrawal);
         }
         page1.setRecords(list);
