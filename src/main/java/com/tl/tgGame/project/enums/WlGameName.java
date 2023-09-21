@@ -24,6 +24,7 @@ public enum WlGameName {
     B_C_B_M(18,"奔驰宝马"),
     F_Q_Z_S(19,"飞禽⾛兽"),
     L_H_C_B(22,"连环夺宝"),
+    Q_H_B(23,"抢红包"),
     S_L_W_H(24,"森林舞会"),
     TWENTY_ONE(25,"21点"),
     Q_Z_S_G(26,"抢庄三公"),

@@ -19,5 +19,7 @@ public class AdminQueryBetReq extends PageQueryDTO {
 
     private Long agentUserId;
 
+    private Long agentId;
+
     private Long userId;
 }
