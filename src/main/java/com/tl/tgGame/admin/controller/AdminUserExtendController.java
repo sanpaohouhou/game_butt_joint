@@ -120,9 +120,10 @@ public class AdminUserExtendController {
             BigDecimal rechargeAmount = rechargeService.sumRecharge(user.getId(), UserType.USER, req.getStartTime(), req.getEndTime());
             BigDecimal withdrawalAmount = withdrawalService.allWithdrawalAmount(user.getId(), UserType.USER,
                     Arrays.asList(WithdrawStatus.withdraw_success, WithdrawStatus.withdrawing), req.getStartTime(), req.getEndTime());
+            GameBackWaterRes gameBackWaterRes = currencyGameProfitService.userBackWater(user.getId(), null);
             GameBetStatisticsListRes statistics = gameBetService.userBetStatistics(user.getId(), req.getStartTime(), req.getEndTime());
             UserExtendJuniorDTO build = UserExtendJuniorDTO.builder()
-                    .backWaterAmount(statistics.getBackWaterAmount())
+                    .backWaterAmount(gameBackWaterRes.getAllWaitBackWater())
                     .betAmount(statistics.getBetAmount())
                     .profit(statistics.getUserProfit())
                     .betNumber(statistics.getBetNumber())

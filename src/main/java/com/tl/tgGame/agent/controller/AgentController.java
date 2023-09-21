@@ -138,7 +138,7 @@ public class AgentController {
      * 代理商团队下注记录
      */
     @GetMapping("team/betList")
-    public Response agentTeamBetList(Long agentId, AdminQueryBetReq req) {
+    public Response agentTeamBetList(@Uid Long agentId, AdminQueryBetReq req) {
 
         List<User> users = userService.list(new LambdaQueryWrapper<User>()
                 .like(User::getInviteChain, req.getAgentUserId()).eq(Objects.nonNull(req.getUserId()),User::getId,req.getUserId()));

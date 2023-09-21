@@ -76,7 +76,8 @@ public class CurrencyGameProfitServiceImpl extends ServiceImpl<CurrencyGameProfi
 
     @Override
     public GameBackWaterRes userBackWater(Long userId, String gameBusiness) {
-        LambdaQueryWrapper<CurrencyGameProfit> wrapper = new LambdaQueryWrapper<CurrencyGameProfit>().eq(userId != null, CurrencyGameProfit::getUserId, userId)
+        LambdaQueryWrapper<CurrencyGameProfit> wrapper = new LambdaQueryWrapper<CurrencyGameProfit>()
+                .eq(userId != null, CurrencyGameProfit::getUserId, userId)
                 .eq(!StringUtils.isEmpty(gameBusiness), CurrencyGameProfit::getGameBusiness, gameBusiness);
         GameBackWaterRes gameBackWaterRes = getBaseMapper().userBackWater(wrapper);
         if(gameBackWaterRes == null){

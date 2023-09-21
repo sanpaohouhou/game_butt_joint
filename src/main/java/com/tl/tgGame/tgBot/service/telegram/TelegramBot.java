@@ -181,7 +181,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-//                userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+                userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
                 String wlEnterGame = apiGameService.wlEnterGame(user.getId(), null, request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
