@@ -8,6 +8,7 @@ import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.User;
+import com.tl.tgGame.project.enums.GameBusiness;
 import com.tl.tgGame.project.service.GameApiService;
 import com.tl.tgGame.project.service.ApiGameService;
 import com.tl.tgGame.project.service.UserService;
@@ -137,12 +138,13 @@ public class ApiGameController {
         String token = authTokenService.token();
         String decrypt = AESUtil.decrypt(token, securityKey);
         User user = userService.getById(decrypt);
-
         String url = null;
         if (type.equals("FC") || type.equals("FCBY")) {
+            userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
             url = apiGameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).GameID(Integer.valueOf(gameId)).LoginGameHall(true).LanguageID(2).build());
         }
         if (type.equals("EG")) {
+            userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
             String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
             url = apiGameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
         }
