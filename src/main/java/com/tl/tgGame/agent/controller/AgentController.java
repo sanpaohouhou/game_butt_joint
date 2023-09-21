@@ -85,7 +85,7 @@ public class AgentController {
         agent.setCurrency(currencyService.get(agent.getUserId(), UserType.AGENT));
         agent.setTeamNumber(userService.teamNumber(agent.getUserId()));
         agent.setInviteUrl(configService.get(ConfigConstants.BOT_GROUP_INVITE_LINK ) + "?start=" + agent.getGameAccount());
-        agent.setAddress(walletAPI.getUserAddress(agent.getUserId()));
+        agent.setAddress(walletAPI.getUserAddress(agent.getId()));
         return Response.success(agent);
     }
 
@@ -126,10 +126,10 @@ public class AgentController {
      */
     @PostMapping("rechargeSuccess")
     public Response rechargeSuccess(@Uid Long agentId) {
-        Agent agent = agentService.getById(agentId);
+//        Agent agent = agentService.getById(agentId);
         RechargeCheckDTO rechargeCheckDTO = new RechargeCheckDTO();
         rechargeCheckDTO.setChainType("TRON");
-        rechargeCheckDTO.setUid(agent.getUserId());
+        rechargeCheckDTO.setUid(agentId);
         SingleResponse<Boolean> rechargeCheck = walletAPI.rechargeCheck(rechargeCheckDTO);
         return Response.success(rechargeCheck.getData());
     }
@@ -230,8 +230,8 @@ public class AgentController {
     }
 
     @PostMapping("/withdraw")
-    public Response withdraw(@Uid Long uid, @RequestBody @Valid UserUsdtWithdrawDTO param) {
-        return Response.success(withdrawalService.withdraw(uid, UserType.AGENT, param.getNetwork(), param.getTo(), param.getAmount()));
+    public Response withdraw(@Uid Long agentId, @RequestBody @Valid UserUsdtWithdrawDTO param) {
+        return Response.success(withdrawalService.withdraw(agentId, UserType.AGENT, param.getNetwork(), param.getTo(), param.getAmount()));
     }
 
 

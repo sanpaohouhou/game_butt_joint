@@ -12,11 +12,9 @@ import com.tl.tgGame.project.entity.GameBet;
 import com.tl.tgGame.project.entity.Recharge;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.enums.GameBusiness;
+import com.tl.tgGame.project.enums.UserCommissionType;
 import com.tl.tgGame.project.mapper.ConversionRateMapper;
-import com.tl.tgGame.project.service.GameBetService;
-import com.tl.tgGame.project.service.RechargeService;
-import com.tl.tgGame.project.service.UserService;
-import com.tl.tgGame.project.service.WithdrawalService;
+import com.tl.tgGame.project.service.*;
 import com.tl.tgGame.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -52,6 +50,9 @@ public class AdminHomeController {
 
     @Autowired
     private ConversionRateMapper conversionRateMapper;
+
+    @Autowired
+    private UserCommissionService userCommissionService;
     /**
      * 用户统计
      * @return
@@ -84,6 +85,9 @@ public class AdminHomeController {
         BigDecimal todayUserBetAmount = gameBetService.sumBetAmount(null, todayBegin, now, null);
         //当月用户下注金额
         BigDecimal userBetAmount = gameBetService.sumBetAmount(null, monthBegin, now, null);
+
+        BigDecimal allProfit = userCommissionService.sumAmount(null, UserCommissionType.DIVIDEND, null, null, null);
+
         AdminHomeUserStatistics build = AdminHomeUserStatistics.builder()
                 .todayRegisterUserRechargeCount(todayRegisterUserRechargeCount)
                 .allUserCount(allUserCount)
@@ -94,6 +98,7 @@ public class AdminHomeController {
                 .todayRechargeAmount(todayRechargeAmount)
                 .todayWithdrawalAmount(todayWithdrawalAmount)
                 .todayUserCount(todayUserList.size())
+                .partnerAllCommissionAmount(allProfit)
                 .build();
         return Response.success(build);
     }

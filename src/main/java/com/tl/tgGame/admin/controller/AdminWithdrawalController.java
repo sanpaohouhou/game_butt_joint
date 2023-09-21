@@ -64,15 +64,17 @@ public class AdminWithdrawalController {
             User user = userService.queryByMemberAccount(gameAccount);
             userId = user.getId();
         }
-        if (agentId != null) {
-            User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, agentId));
-            if (Objects.isNull(user)) {
-                ErrorEnum.OBJECT_NOT_FOUND.throwException();
-            }
-            userId = user.getId();
-        }
+//        if (agentId != null) {
+//            User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, agentId));
+//            if (Objects.isNull(user)) {
+//                ErrorEnum.OBJECT_NOT_FOUND.throwException();
+//            }
+//            userId = user.getId();
+//        }
         Page<Withdrawal> page1 = withdrawalService.page(new Page<>(page, size),
-                new LambdaQueryWrapper<Withdrawal>().eq(Objects.nonNull(userId), Withdrawal::getUid, userId)
+                new LambdaQueryWrapper<Withdrawal>()
+                        .eq(Objects.nonNull(agentId),Withdrawal::getUid,agentId)
+                        .eq(Objects.nonNull(userId), Withdrawal::getUid, userId)
                         .eq(Objects.nonNull(status), Withdrawal::getStatus, status)
                         .eq(Objects.nonNull(id), Withdrawal::getId, id)
                         .eq(Objects.nonNull(userType), Withdrawal::getUserType, userType)
@@ -93,19 +95,6 @@ public class AdminWithdrawalController {
         page1.setRecords(list);
         return Response.pageResult(page1);
     }
-
-    //弃用
-//    @GetMapping("/agent/withdrawal/list")
-//    public Response agentWithdrawalList(@RequestParam(defaultValue = "1") Integer page,
-//                                        @RequestParam(defaultValue = "20") Integer size,
-//                                        @RequestParam(required = false) Long userId,
-//                                        @RequestParam(required = false) Long agentId,
-//                                        @RequestParam(required = false) Long id,
-//                                        @RequestParam(required = false) WithdrawStatus status,
-//                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
-//                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
-//        return Response.pageResult(withdrawalService.agentWithdrawalList(page, size, userId, agentId, id, status, startTime, endTime));
-//    }
 
     @PostMapping("/withdrawal/audit")
     public Response withdrawAudit(@RequestBody @Valid AuditDTO param) {

@@ -177,7 +177,7 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
             if(agent.getLevel().equals(2)){
                 Agent agent1 = getById(agent.getInviteId());
                 if(agent1 != null){
-                    agent.setDividendRate(agent1.getDividendRate().multiply(agent.getDividendRate()));
+                    agent.setDividendRate(agent1.getDividendRate());
                 }
             }
             list.add(agent);

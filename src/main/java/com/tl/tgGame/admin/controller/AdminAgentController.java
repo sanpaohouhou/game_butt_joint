@@ -90,6 +90,12 @@ public class AdminAgentController {
             agent.setInviteUrl(inviteLink + "?start="+agent.getGameAccount());
             agent.setCurrency(currency);
             agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND,null,null,null));
+            if(agent.getLevel().equals(2)){
+                Agent agent1 = agentService.getById(agent.getInviteId());
+                if(agent1 != null){
+                    agent.setDividendRate(agent1.getDividendRate().multiply(agent.getDividendRate()));
+                }
+            }
             list.add(agent);
         }
         page.setRecords(list);
@@ -102,7 +108,7 @@ public class AdminAgentController {
         if (agent == null) {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
-        agent.setCurrency(currencyService.get(agent.getUserId(), UserType.AGENT));
+        agent.setCurrency(currencyService.get(agent.getId(), UserType.AGENT));
         agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND, null, null, null));
         return Response.success(agent);
     }
@@ -119,9 +125,9 @@ public class AdminAgentController {
         if (agent == null) {
             ErrorEnum.USER_NOT_JOIN.throwException("代理商不存在");
         }
-        Currency currency = currencyService.get(agent.getUserId(), UserType.AGENT);
+        Currency currency = currencyService.get(agent.getId(), UserType.AGENT);
         Recharge recharge = rechargeService.addRecharge(
-                agent.getUserId(),
+                agent.getId(),
                 dto.getAmount(),
                 UserType.AGENT,
                 null,
@@ -130,7 +136,7 @@ public class AdminAgentController {
                 dto.getNetwork(),
                 dto.getScreen(),
                 dto.getNote(),currency);
-        currencyService.increase(agent.getUserId(), UserType.AGENT, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "代理商保证金充值");
+        currencyService.increase(agent.getId(), UserType.AGENT, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "代理商保证金充值");
         return Response.success(recharge);
     }
 
@@ -147,7 +153,7 @@ public class AdminAgentController {
             ErrorEnum.USER_NOT_JOIN.throwException("代理商不存在");
         }
         Withdrawal withdrawal = withdrawalService.addWithdrawal(
-                dto.getUserId(),
+                agent.getId(),
                 dto.getAmount(),
                 UserType.AGENT,
                 null,
@@ -157,7 +163,7 @@ public class AdminAgentController {
                 dto.getScreen(),
                 dto.getNote()
         );
-        currencyService.withdraw(agent.getUserId(), UserType.AGENT, BusinessEnum.WITHDRAW, dto.getAmount(), withdrawal.getId(), "代理商保证金提现");
+        currencyService.withdraw(agent.getId(), UserType.AGENT, BusinessEnum.WITHDRAW, dto.getAmount(), withdrawal.getId(), "代理商保证金提现");
         return Response.success(withdrawal);
     }
 

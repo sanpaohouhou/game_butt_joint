@@ -159,15 +159,16 @@ public class AdminUserController {
             userId = user.getId();
         }
 
-        if (req.getAgentId() != null) {
-            User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, req.getAgentId()));
-            if (Objects.isNull(user)) {
-                ErrorEnum.OBJECT_NOT_FOUND.throwException();
-            }
-            userId = user.getId();
-        }
+//        if (req.getAgentId() != null) {
+//            User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, req.getAgentId()));
+//            if (Objects.isNull(user)) {
+//                ErrorEnum.OBJECT_NOT_FOUND.throwException();
+//            }
+//            userId = user.getId();
+//        }
         Page<Recharge> page = rechargeService.page(new Page<>(req.getPage(), req.getSize()),
                 new LambdaQueryWrapper<Recharge>()
+                        .eq(Objects.nonNull(req.getAgentId()),Recharge::getAgentId,req.getAgentId())
                         .eq(Objects.nonNull(userId), Recharge::getUserId, userId)
                         .eq(Objects.nonNull(req.getUserType()),Recharge::getUserType,req.getUserType())
                         .ge(Objects.nonNull(req.getStartTime()), Recharge::getCreateTime, req.getStartTime())
@@ -277,12 +278,13 @@ public class AdminUserController {
                 userId = user.getId();
             }
         }
-        if(agentId != null){
-            User one = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, agentId));
-            userId = one.getId();
-        }
+//        if(agentId != null){
+//            User one = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, agentId));
+//            userId = one.getId();
+//        }
         Page<CurrencyLog> page1 = currencyLogService.page(new Page<>(page, size),
                 new LambdaQueryWrapper<CurrencyLog>()
+                        .eq(Objects.nonNull(agentId),CurrencyLog::getUid,agentId)
                         .eq(Objects.nonNull(userId), CurrencyLog::getUid, userId)
                         .ne(CurrencyLog::getUid, 0)
                         .notIn(CurrencyLog::getBusiness, Arrays.asList(BusinessEnum.FC_RECHARGE, BusinessEnum.FC_WITHDRAWAL,

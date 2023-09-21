@@ -28,7 +28,7 @@ public class UserCommissionServiceImpl extends ServiceImpl<UserCommissionMapper,
     @Override
     public BigDecimal sumAmount(Long userId, UserCommissionType type, String gameBusiness, LocalDateTime startTime, LocalDateTime endTime) {
         LambdaQueryWrapper<UserCommission> wrapper = new LambdaQueryWrapper<UserCommission>()
-                .eq(UserCommission::getUserId, userId)
+                .eq(Objects.nonNull(userId),UserCommission::getUserId, userId)
                 .eq(Objects.nonNull(type) , UserCommission::getType, type)
                 .eq(Objects.nonNull(gameBusiness),UserCommission::getGameBusiness,gameBusiness)
                 .ge(Objects.nonNull(startTime),UserCommission::getCreateTime,startTime)
