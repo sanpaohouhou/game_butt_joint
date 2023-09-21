@@ -98,7 +98,7 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         if (pAgentId != null) {
             User one1 = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, pAgentId));
             pInviteChain = one1.getInviteChain() + ":" + pInviteChain;
-            pInviteUser = one1.getInviteUser();
+            pInviteUser = one1.getId();
             inviteChain = pAgentId + ":" + inviteChain;
             level = 2;
         }

@@ -141,9 +141,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //总佣金
         BigDecimal allCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
 
-//        //总返水
-//        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, null, null, null).setScale(2, RoundingMode.DOWN);
-
         //待返水
         GameBackWaterRes backWater = currencyGameProfitService.userBackWater(user.getId(),null);
 
@@ -233,12 +230,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //总佣金
         BigDecimal allCommission = userCommissionService.sumAmount(user.getId(), UserCommissionType.COMMISSION, gameBusiness, null, null);
-        //总返水
-//        BigDecimal allBackWater = userCommissionService.sumAmount(user.getId(), UserCommissionType.BACK_WATER, gameBusiness, null, null);
         //待返水
         GameBackWaterRes backWater = currencyGameProfitService.userBackWater(user.getId(), gameBusiness);
-//        BigDecimal waitBackWater = gameBetService.sumWinLose(user.getId(), null,null, false,gameBusiness).setScale(2, RoundingMode.DOWN);
-//        BigDecimal rate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
         Game game = gameService.queryByName(GameBusiness.of(gameBusiness));
         return GameBusinessStatisticsInfo.builder()
                 .gameBusiness(GameBusiness.of(gameBusiness))

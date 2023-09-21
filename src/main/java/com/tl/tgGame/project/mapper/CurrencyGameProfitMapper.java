@@ -32,7 +32,7 @@ public interface CurrencyGameProfitMapper extends BaseMapper<CurrencyGameProfit>
             " cgp.user_id = u.id  ${ew.customSqlSegment}")
     GameBackWaterRes juniorGameBackWaterStatistics(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
 
-    @Select("SELECT `game_business` AS gameBusiness , IFNULL(SUM(`balance`),'0') AS allWaitBackWater ," +
+    @Select("SELECT  IFNULL(SUM(`balance`),'0') AS allWaitBackWater ," +
             " IFNULL(SUM(`settled`),'0') AS allBackWater " +
             " FROM `currency_game_profit` ${ew.customSqlSegment}")
     GameBackWaterRes userBackWater(@Param(Constants.WRAPPER) Wrapper<?> wrapper);
