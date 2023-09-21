@@ -75,7 +75,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
     @Override
     public BigDecimal sumBetAmount(Long userId, LocalDateTime startTime, LocalDateTime endTime, Boolean hasSettled) {
         LambdaQueryWrapper<GameBet> wrapper = new LambdaQueryWrapper<GameBet>()
-                .eq(GameBet::getUserId, userId)
+                .eq(Objects.nonNull(userId),GameBet::getUserId, userId)
                 .eq(Objects.nonNull(hasSettled), GameBet::getHasSettled, hasSettled)
                 .ge(Objects.nonNull(startTime), GameBet::getRecordTime, startTime)
                 .le(Objects.nonNull(endTime), GameBet::getRecordTime, endTime);

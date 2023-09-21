@@ -89,7 +89,7 @@ public class AdminAgentController {
             Currency currency = currencyService.getOrCreate(agent.getId(), UserType.AGENT);
             agent.setInviteUrl(inviteLink + "?start="+agent.getGameAccount());
             agent.setCurrency(currency);
-            agent.setDividendProfit(userCommissionService.sumJuniorAmount(agent.getUserId(),null, UserCommissionType.DIVIDEND,null,null,null));
+            agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND,null,null,null));
             if(agent.getLevel().equals(2)){
                 Agent agent1 = agentService.getById(agent.getInviteId());
                 if(agent1 != null){

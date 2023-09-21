@@ -275,20 +275,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //当日总邀请
         List<User> todayUsers = queryByInviteUser(user.getId(), monthBegin, endTime);
         //总佣金
-        BigDecimal todayCommission = userCommissionService.sumJuniorAmount(user.getId(), null,UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
+        BigDecimal todayCommission = userCommissionService.sumAmount(user.getId(),UserCommissionType.COMMISSION, null, null, null).setScale(2, RoundingMode.DOWN);
         //总返水
-        BigDecimal todayBackWater = userCommissionService.sumJuniorAmount(user.getId(), null,UserCommissionType.BACK_WATER, null, todayBegin, endTime).setScale(2, RoundingMode.DOWN);
-        //当月总盈利
-//        BigDecimal monthAllProfit = userCommissionService.sumAmount(user.getId(), null, null, monthBegin, endTime).setScale(2, RoundingMode.DOWN);
+        GameBackWaterRes gameBackWaterRes = currencyGameProfitService.juniorGameBackWaterStatistics(user.getId(), null);
 
         return BotExtendStatisticsInfo.builder()
                 .monthAllRecharge(monthAllRecharge)
                 .monthJoinGroup(monthUsers.size())
                 .monthALlWithdrawal(monthWithdrawal)
                 .peopleNumber(users.size())
-                .todayAllBackWater(todayBackWater)
+                .todayAllBackWater(gameBackWaterRes.getAllBackWater())
                 .settledCommission(todayCommission)
-                .todayAllProfit(todayCommission.add(todayBackWater))
+                .todayAllProfit(todayCommission.add(gameBackWaterRes.getAllBackWater()))
                 .todayAllRecharge(todayAllRecharge)
                 .todayJoinGroup(todayUsers.size())
                 .todayAllWithdrawal(todayWithdrawal)
