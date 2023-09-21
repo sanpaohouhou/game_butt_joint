@@ -180,12 +180,6 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
             agent.setInviteUrl(inviteLink + "?start="+agent.getGameAccount());
             agent.setCurrency(currency);
             agent.setDividendProfit(userCommissionService.sumAmount(agent.getUserId(), UserCommissionType.DIVIDEND,null,null,null));
-            if(agent.getLevel().equals(2)){
-                Agent agent1 = getById(agent.getInviteId());
-                if(agent1 != null){
-                    agent.setDividendRate(agent1.getDividendRate());
-                }
-            }
             list.add(agent);
         }
         page.setRecords(list);
