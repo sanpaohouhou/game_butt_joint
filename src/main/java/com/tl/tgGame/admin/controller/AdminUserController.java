@@ -180,8 +180,15 @@ public class AdminUserController {
         }
         List<Recharge> recharges = new ArrayList<>();
         for (Recharge recharge : records) {
-            User user = userService.getById(recharge.getUserId());
-            recharge.setGameAccount(user.getGameAccount());
+            User user = null;
+            if(recharge.getUserType().equals(UserType.USER)){
+                user = userService.getById(recharge.getUserId());
+            }else if(recharge.getUserType().equals(UserType.AGENT)){
+                user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, recharge.getUserId()));
+            }
+            if(user != null){
+                recharge.setGameAccount(user.getGameAccount());
+            }
             recharge.setAgentId(user.getAgentId());
             recharges.add(recharge);
         }
