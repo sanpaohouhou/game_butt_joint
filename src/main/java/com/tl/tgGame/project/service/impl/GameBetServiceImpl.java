@@ -149,7 +149,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 remainRate = agent.getDividendRate();
                 BigDecimal platformRate = BigDecimal.ONE.subtract(remainRate);
                 BigDecimal platformProfit = remainProfit.multiply(platformRate).setScale(2, RoundingMode.DOWN);
-                commission(gameBet, 0L, UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, platformProfit, platformRate, "平台分红");
+                commission(gameBet, 0L,UserType.AGENT, UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, platformProfit, platformRate, "平台分红");
                 profit = profit.subtract(platformProfit);
             }
             if (sonUid != null && !sonUid.equals(gameBet.getUserId().toString())) {
@@ -168,7 +168,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 rate = remainRate;
                 dividendAmount = profit;
             }
-            commission(gameBet, agent.getId(), UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, dividendAmount, rate, "代理商" + agent.getLevel() + "级分红:" + gameBet.getRecordId());
+            commission(gameBet, agent.getId(),UserType.AGENT, UserCommissionType.DIVIDEND, BusinessEnum.DIVIDEND, dividendAmount, rate, "代理商" + agent.getLevel() + "级分红:" + gameBet.getRecordId());
         }
         boolean update = update(new LambdaUpdateWrapper<GameBet>().set(GameBet::getHasSettled, true)
                 .set(GameBet::getUpdateTime, LocalDateTime.now()).set(GameBet::getBackWaterAmount, backWater.negate())
@@ -202,13 +202,10 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         }
         BigDecimal topCommission = gameBet.getProfit().multiply(commissionRate).setScale(2, RoundingMode.DOWN);
         if (topCommission.compareTo(BigDecimal.ZERO) > 0) {
-            commission(gameBet, pUser.getId(), UserCommissionType.COMMISSION, BusinessEnum.COMMISSION, topCommission, commissionRate, "上级返佣:" + gameBet.getRecordId());
+            commission(gameBet, pUser.getId(),UserType.USER, UserCommissionType.COMMISSION, BusinessEnum.COMMISSION, topCommission, commissionRate, "上级返佣:" + gameBet.getRecordId());
             remainProfit = gameBet.getProfit().subtract(topCommission);
             profit = remainProfit;
         }
-//        if(!pUser.getHasAgent()){
-//            return;
-//        }
         String[] inviteChain = user.getInviteChain().split(":");
         BigDecimal remainRate = BigDecimal.ZERO;
         for (int i = 0; i < inviteChain.length; i++) {
@@ -311,10 +308,10 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
                 amount, gameBet.getRecordId(), des);
     }
 
-    private void commission(GameBet gameBet, Long userId, UserCommissionType type, BusinessEnum businessEnum, BigDecimal amount, BigDecimal rate, String des) {
+    private void commission(GameBet gameBet, Long userId,UserType userType, UserCommissionType type, BusinessEnum businessEnum, BigDecimal amount, BigDecimal rate, String des) {
         userCommissionService.insertUserCommission(userId, gameBet.getUserId(), gameBet.getGameId(), gameBet.getGameName(),
                 type, gameBet.getGameBusiness(), amount, rate, gameBet.getProfit(), gameBet.getId());
-        currencyService.increase(userId, UserType.AGENT, businessEnum,
+        currencyService.increase(userId, userType, businessEnum,
                 amount, gameBet.getRecordId(), des);
     }
 

@@ -140,8 +140,8 @@ public class ApiGameController {
         User user = userService.getById(decrypt);
         String url = null;
         if (type.equals("FC") || type.equals("FCBY")) {
-            userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
             url = apiGameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount()).GameID(Integer.valueOf(gameId)).LoginGameHall(true).LanguageID(2).build());
+            userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
         }
         if (type.equals("EG")) {
             userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
