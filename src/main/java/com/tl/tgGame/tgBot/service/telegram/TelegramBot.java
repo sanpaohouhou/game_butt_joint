@@ -301,7 +301,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     inlineKeyboardButtons3.add(inlineKeyboardButton3);
                     InlineKeyboardMarkup inlineKeyboardMarkup3 = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons3).build();
 
-                    if (message2.isCommand() && message2.getText().equals("/info")) {
+                    if (message2.getText().equals("/info")) {
                         SendMessage build1 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                 .text(JSONUtil.toJsonStr(message2))
                                 .replyMarkup(build)
