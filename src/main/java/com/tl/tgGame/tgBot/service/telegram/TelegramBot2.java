@@ -196,6 +196,10 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 if (withdrawalAmount.compareTo(currency.getRemain()) > 0) {
                     return;
                 }
+                execute(DeleteMessage.builder()
+                        .chatId(callbackQuery.getMessage().getChatId())
+                        .messageId(callbackQuery.getMessage().getMessageId())
+                        .build());
                 withdrawalService.withdraw(user.getId(), UserType.USER, Network.TRC20, user.getWithdrawalUrl(), withdrawalAmount);
                 SendMessage message = SendMessage.builder().chatId(callbackQuery.getMessage().getChatId().toString())
                         .text("提现待审核,请稍等~~~").build();

@@ -1,5 +1,6 @@
 package com.tl.tgGame.tgBot.service.telegram;
 
+import cn.hutool.json.JSONUtil;
 import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.project.dto.ApiEgCreateUserReq;
 import com.tl.tgGame.project.dto.ApiLoginReq;
@@ -299,6 +300,15 @@ public class TelegramBot extends TelegramLongPollingBot {
                     List<InlineKeyboardButton> inlineKeyboardButtons3 = new ArrayList<>();
                     inlineKeyboardButtons3.add(inlineKeyboardButton3);
                     InlineKeyboardMarkup inlineKeyboardMarkup3 = InlineKeyboardMarkup.builder().keyboardRow(inlineKeyboardButtons3).build();
+
+                    if (message2.isCommand() && message2.getText().equals("/info")) {
+                        SendMessage build1 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+                                .text(JSONUtil.toJsonStr(message2))
+                                .replyMarkup(build)
+                                .build();
+                        execute(build1);
+                        return;
+                    }
 
                     switch (message2.getText()) {
                         case "\uD83D\uDC9EFC电子":
