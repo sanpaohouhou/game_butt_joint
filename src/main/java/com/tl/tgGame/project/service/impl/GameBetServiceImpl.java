@@ -113,12 +113,12 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         }
         //输钱返水
         Game game = gameService.queryByName(GameBusiness.of(gameBet.getGameBusiness()));
-        BigDecimal backWaterRate = BigDecimal.ZERO;
+        BigDecimal backWater = BigDecimal.ZERO;
         if (game != null) {
-            backWaterRate = game.getBackWaterRate();
+            BigDecimal backWaterRate = game.getBackWaterRate();
+            backWater = gameBet.getProfit().multiply(backWaterRate).setScale(2, RoundingMode.DOWN);
+            currencyGameProfitService.increase(gameBet.getUserId(), gameBet.getGameBusiness(), backWater.negate());
         }
-        BigDecimal backWater = gameBet.getProfit().multiply(backWaterRate).setScale(2, RoundingMode.DOWN);
-        currencyGameProfitService.increase(gameBet.getUserId(), gameBet.getGameBusiness(), backWater.negate());
         BigDecimal remainProfit = gameBet.getProfit().subtract(backWater).negate();
         BigDecimal profit = remainProfit;
         if (user.getInviteUser() == null) {
