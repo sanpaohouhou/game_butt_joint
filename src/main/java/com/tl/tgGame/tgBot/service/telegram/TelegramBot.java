@@ -304,7 +304,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                     if (message2.getText().equals("/info")) {
                         SendMessage build1 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                 .text(JSONUtil.toJsonStr(message2))
-                                .replyMarkup(build)
                                 .build();
                         execute(build1);
                         return;
