@@ -80,7 +80,7 @@ public interface WithdrawalService extends IService<Withdrawal> {
     /**
      * 下级提现人数
      */
-    Integer countJuniorWithdrawalNumber(Long inviteUserId,Long userId,List<WithdrawStatus> statuses,LocalDateTime startTime,LocalDateTime endTime);
+    Long countJuniorWithdrawalNumber(Long inviteUserId,Long userId,List<WithdrawStatus> statuses,LocalDateTime startTime,LocalDateTime endTime);
 
     /**
      * 下级提现金额

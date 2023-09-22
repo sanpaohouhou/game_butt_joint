@@ -46,7 +46,7 @@ public class UserExtendListDTO extends User {
      */
     private Integer rechargeNumber;
     /**
-     *提现金额
+     *提现人数
      */
     private Integer withdrawalNumber;
 

@@ -303,7 +303,7 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
     }
 
     @Override
-    public Integer countJuniorWithdrawalNumber(Long inviteUserId, Long userId, List<WithdrawStatus> statuses,
+    public Long countJuniorWithdrawalNumber(Long inviteUserId, Long userId, List<WithdrawStatus> statuses,
                                                LocalDateTime startTime, LocalDateTime endTime) {
         QueryWrapper<Object> wrapper = new QueryWrapper<>().eq(Objects.nonNull(inviteUserId), "u.invite_user", inviteUserId)
                 .in("wi.status", statuses)

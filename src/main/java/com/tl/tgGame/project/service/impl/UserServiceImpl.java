@@ -297,7 +297,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Boolean updateByHasGroup(Long tgId, String tgGroup, Boolean hasGroup) {
         return update(new LambdaUpdateWrapper<User>().set(User::getHasGroup, hasGroup).set(User::getTgGroup,tgGroup)
-                .eq(User::getTgId, tgId).eq(User::getHasGroup, !hasGroup));
+                .eq(User::getTgId, tgId));
     }
 
 
