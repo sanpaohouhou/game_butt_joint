@@ -92,7 +92,7 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         }
         if(pAgentId == null && user.getInviteUser() != null){
             User user1 = userService.getById(user.getInviteUser());
-            if(Objects.nonNull(user1) && user1.getHasAgent()){
+            if(Objects.nonNull(user1)){
                 ErrorEnum.TOP_EXIST_AGENT_NOT_APPLY.throwException();
             }
         }
