@@ -104,9 +104,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     private ApiGameService apiGameService;
 
     @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
     private ConfigService configService;
 
     @Autowired
@@ -261,7 +258,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                             userService.insertUser(users.getFirstName(), users.getLastName(), users.getUserName(),
                                     users.getIsBot(), users.getId(), chat.getId().toString(), null, null);
                         } else {
-                            userService.updateByHasGroup(users.getId(), chat.getId().toString(), true);
+                            if(!user.getHasGroup()){
+                                userService.updateByHasGroup(users.getId(), chat.getId().toString(), true);
+                            }
                         }
                     }
                 } else {
@@ -271,7 +270,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                         userService.insertUser(from.getFirstName(), from.getLastName(), from.getUserName(),
                                 from.getIsBot(), from.getId(), chat.getId().toString(), null, null);
                     } else {
-                        userService.updateByHasGroup(from.getId(), chat.getId().toString(), true);
+                        if(!user.getHasGroup()){
+                            userService.updateByHasGroup(from.getId(), chat.getId().toString(), true);
+                        }
                     }
                 }
                 if (message2.getLeftChatMember() != null) {

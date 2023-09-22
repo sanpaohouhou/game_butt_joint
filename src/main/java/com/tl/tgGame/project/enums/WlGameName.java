@@ -40,6 +40,7 @@ public enum WlGameName {
     Q_Z_Z_J_H(38,"抢庄炸⾦花"),
     L_Z_NIU_NIU(41,"癞⼦⽜⽜"),
     B_R_T_T_Z(44,"百⼈推筒⼦"),
+    J_J_P_M(45,"街机跑⻢"),
     E_R_NIU_NIU(46,"⼆⼈⽜⽜"),
     KSIZ_Q_Z_NIU_NIU(48,"看四张抢庄⽜⽜"),
     FK_Q_Z_NIU_NIU(49,"疯狂抢庄⽜⽜"),

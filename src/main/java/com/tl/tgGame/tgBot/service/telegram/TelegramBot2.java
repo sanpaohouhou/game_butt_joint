@@ -237,9 +237,9 @@ public class TelegramBot2 extends TelegramLongPollingBot {
 
 
     public void sendMsg(Update update) {
-        if (!update.getMessage().getFrom().getId().equals(update.getMessage().getChat().getId())){
-            return;
-        }
+//        if (!update.getMessage().getFrom().getId().equals(update.getMessage().getChat().getId())){
+//            return;
+//        }
         List<KeyboardRow> list = new ArrayList<>();
         KeyboardRow keyboardRow = new KeyboardRow();
         KeyboardRow keyboardRow1 = new KeyboardRow();
