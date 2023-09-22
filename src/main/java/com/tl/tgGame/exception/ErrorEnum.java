@@ -68,10 +68,13 @@ public enum ErrorEnum {
         throw new APIException(this.code, "error." + this);
     }
 
-    public void throwException() {
-        throw new APIException(this.code, "error." + this);
-    }
+//    public void throwException() {
+//        throw new APIException(this.code, "error." + this);
+//    }
 
+    public void throwException() {
+        throw new APIException(this.code, this.message);
+    }
     public void throwException(String message) {
         throw new APIException(this.code, message);
     }
