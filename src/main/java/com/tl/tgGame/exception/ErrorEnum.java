@@ -29,6 +29,8 @@ public enum ErrorEnum {
     GAME_RECHARGE_FAIL("5018","fc充值失败"),
     GAME_GET_RECORD_LIST_FAIL("5019","fc获取记录失败"),
 
+    TOP_EXIST_AGENT_NOT_APPLY("5020","已有上级代理，不可成为代理"),
+
 
     NOT_OPEN("6000", "配置未设置"),
     NETWORK_ERROR("6001", "网络错误"),

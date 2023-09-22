@@ -173,10 +173,12 @@ public class AdminAgentController {
     @GetMapping("betRecord")
     public Response betRecord(AdminQueryBetReq req) {
         List<Long> userIds = new ArrayList<>();
-        if (req.getAgentUserId() != null) {
+        if (req.getAgentUserId() != null && req.getUserId() == null) {
             List<User> list = userService.list(new LambdaQueryWrapper<User>().like(User::getInviteChain, req.getAgentUserId()));
             userIds = list.stream().filter(i -> !Objects.equals(i.getInviteChain(), String.valueOf(req.getAgentUserId())))
                     .map(User::getId).collect(Collectors.toList());
+        }else {
+            userIds.add(req.getUserId());
         }
         Page<GameBet> page = gameBetService.page(new Page<>(req.getPage(), req.getSize()),
                 new LambdaQueryWrapper<GameBet>().in(!CollectionUtils.isEmpty(userIds), GameBet::getUserId, userIds)

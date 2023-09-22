@@ -112,7 +112,11 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
         //输钱返水
-        BigDecimal backWaterRate = configService.getDecimal(ConfigConstants.GAME_BACK_WATER_RATE);
+        Game game = gameService.queryByName(GameBusiness.of(gameBet.getGameBusiness()));
+        BigDecimal backWaterRate = BigDecimal.ZERO;
+        if (game != null) {
+            backWaterRate = game.getBackWaterRate();
+        }
         BigDecimal backWater = gameBet.getProfit().multiply(backWaterRate).setScale(2, RoundingMode.DOWN);
         currencyGameProfitService.increase(gameBet.getUserId(), gameBet.getGameBusiness(), backWater.negate());
         BigDecimal remainProfit = gameBet.getProfit().subtract(backWater).negate();
@@ -122,10 +126,6 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
             updateById(gameBet);
             return;
         }
-//        User pUser = userService.getById(user.getInviteUser());
-//        if(!pUser.getHasAgent()){
-//            return;
-//        }
         String[] inviteChain = user.getInviteChain().split(":");
         BigDecimal remainRate = BigDecimal.ZERO;
         for (int i = 0; i < inviteChain.length; i++) {

@@ -93,7 +93,7 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         if(pAgentId == null && user.getInviteUser() != null){
             User user1 = userService.getById(user.getInviteUser());
             if(Objects.nonNull(user1) && user1.getHasAgent()){
-                ErrorEnum.PARAM_ERROR.throwException("该用户上级代理为"+user1.getGameAccount()+"不可添加为代理");
+                ErrorEnum.TOP_EXIST_AGENT_NOT_APPLY.throwException();
             }
         }
         Long id = idGeneratorService.incrementId();

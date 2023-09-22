@@ -64,13 +64,6 @@ public class AdminWithdrawalController {
             User user = userService.queryByMemberAccount(gameAccount);
             userId = user.getId();
         }
-//        if (agentId != null) {
-//            User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getAgentId, agentId));
-//            if (Objects.isNull(user)) {
-//                ErrorEnum.OBJECT_NOT_FOUND.throwException();
-//            }
-//            userId = user.getId();
-//        }
         Page<Withdrawal> page1 = withdrawalService.page(new Page<>(page, size),
                 new LambdaQueryWrapper<Withdrawal>()
                         .eq(Objects.nonNull(agentId), Withdrawal::getUid, agentId)
