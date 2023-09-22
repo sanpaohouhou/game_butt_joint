@@ -25,7 +25,7 @@ public class HandleExceptionController {
     public Response resolveException(HttpServletRequest request, Exception e) {
         if (e instanceof APIException) {
 //            return Response.error(((APIException) e).getErrcode(), "messageGetter.getOrDefault(e.getMessage(), e.getMessage(), ((APIException) e).getObjects())");
-            return Response.error(((APIException) e).getErrcode(), ErrorEnum.SYSTEM_ERROR.getMessage());
+            return Response.error(((APIException) e).getErrcode(), e.getMessage());
         } else if (e instanceof ConstraintViolationException) {
             return Response.error("5023", e.getMessage());
         } else if (e instanceof HttpRequestMethodNotSupportedException) {
