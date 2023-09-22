@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -201,7 +202,8 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
                 withdrawal.setCompleteTime(LocalDateTime.now());
                 currencyService.unfreeze(withdrawal.getUid(), withdrawal.getUserType(), BusinessEnum.WITHDRAW, withdrawal.getAmount(), withdrawal.getId(), "保证金提现订单审核失败解冻");
                 if(!userService.getById(withdrawal.getUid()).getHasAgent()) {
-                    botMessageService.sendMessage2UserAsync(withdrawal.getUid(), "提现审核失败，原因: " + note,
+                    botMessageService.sendMessage2UserAsync(withdrawal.getUid(), "提现审核失败，原因: "
+                                    + (StringUtils.isEmpty(note) ? "无" : note),
                             InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
                 }
             }

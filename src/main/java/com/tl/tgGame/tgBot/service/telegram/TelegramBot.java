@@ -134,27 +134,21 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("FC_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-//                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
-//                if (result) {
                 String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                 String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt + "&type=" + GameBusiness.FC.getKey());
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                 execute(answerCallbackQuery);
-//                }
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("FC_BY")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-//                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
-//                if (result) {
                 String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                 String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt + "&type=" + "FCBY");
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                 execute(answerCallbackQuery);
-//                }
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("EG_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
