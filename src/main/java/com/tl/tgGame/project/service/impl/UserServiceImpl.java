@@ -441,8 +441,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if(result){
                 BigDecimal beforeAmount = new BigDecimal(split[1]);
                 BigDecimal remainAmount = afterAmount.subtract(beforeAmount);
-                CurrencyLogType currencyLogType = remainAmount.compareTo(BigDecimal.ZERO) > 0
-                        ? CurrencyLogType.increase : CurrencyLogType.reduce;
+                CurrencyLogType currencyLogType = CurrencyLogType.increase;
+                if(remainAmount.compareTo(BigDecimal.ZERO) < 0){
+                    currencyLogType = CurrencyLogType.reduce;
+                    remainAmount = remainAmount.negate();
+                }
                 currencyLogService.add(user.getId(),UserType.USER,currencyLogType,
                         businessEnum,remainAmount,sn,split[0] + "投注",beforeAmount,null,beforeAmount);
             }

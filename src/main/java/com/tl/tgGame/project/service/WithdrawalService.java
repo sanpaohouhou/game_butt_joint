@@ -86,7 +86,4 @@ public interface WithdrawalService extends IService<Withdrawal> {
      * 下级提现金额
      */
     BigDecimal sumJuniorWithdrawalAmount(Long inviteUserId,Long userId,List<WithdrawStatus> statuses,LocalDateTime startTime,LocalDateTime endTime);
-
-//    Page<Withdrawal> agentWithdrawalList(Integer page, Integer size, Long userId, Long agentId, Long id,
-//                               WithdrawStatus status, LocalDateTime startTime, LocalDateTime endTime);
 }
