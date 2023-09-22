@@ -68,7 +68,7 @@ class TgGameApplicationTests {
 		String anInt = "pu" + RandomUtil.randomLong(100000000000L);
 		ApiLoginReq loginReq = new ApiLoginReq();
 		loginReq.setMemberAccount("pu" + anInt);
-		loginReq.setGameID(21003);
+		loginReq.setGameID(21008);
 		loginReq.setLoginGameHall(true);
 		loginReq.setLanguageID(2);
 		String login = apiGameService.login(loginReq);
