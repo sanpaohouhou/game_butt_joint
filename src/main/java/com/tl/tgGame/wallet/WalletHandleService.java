@@ -127,7 +127,7 @@ public class WalletHandleService {
                     User user = userService.lambdaQuery().select(User::getGameAccount).eq(User::getId, notifyDTO.getUid()).one();
                     botMessageService.sendMessageAsync(chat, "♠️389.bet♠️\n" +
                             "\uD83D\uDCE3贵宾" + user.getGameAccount() + "❤️\n" +
-                            "以成功上分：" + point + "USDT\n" +
+                            "已成功上分：" + point + "USDT\n" +
                             "祝您福气满满，财源滚滚‼️", null);
                 }
             } else {
