@@ -13,6 +13,8 @@ import com.tl.tgGame.project.enums.GameBusiness;
 import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.enums.WithdrawStatus;
 import com.tl.tgGame.project.service.*;
+import com.tl.tgGame.system.ConfigConstants;
+import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.tgBot.service.BotMessageService;
 import com.tl.tgGame.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +60,9 @@ public class AdminUserController {
     private WithdrawalService withdrawalService;
     @Resource
     private BotMessageService botMessageService;
+
+    @Autowired
+    private ConfigService configService;
 
     /**
      * 用户列表
@@ -236,7 +241,8 @@ public class AdminUserController {
                 dto.getScreen(),
                 dto.getNote(), currency);
         currencyService.increase(dto.getUserId(), UserType.USER, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "充值");
-        botMessageService.sendMessage2UserAsync(dto.getUserId(), "",
+        String chat = configService.getOrDefault(ConfigConstants.BOT_BEGIN_GAME_GROUP_CHAT, null);
+        botMessageService.sendMessageAsync(chat, "",
                 InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
         return Response.success(recharge);
     }
