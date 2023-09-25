@@ -138,14 +138,17 @@ public class AgentController {
      * 代理商团队下注记录
      */
     @GetMapping("team/betList")
-    public Response agentTeamBetList(@Uid Long agentId, AdminQueryBetReq req) {
+    public Response agentTeamBetList(Long agentId, AdminQueryBetReq req) {
 
         List<User> users = userService.list(new LambdaQueryWrapper<User>()
                 .like(User::getInviteChain, req.getAgentUserId()).eq(Objects.nonNull(req.getUserId()),User::getId,req.getUserId()));
         List<Long> userIds = users.stream().filter(i-> i.getAgentId() == null || !i.getAgentId().equals(agentId)).map(User::getId).collect(Collectors.toList());
-
-        Page<GameBet> page = gameBetService.page(new Page<>(req.getPage(), req.getSize()),
-                new LambdaQueryWrapper<GameBet>().in(!CollectionUtils.isEmpty(userIds), GameBet::getUserId, userIds)
+        Page<GameBet> page = new Page<>();
+        if(CollectionUtils.isEmpty(userIds)){
+            return Response.pageResult(page);
+        }
+        page = gameBetService.page(new Page<>(req.getPage(), req.getSize()),
+                new LambdaQueryWrapper<GameBet>().in(GameBet::getUserId, userIds)
                         .ge(req.getStartTime() != null, GameBet::getRecordTime, req.getStartTime())
                         .le(req.getEndTime() != null, GameBet::getRecordTime, req.getEndTime())
                         .orderByDesc(GameBet::getId));
