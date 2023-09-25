@@ -90,12 +90,29 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         if(dividendRate.compareTo(BigDecimal.valueOf(1L)) >= 0){
             ErrorEnum.PARAM_ERROR.throwException("分红占比请小于1");
         }
-        if(user.getInviteUser() != null){
-            User user1 = userService.getById(user.getInviteUser());
-            if(Objects.nonNull(user1) && !user1.getHasAgent()){
-                ErrorEnum.TOP_EXIST_AGENT_NOT_APPLY.throwException();
+        if(pAgentId == null){
+            if(user.getInviteUser() != null){
+                User user1 = userService.getById(user.getInviteUser());
+                if(Objects.nonNull(user1)){
+                    ErrorEnum.TOP_EXIST_AGENT_NOT_APPLY.throwException();
+                }
+            }
+        }else {
+            if(user.getInviteUser() != null){
+                User user1 = userService.getById(user.getInviteUser());
+                if(Objects.nonNull(user1)){
+                    if(!user1.getHasAgent()){
+                        ErrorEnum.TOP_EXIST_AGENT_NOT_APPLY.throwException();
+                    }else {
+                        Agent agent = getById(user1.getAgentId());
+                        if(agent.getLevel() != 1){
+                            ErrorEnum.TOP_EXIST_AGENT_NOT_APPLY.throwException();
+                        }
+                    }
+                }
             }
         }
+
         Long id = idGeneratorService.incrementId();
         String inviteChain = id.toString();
         Integer level = 1;
