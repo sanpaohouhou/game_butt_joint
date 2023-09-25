@@ -263,6 +263,9 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         String gameBusiness = null;
         if (!StringUtils.isEmpty(req.getGameName())) {
             gameBusiness = GameBusiness.gameName(req.getGameName());
+            if(StringUtils.isEmpty(gameBusiness)){
+                gameBusiness = req.getGameName();
+            }
         }
         LambdaQueryWrapper<GameBet> wrapper = new LambdaQueryWrapper<GameBet>()
                 .eq(req.getUserId() != null , GameBet::getUserId,req.getUserId())

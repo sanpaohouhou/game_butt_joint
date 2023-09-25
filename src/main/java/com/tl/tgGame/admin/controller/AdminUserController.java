@@ -9,6 +9,7 @@ import com.tl.tgGame.project.dto.GameBetStatisticsListRes;
 import com.tl.tgGame.project.entity.*;
 import com.tl.tgGame.project.entity.Currency;
 import com.tl.tgGame.project.enums.BusinessEnum;
+import com.tl.tgGame.project.enums.GameBusiness;
 import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.enums.WithdrawStatus;
 import com.tl.tgGame.project.service.*;
@@ -148,6 +149,7 @@ public class AdminUserController {
             profit = profit.add(listRes.getUserProfit());
             validAmount = validAmount.add(listRes.getValidAmount());
             backWaterAmount = backWaterAmount.add(listRes.getBackWaterAmount());
+            listRes.setGameBusiness(GameBusiness.of(listRes.getGameBusiness()));
         }
         res.setProfit(profit);
         res.setBetAmount(betAmount);
