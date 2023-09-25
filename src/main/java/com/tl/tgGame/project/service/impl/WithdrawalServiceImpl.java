@@ -192,7 +192,7 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
                 Withdrawal responseData = response.getData();
                 withdrawal.setOrderId(responseData.getId());
 
-                if(!userService.getById(withdrawal.getUid()).getHasAgent()){
+                if(withdrawal.getUserType().equals(UserType.USER)){
                     botMessageService.sendMessage2UserAsync(withdrawal.getUid(), "提现审核成功，打款中~~~",
                             InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
                 }
