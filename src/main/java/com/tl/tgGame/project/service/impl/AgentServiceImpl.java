@@ -90,9 +90,9 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         if(dividendRate.compareTo(BigDecimal.valueOf(1L)) >= 0){
             ErrorEnum.PARAM_ERROR.throwException("分红占比请小于1");
         }
-        if(pAgentId == null && user.getInviteUser() != null){
+        if(user.getInviteUser() != null){
             User user1 = userService.getById(user.getInviteUser());
-            if(Objects.nonNull(user1)){
+            if(Objects.nonNull(user1) && !user1.getHasAgent()){
                 ErrorEnum.TOP_EXIST_AGENT_NOT_APPLY.throwException();
             }
         }

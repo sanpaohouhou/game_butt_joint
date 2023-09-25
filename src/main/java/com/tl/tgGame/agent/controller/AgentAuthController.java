@@ -37,7 +37,7 @@ public class AgentAuthController {
 
     @PostMapping("/login")
     public Response login(@RequestBody @Valid AdminLoginDTO dto) throws QrGenerationException {
-        captchaService.verify(dto.getCode());
+//        captchaService.verify(dto.getCode());
         return Response.success(Maps.newHashMap("token", agentService.login(dto.getUsername(), dto.getPassword())));
     }
 

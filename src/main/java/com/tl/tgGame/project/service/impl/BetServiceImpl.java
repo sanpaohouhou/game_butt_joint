@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -61,7 +62,7 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
                list.add(bet);
             }
             GameBusiness business = GameBusiness.FC;
-            if(record.getGameID().equals(21003)){
+            if(Arrays.asList(21008,21003,21006,21007,21004).contains(record.getGameID())){
                 business = GameBusiness.FC_BY;
             }
             GameBet gameBet = buildGameBet(bet,business);
