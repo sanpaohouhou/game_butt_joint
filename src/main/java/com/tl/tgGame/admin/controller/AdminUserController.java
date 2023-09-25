@@ -133,7 +133,29 @@ public class AdminUserController {
     @GetMapping("userGameStatistics")
     public Response userGameStatistics(AdminGameReq req) {
         List<GameBetStatisticsListRes> gameBetStatisticsListRes = gameBetService.betStatistics(req);
-        return Response.success(gameBetStatisticsListRes);
+        UserInfoRes res = new UserInfoRes();
+        if(CollectionUtils.isEmpty(gameBetStatisticsListRes)){
+            return Response.success(res);
+        }
+        Integer betNumber = 0;
+        BigDecimal betAmount = BigDecimal.ZERO;
+        BigDecimal profit = BigDecimal.ZERO;
+        BigDecimal validAmount = BigDecimal.ZERO;
+        BigDecimal backWaterAmount = BigDecimal.ZERO;
+        for (GameBetStatisticsListRes listRes:gameBetStatisticsListRes) {
+            betNumber = betNumber + listRes.getBetNumber();
+            betAmount = betAmount.add(listRes.getBetAmount());
+            profit = profit.add(listRes.getUserProfit());
+            validAmount = validAmount.add(listRes.getValidAmount());
+            backWaterAmount = backWaterAmount.add(listRes.getBackWaterAmount());
+        }
+        res.setProfit(profit);
+        res.setBetAmount(betAmount);
+        res.setBetNumber(betNumber);
+        res.setValidAmount(validAmount);
+        res.setBetList(gameBetStatisticsListRes);
+        res.setBackWaterAmount(backWaterAmount);
+        return Response.success(res);
     }
 
     /**

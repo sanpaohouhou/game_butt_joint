@@ -1,11 +1,13 @@
 package com.tl.tgGame.admin.dto;
 
+import com.tl.tgGame.project.dto.GameBetStatisticsListRes;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @version 1.0
@@ -33,4 +35,6 @@ public class UserInfoRes {
     private BigDecimal validAmount = BigDecimal.ZERO;
 
     private BigDecimal backWaterAmount = BigDecimal.ZERO;
+
+    private List<GameBetStatisticsListRes> betList;
 }
