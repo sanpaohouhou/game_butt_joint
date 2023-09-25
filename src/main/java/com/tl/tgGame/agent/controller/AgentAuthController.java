@@ -35,9 +35,6 @@ public class AgentAuthController {
     @Resource
     private TotpService totpService;
 
-    @Autowired
-    private CurrencyService currencyService;
-
     @PostMapping("/login")
     public Response login(@RequestBody @Valid AdminLoginDTO dto) throws QrGenerationException {
         captchaService.verify(dto.getCode());

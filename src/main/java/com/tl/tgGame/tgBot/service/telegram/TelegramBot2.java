@@ -319,6 +319,13 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .build();
                 execute(message3);
             }
+            if(text.equals("个人资料") || text.equals("USDT提现")){
+                String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
+                String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
+                if (!org.springframework.util.StringUtils.isEmpty(value)) {
+                    userService.gameWithdrawal(from.getId(), value);
+                }
+            }
             if (text.equals("开始游戏")) {
                 String beginGameLink = configService.get(ConfigConstants.BOT_BEGIN_GAME_GROUP_LINK);
                 InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().url(beginGameLink).text("\uD83D\uDC9E游戏大厅").build();
@@ -330,11 +337,6 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 execute(sendMessage);
             }
             if (text.equals("个人资料")) {
-                String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
-                String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
-                if (!org.springframework.util.StringUtils.isEmpty(value)) {
-                    userService.gameWithdrawal(from.getId(), value);
-                }
                 InlineKeyboardButton inlineKeyboardButton1 = InlineKeyboardButton.builder().callbackData("个人资料:一键返水").text("一键返水").build();
                 List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
                 inlineKeyboardButtons.add(inlineKeyboardButton1);

@@ -75,8 +75,13 @@ public class WalletHandleService {
                 List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
                 if (notifyDTO.isSuccess()) {
                     currencyService.reduce(withdrawal.getUid(), withdrawal.getUserType(), BusinessEnum.WITHDRAW, withdrawal.getAmount(), withdrawal.getId(), "提现成功扣除解冻余额");
-                    botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "提现成功已到账请留意您的钱包余额。如有疑问请联系“唯一充提财务”\n交易哈希: " + notifyDTO.getHash(),
-                            InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
+//                    botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "提现成功已到账请留意您的钱包余额。如有疑问请联系“唯一充提财务”\n交易哈希: " + notifyDTO.getHash(),
+//                            InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
+                    botMessageService.sendMessage2UserAsync(notifyDTO.getUid(),"" +
+                            "♠\uFE0F389.bet♠\uFE0F" +
+                            "\uD83D\uDCE3贵宾qu5955358211❤\uFE0F" +
+                            "已成功提现：" + withdrawal.getAmount() +
+                            "\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25",null);
                 } else {
                     currencyService.unfreeze(withdrawal.getUid(), withdrawal.getUserType(), BusinessEnum.WITHDRAW, withdrawal.getAmount(), withdrawal.getId(), "提现失败解冻");
                     botMessageService.sendMessage2UserAsync(notifyDTO.getUid(), "提现失败，提现金额已退回您的交易账户。如有疑问请联系“唯一充提财务”",

@@ -1,21 +1,18 @@
 package com.tl.tgGame.admin.controller;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tl.tgGame.admin.dto.*;
 import com.tl.tgGame.common.dto.Response;
 import com.tl.tgGame.exception.ErrorEnum;
-import com.tl.tgGame.project.dto.GameBackWaterRes;
 import com.tl.tgGame.project.dto.GameBetStatisticsListRes;
 import com.tl.tgGame.project.entity.*;
+import com.tl.tgGame.project.entity.Currency;
 import com.tl.tgGame.project.enums.BusinessEnum;
-import com.tl.tgGame.project.enums.UserCommissionType;
 import com.tl.tgGame.project.enums.UserType;
 import com.tl.tgGame.project.enums.WithdrawStatus;
 import com.tl.tgGame.project.service.*;
-import com.tl.tgGame.system.ConfigConstants;
-import com.tl.tgGame.system.ConfigService;
+import com.tl.tgGame.tgBot.service.BotMessageService;
 import com.tl.tgGame.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,15 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * @version 1.0
@@ -59,9 +55,8 @@ public class AdminUserController {
 
     @Autowired
     private WithdrawalService withdrawalService;
-
-    @Autowired
-    private AgentService agentService;
+    @Resource
+    private BotMessageService botMessageService;
 
     /**
      * 用户列表
@@ -205,6 +200,7 @@ public class AdminUserController {
         if (user.getIsBot()) {
             ErrorEnum.BOT_NOT_ALLOW_WITHDRAW.throwException();
         }
+        List<InlineKeyboardButton> keyboardButtons = Collections.singletonList(InlineKeyboardButton.builder().text("唯一充提财务").url("https://t.me/cin89886").build());
         Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
         Recharge recharge = rechargeService.addRecharge(dto.getUserId(),
                 dto.getAmount(),
@@ -216,6 +212,8 @@ public class AdminUserController {
                 dto.getScreen(),
                 dto.getNote(), currency);
         currencyService.increase(dto.getUserId(), UserType.USER, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "充值");
+        botMessageService.sendMessage2UserAsync(dto.getUserId(), "",
+                InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
         return Response.success(recharge);
     }
 
