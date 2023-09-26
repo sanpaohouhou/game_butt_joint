@@ -124,6 +124,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         if (user.getInviteUser() == null) {
             gameBet.setHasSettled(true);
             gameBet.setBackWaterAmount(backWater.negate());
+            gameBet.setUpdateTime(LocalDateTime.now());
             updateById(gameBet);
             return;
         }
@@ -192,6 +193,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         //赢钱给上级返佣金
         if (user.getInviteUser() == null) {
             gameBet.setHasSettled(true);
+            gameBet.setUpdateTime(LocalDateTime.now());
             updateById(gameBet);
             return;
         }
