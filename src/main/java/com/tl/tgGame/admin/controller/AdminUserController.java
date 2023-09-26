@@ -242,8 +242,10 @@ public class AdminUserController {
                 dto.getNote(), currency);
         currencyService.increase(dto.getUserId(), UserType.USER, BusinessEnum.RECHARGE, dto.getAmount(), recharge.getId(), "充值");
         String chat = configService.getOrDefault(ConfigConstants.BOT_BEGIN_GAME_GROUP_CHAT, null);
-        botMessageService.sendMessageAsync(chat, "",
-                InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
+        botMessageService.sendMessageAsync(chat, "♠️389.bet♠️\n" +
+                "\uD83D\uDCE3贵宾" + user.getGameAccount() + "❤️\n" +
+                "已成功上分：" + dto.getAmount() + "USDT\n" +
+                "祝您福气满满，财源滚滚‼️", null);
         return Response.success(recharge);
     }
 
