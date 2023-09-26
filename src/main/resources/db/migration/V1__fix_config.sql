@@ -45,6 +45,43 @@ INSERT INTO `config`
 INSERT INTO `config`
 VALUES ('wl_agent_id', '31665', 'wl-渠道id');
 
+INSERT INTO `config`
+VALUES ('wl_game_usdt_point', '7', 'wl转换汇率,默认按照7');
+
+alter table `user_commission` modify `game_id` varchar(128) null comment '游戏id';
+
+alter table `wl_bet` add column `update_time` datetime DEFAULT NULL COMMENT '更新时间';
+
+alter table `wl_bet` add column `back_water_amount` decimal(10,4) NOT NULL DEFAULT '0.0000' COMMENT '返水金额';
+
+alter table `wl_bet` add column `top_commission` decimal(10,4) NOT NULL DEFAULT '0.0000' COMMENT '上级返佣金额';
+
+INSERT INTO `config`
+VALUES ('person_center_bot_url', 'https://t.me/first_new_one_bot', '个人中心机器人链接');
+
+INSERT INTO `config`
+VALUES ('exclusion_customer_service', 'https://t.me/cin89886', '机器人唯一专属客服跳转链接');
+
+INSERT INTO `config`
+VALUES ('bot_group_invite_link', 'https://t.me/+OG9aPdVgn2wyN2Z', '邀请链接');
+
+INSERT INTO `config`
+VALUES ('tg_game_h5_url', 'http://ec2-54-168-241-36.ap-northeast-1.compute.amazonaws.com/#/home', '邀请链接');
+
+
+INSERT INTO `config`(`name`, `value`, `note`) VALUES ('s3_AWSAccessKeyId', 'AKIAXO26WTLFNTM4T2NE', 'S3配置信息');
+INSERT INTO `config`(`name`, `value`, `note`) VALUES ('s3_AWSSecretAccessKey', '1ueYr+Iow0nj3VtObNZWbCgxKIQaSZAeRPBB8jq1Yl66LylEvmOzQytjjyR3nyQV', 'S3配置信息');
+INSERT INTO `config`(`name`, `value`, `note`) VALUES ('s3_bucketName', 'tg-game-jp', 'S3配置信息');
+INSERT INTO `config`(`name`, `value`, `note`) VALUES ('s3_region', 'ap-northeast-1', 'S3配置信息');
+INSERT INTO `config`(`name`, `value`, `note`) VALUES ('s3_url', 'https://tg-game-jp.s3-accelerate.amazonaws.com', 'S3配置信息');
+
+
+INSERT INTO `config`(`name`, `value`, `note`) VALUES ('game_back_water_rate', '0.002', '游戏返水比例');
+
+
+INSERT INTO `config`
+VALUES ('bot_begin_game_group_link', 'https://t.me/+OG9aPdVgn2wyN2Z', '机器人开始游戏群链接');
+
 
 
 

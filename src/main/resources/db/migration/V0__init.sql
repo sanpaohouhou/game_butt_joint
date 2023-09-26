@@ -48,7 +48,6 @@ CREATE TABLE `user`
     `has_group`      tinyint(1) not null default 1 comment '是否在群组,1在 0不在',
     `withdrawal_url` varchar(64) null comment '提现地址',
     `has_join_eg`    tinyint(1) not null default 0 comment '是否注册过eg,1注册过,0未注册',
-    `current_game` varchar(16) null  comment '当前在玩游戏,FC,WL,EG(如果当前在玩wl,那在进入下个游戏前.就从瓦力平台把钱提出来)',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_username` (`username`),
     UNIQUE KEY `uq_tg_id` (`tg_id`),
@@ -90,36 +89,6 @@ create table `game`
     UNIQUE KEY `uq_game_name` (`game_name`)
 ) comment = '游戏名称';
 
-
-create table `user_extend`
-(
-    `id`            bigint       not null auto_increment comment '主键id',
-    `from_user_id`  bigint       not null comment '用户id',
-    `to_user_id`    bigint       not null comment '被邀请用户id',
-    `game_account`  varchar(64)  not null comment '游戏账号',
-    `extend_url`    varchar(255) not null comment '推广链接',
-    `extend_number` int(11) not null default 0 comment '推广人数',
-    `create_time`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    primary key (`id`),
-    UNIQUE KEY `uq_to_user_id` (`to_user_id`)
-) comment = '用户推广表';
-
-create table `user_profit`
-(
-    `id`                  bigint         not null auto_increment comment '主键id',
-    `user_id`             bigint         not null comment '用户id',
-    `game_account`        varchar(64)    not null comment '游戏账号',
-    `game_name`           varchar(64)    not null comment '游戏名称',
-    `back_water_rate`     decimal(10, 4) not null default 0.00 comment '返水比例',
-    `complete_back_water` decimal(10, 4) not null default 0.00 comment '已返水',
-    `wait_back_water`     decimal(10, 4) not null default 0.00 comment '待返水',
-    `top_commission_rate` decimal(10, 4) not null default 0.00 comment '上级佣金比例',
-    `top_commission`      decimal(10, 4) not null default 0.00 comment '上级佣金',
-    `create_time`         datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    primary key (`id`),
-    UNIQUE KEY `uq_user_id_game_name` (`user_id`,`game_name`),
-    KEY                   `idx_game_account` (`game_account`)
-) comment = '用户获利表';
 
 INSERT INTO `config`
 VALUES ('bsc_chain_id', '42', NULL);
@@ -178,152 +147,6 @@ VALUES ('auto_recycle', 'true', '是否开启自动归集');
 INSERT INTO `config`
 VALUES ('auto_recycle_amount', '1000', '归集金额触发值');
 
-CREATE TABLE `address`
-(
-    `id`          bigint      NOT NULL,
-    `uid`         bigint      NOT NULL COMMENT '用户id',
-    `bsc`         varchar(60) NOT NULL COMMENT 'bsc地址',
-    `eth`         varchar(60) NOT NULL COMMENT 'eth地址',
-    `tron`        varchar(60) NOT NULL COMMENT 'tron地址',
-    `create_time` datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uniq_bsc` (`bsc`),
-    UNIQUE KEY `uniq_eth` (`eth`),
-    UNIQUE KEY `uniq_tron` (`tron`),
-    KEY           `idx_uid` (`uid`)
-) COMMENT ='用户充值地址表';
-
-
-CREATE TABLE `address_balance`
-(
-    `id`          bigint         NOT NULL COMMENT '主键',
-    `uid`         bigint         NOT NULL COMMENT '用户id',
-    `address`     varchar(60)    NOT NULL COMMENT '地址',
-    `network`     varchar(10)    NOT NULL COMMENT '网络',
-    `amount`      decimal(20, 6) NOT NULL DEFAULT '0.000000' COMMENT '余额',
-    `status`      tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态值; 0:待归集, 1:正在归集',
-    `create_time` datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uniq_address` (`address`, `network`),
-    KEY           `idx_address` (`address`),
-    KEY           `idx_uid` (`uid`)
-) COMMENT ='地址余额';
-
-CREATE TABLE `bsc_bep20_tx`
-(
-    `id`               bigint       NOT NULL COMMENT '主键',
-    `hash`             varchar(80)  NOT NULL COMMENT '交易hash',
-    `from`             varchar(60)  NOT NULL COMMENT 'from',
-    `to`               varchar(60)  NOT NULL COMMENT 'to',
-    `value`            varchar(255) NOT NULL COMMENT '值',
-    `contract_address` varchar(60)  NOT NULL COMMENT '合约地址',
-    `block`            bigint       NOT NULL COMMENT '区块',
-    `create_time`      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
-    `handled`          tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否处理 0 未处理 1已处理',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uniq_hash` (`hash`),
-    KEY                `idx_block` (`block`),
-    KEY                `idx_contract_address` (`contract_address`),
-    KEY                `idx_from` (`from`),
-    KEY                `idx_to` (`to`),
-    KEY                `idx_hash` (`hash`)
-) COMMENT ='bsc转账tx表';
-
-CREATE TABLE `eth_erc20_tx`
-(
-    `id`               bigint       NOT NULL COMMENT '主键',
-    `hash`             varchar(80)  NOT NULL COMMENT '交易hash',
-    `from`             varchar(60)  NOT NULL COMMENT 'from',
-    `to`               varchar(60)  NOT NULL COMMENT 'to',
-    `value`            varchar(255) NOT NULL COMMENT '值',
-    `contract_address` varchar(60)  NOT NULL COMMENT '合约地址',
-    `block`            bigint       NOT NULL COMMENT '区块',
-    `create_time`      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
-    `handled`          tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否处理 0 未处理 1已处理',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uniq_hash` (`hash`),
-    KEY                `idx_block` (`block`),
-    KEY                `idx_contract_address` (`contract_address`),
-    KEY                `idx_from` (`from`),
-    KEY                `idx_to` (`to`),
-    KEY                `idx_hash` (`hash`)
-) COMMENT ='eth转账tx表';
-
-CREATE TABLE `tron_trc20_tx`
-(
-    `id`                  bigint       NOT NULL COMMENT '主键',
-    `hash`                varchar(80)  NOT NULL COMMENT '交易hash',
-    `from`                varchar(60)  NOT NULL COMMENT 'from',
-    `to`                  varchar(60)  NOT NULL COMMENT 'to',
-    `value`               varchar(255) NOT NULL COMMENT '值',
-    `contract_address`    varchar(60)  NOT NULL COMMENT '合约地址',
-    `block`               bigint       NOT NULL COMMENT '区块',
-    `create_time`         datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
-    `handled`             tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否处理 0 未处理 1已处理',
-    `net_fee`             bigint                DEFAULT NULL COMMENT '带宽费用',
-    `energy_fee`          bigint                DEFAULT NULL COMMENT '能量费用',
-    `net_usage`           bigint                DEFAULT NULL COMMENT '消耗带宽',
-    `energy_usage`        bigint                DEFAULT NULL COMMENT '消耗用户能量',
-    `origin_energy_usage` bigint                DEFAULT NULL COMMENT '消耗合约所有者能量',
-    `energy_usage_total`  bigint                DEFAULT NULL COMMENT '消耗总能量',
-    `status`              tinyint(1) DEFAULT NULL COMMENT '状态 1成功 其他都是失败',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uniq_hash` (`hash`),
-    KEY                   `idx_block` (`block`),
-    KEY                   `idx_contract_address` (`contract_address`),
-    KEY                   `idx_from` (`from`),
-    KEY                   `idx_to` (`to`),
-    KEY                   `idx_hash` (`hash`)
-) COMMENT ='tron转账tx表';
-
-CREATE TABLE `heat_purse_record`
-(
-    `id`           BIGINT         NOT NULL COMMENT '主键id',
-    `uid`          BIGINT         NOT NULL COMMENT 'uid',
-    `sn`           VARCHAR(255)            DEFAULT NULL COMMENT '订单号',
-    `network`      VARCHAR(32)    NOT NULL COMMENT '网络',
-    `amount`       DECIMAL(16, 4) NOT NULL DEFAULT 0.00 COMMENT '金额',
-    `from_address` VARCHAR(255)            DEFAULT NULL COMMENT '转出地址',
-    `to_address`   VARCHAR(255)            DEFAULT NULL COMMENT '转入地址',
-    `hash`         VARCHAR(255)            DEFAULT NULL COMMENT '交易hash值',
-    `record_type`  VARCHAR(32)             DEFAULT NULL COMMENT '操作类型',
-    `create_time`  datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `remark`       VARCHAR(255) NULL COMMENT '备注',
-    PRIMARY KEY (`id`)
-) COMMENT = '热钱包充提操作表';
-
-
-CREATE TABLE `recovery_log`
-(
-    `id`          bigint         NOT NULL COMMENT 'id',
-    `hash`        varchar(80)    NOT NULL COMMENT '交易hash',
-    `create_time` datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
-    `network`     varchar(10)    NOT NULL COMMENT '网络',
-    `to`          varchar(60)    NOT NULL COMMENT '接收地址',
-    `amount`      decimal(20, 6) NOT NULL DEFAULT '0.000000' COMMENT '总数额',
-    `status`      tinyint(1) NOT NULL COMMENT '状态值; 0:待归集, 1:正在归集, 2:归集成功, 3:归集失败',
-    PRIMARY KEY (`id`),
-    KEY           `idx_hash` (`hash`),
-    UNIQUE `uq_hash` (`hash`),
-    KEY           `idx_to_address` (`to`)
-) COMMENT ='归集日志表';
-
-
-CREATE TABLE `recovery_log_detail`
-(
-    `id`          bigint         NOT NULL COMMENT 'id',
-    `hash`        varchar(80)    NOT NULL COMMENT '交易hash',
-    `create_time` datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` datetime       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
-    `address`     varchar(60)    NOT NULL COMMENT '保证金地址',
-    `network`     varchar(10)    NOT NULL COMMENT '网络',
-    `amount`      decimal(20, 6) NOT NULL DEFAULT '0.000000' COMMENT '数额',
-    PRIMARY KEY (`id`),
-    KEY           `idx_hash` (`hash`),
-    KEY           `idx_address` (`address`)
-) COMMENT ='归集日志表详情';
 
 CREATE TABLE `totp_secret`
 (
