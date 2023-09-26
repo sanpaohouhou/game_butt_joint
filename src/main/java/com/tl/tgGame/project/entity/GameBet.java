@@ -22,8 +22,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class
-GameBet {
+public class GameBet {
 
     @TableId(value = "id",type = IdType.ASSIGN_ID)
     @JsonSerialize(using = ToStringSerializer.class)

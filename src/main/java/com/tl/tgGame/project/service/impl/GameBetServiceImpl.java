@@ -123,6 +123,7 @@ public class GameBetServiceImpl extends ServiceImpl<GameBetMapper, GameBet> impl
         BigDecimal profit = remainProfit;
         if (user.getInviteUser() == null) {
             gameBet.setHasSettled(true);
+            gameBet.setBackWaterAmount(backWater.negate());
             updateById(gameBet);
             return;
         }
