@@ -60,7 +60,7 @@ public class FakeRechargeMessageTask {
                 if (StringUtils.isNotBlank(chat)) {
                     int dummy = (2 + random.nextInt(50)) * 100;
                     botMessageService.sendMessageAsync(chat, "♠\uFE0F389.bet♠\uFE0F\n" +
-                            "\uD83D\uDCE3贵宾\uFE0F\n" + UserServiceImpl.convertAccount() + "❤" +
+                            "\uD83D\uDCE3贵宾\uFE0F\n" + UserServiceImpl.convertAccount() + "❤\n" +
                             "已成功下分: " + dummy + "USDT\n" +
                             "\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25", null);
                 }
