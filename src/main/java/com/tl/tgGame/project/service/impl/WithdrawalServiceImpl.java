@@ -200,12 +200,14 @@ public class WithdrawalServiceImpl extends ServiceImpl<WithdrawalMapper, Withdra
             } else {
                 withdrawal.setStatus(WithdrawStatus.review_fail);
                 withdrawal.setCompleteTime(LocalDateTime.now());
-                currencyService.unfreeze(withdrawal.getUid(), withdrawal.getUserType(), BusinessEnum.WITHDRAW, withdrawal.getAmount(), withdrawal.getId(), "保证金提现订单审核失败解冻");
+                String des = "提现订单审核失败解冻";
                 if(!userService.getById(withdrawal.getUid()).getHasAgent()) {
                     botMessageService.sendMessage2UserAsync(withdrawal.getUid(), "提现审核失败，原因: "
                                     + (StringUtils.isEmpty(note) ? "无" : note),
                             InlineKeyboardMarkup.builder().keyboardRow(keyboardButtons).build());
+                    des = "保证金提现订单审核失败解冻";
                 }
+                currencyService.unfreeze(withdrawal.getUid(), withdrawal.getUserType(), BusinessEnum.WITHDRAW, withdrawal.getAmount(), withdrawal.getId(), des);
             }
             withdrawal.setNote(note);
             updateById(withdrawal);

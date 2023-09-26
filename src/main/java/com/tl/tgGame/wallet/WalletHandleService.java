@@ -82,7 +82,7 @@ public class WalletHandleService {
                     if (StringUtils.isNotBlank(chat)) {
                         botMessageService.sendMessageAsync(chat,"♠\uFE0F389.bet♠\uFE0F\n" +
                                 "\uD83D\uDCE3贵宾qu5955358211❤\uFE0F\n" +
-                                "已成功下分：" + withdrawal.getAmount() +
+                                "已成功下分：" + withdrawal.getAmount() + "\n" +
                                 "\uD83D\uDD25祝您一路长虹，满载而归\uD83D\uDD25",null);
                     }
                 } else {
