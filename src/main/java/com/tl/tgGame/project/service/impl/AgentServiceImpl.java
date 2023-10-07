@@ -83,6 +83,10 @@ public class AgentServiceImpl extends ServiceImpl<AgentMapper, Agent> implements
         if (one != null) {
             ErrorEnum.REPEAT_SET_AGENT.throwException();
         }
+        Agent one2 = getOne(new LambdaQueryWrapper<Agent>().eq(Agent::getUserName, userName));
+        if(one2 != null){
+            ErrorEnum.REPEAT_SET_AGENT.throwException("重复代理账号");
+        }
         User user = userService.queryByMemberAccount(gameAccount);
         if (user == null) {
             ErrorEnum.USER_NOT_JOIN.throwException();
