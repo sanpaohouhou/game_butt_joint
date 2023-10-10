@@ -22,7 +22,7 @@ public class FakeRechargeMessageTask {
     private BotMessageService botMessageService;
 
     // 每分钟运行一次
-    @Scheduled(fixedDelay = 60_000)
+//    @Scheduled(fixedDelay = 60_000)
     public void doSendMessage() {
 
         float probability = random.nextFloat(); // 生成0-1之间的随机浮点数
@@ -46,7 +46,7 @@ public class FakeRechargeMessageTask {
         }
     }
 
-    @Scheduled(fixedDelay = 120_000)
+//    @Scheduled(fixedDelay = 120_000)
     public void doWithdrawalSendMessage() {
 
         float probability = random.nextFloat(); // 生成0-1之间的随机浮点数
