@@ -43,7 +43,7 @@ public class BotMessageService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        log.info("bot发送消息: {}", stringHttpResponse.getBody());
+        log.info("bot发送消息: {},text:{}", stringHttpResponse.getBody(),text);
     }
 
     public void sendMessageAsync(String chat, String text, ReplyKeyboard replyKeyboard){

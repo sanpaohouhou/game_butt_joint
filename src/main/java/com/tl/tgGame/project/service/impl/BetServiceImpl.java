@@ -17,6 +17,7 @@ import com.tl.tgGame.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -68,8 +69,10 @@ public class BetServiceImpl extends ServiceImpl<BetMapper, Bet> implements BetSe
             GameBet gameBet = buildGameBet(bet,business);
             gameBets.add(gameBet);
         }
-        boolean saveBatch = saveBatch(list);
-        if(!saveBatch){
+        if(CollectionUtils.isEmpty(list)){
+            return false;
+        }
+        if(!saveBatch(list)){
             ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
         }
         boolean saved = gameBetService.saveBatch(gameBets);

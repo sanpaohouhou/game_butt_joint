@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -66,6 +67,9 @@ public class EgBetServiceImpl extends ServiceImpl<EgBetMapper, EgBet> implements
             }
             GameBet gameBet = buildGameBet(bet);
             gameBets.add(gameBet);
+        }
+        if(CollectionUtils.isEmpty(list)){
+            return false;
         }
         if(!saveBatch(list)){
             ErrorEnum.API_GAME_RECORD_ADD_FAIL.throwException();
