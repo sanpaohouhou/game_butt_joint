@@ -218,16 +218,16 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                 BigDecimal allBackWater = BigDecimal.ZERO;
                 for (CurrencyGameProfit currencyGameProfit : currencyGameProfits) {
                     allBackWater = allBackWater.add(currencyGameProfit.getBalance());
-                    currencyGameProfitService.withdrawal(currencyGameProfit.getUserId(),currencyGameProfit.getGameBusiness(),currencyGameProfit.getBalance());
+                    currencyGameProfitService.withdrawal(currencyGameProfit.getUserId(), currencyGameProfit.getGameBusiness(), currencyGameProfit.getBalance());
                 }
                 AnswerCallbackQuery answer = new AnswerCallbackQuery();
                 answer.setCallbackQueryId(callbackQuery.getId());
                 answer.setShowAlert(true);
-                if(allBackWater.compareTo(BigDecimal.ZERO) > 0){
-                    currencyService.increase(user.getId(),UserType.USER, BusinessEnum.BACK_WATER,allBackWater, LocalDateTime.now(),"一键返水");
+                if (allBackWater.compareTo(BigDecimal.ZERO) > 0) {
+                    currencyService.increase(user.getId(), UserType.USER, BusinessEnum.BACK_WATER, allBackWater, LocalDateTime.now(), "一键返水");
                     answer.setText("成功返水:" + allBackWater);
                     execute(answer);
-                }else {
+                } else {
                     answer.setText("返水失败,请重新操作..待返水: 0");
                     execute(answer);
                 }
@@ -241,7 +241,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
 
 
     public void sendMsg(Update update) {
-        if (!update.getMessage().getFrom().getId().equals(update.getMessage().getChat().getId())){
+        if (!update.getMessage().getFrom().getId().equals(update.getMessage().getChat().getId())) {
             return;
         }
         List<KeyboardRow> list = new ArrayList<>();
@@ -319,7 +319,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .build();
                 execute(message3);
             }
-            if(text.equals("个人资料") || text.equals("USDT提现")){
+            if (text.equals("个人资料") || text.equals("USDT提现")) {
                 String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
                 String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
                 if (!org.springframework.util.StringUtils.isEmpty(value)) {
@@ -443,7 +443,73 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .replyMarkup(keyboardMarkup).build();
                 execute(message5);
             }
-            if (text.equals("USDT充值")) {
+//            if (text.equals("USDT充值") || checkState(update).equals("USDT充值")) {
+//                if (update.getMessage().getText().equals("USDT充值")) {
+//                    buildState(update, true);
+//                    SendMessage message = SendMessage.builder().text("尊贵的用户，请输入充值金额;").chatId(update.getMessage().getChatId())
+//                            .build();
+//                    execute(message);
+//                } else {
+//                    if ((!NumberUtil.isParsable(update.getMessage().getText()) || !NumberUtil.isNumeric2(update.getMessage().getText()))) {
+//                        SendMessage message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                                .text("尊贵的用户，请正确输入金额").build();
+//                        execute(message);
+//                    } else if (Integer.parseInt(update.getMessage().getText()) < 100) {
+//                        SendMessage message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
+//                                .text("尊贵的用户，最低充值：100USDT").build();
+//                        execute(message);
+//                    } else {
+//                        SingleResponse<Address> userAddress = walletAPI.getUserAddress(user.getId());
+//                        currencyService.getOrCreate(user.getId(), UserType.USER);
+//                        String tron = userAddress.getData().getTron();
+//                        String textToEncode = "tron"; // 要编码成二维码的文本
+//                        String filePath = "qrcode.png"; // 生成的二维码图片文件路径
+//                        int width = 300; // 图片宽度
+//                        int height = 300; // 图片高度
+//
+//                        try {
+//                            // 设置二维码参数
+//                            Map<EncodeHintType, Object> hints = new HashMap<>();
+//                            hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
+//                            // 生成二维码
+//                            BitMatrix bitMatrix = new MultiFormatWriter().encode(textToEncode, BarcodeFormat.QR_CODE, width, height, hints);
+//                            // 将BitMatrix转换为BufferedImage
+//                            BufferedImage image = MatrixToImageWriter.toBufferedImage(bitMatrix);
+//                            // 保存生成的二维码图片
+//                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//
+//                            ImageIO.write(image, "png", baos);
+//
+//                            List<List<InlineKeyboardButton>> inlineKeyButtons = new ArrayList<>();
+//                            inlineKeyButtons.add(Collections.singletonList(InlineKeyboardButton.builder().url("https://t.me/cin89886").text("唯一充提财务").build()));
+//                            inlineKeyButtons.add(Collections.singletonList(InlineKeyboardButton.builder().callbackData("RECHARGE_CHECK").text("转账完成").build()));
+//                            SendPhoto sendPhoto = SendPhoto.builder()
+//                                    .chatId(update.getMessage().getChatId())
+//                                    .photo(new InputFile(new ByteArrayInputStream(baos.toByteArray()), filePath))
+//                                    .caption("<b>充值地址：</b><code>" + tron + "</code>\n" +
+//                                            "\n" +
+//                                            "<b>⚠️尊贵的用户，充值金额需大于100USDT，否则充值将无法自动到账‼️</b>\n" +
+//                                            "\n" +
+//                                            "<b>⚠️充值地址，单击即可复制，请务必复制或输入正确的充值地址，否则造成的损失平台概不负责‼️</b>\n" +
+//                                            "\n" +
+//                                            "<b>⚠️转账成功后请您返回此页面，点击“转账完成”按钮，请务必完成此项操作，否则系统将无法为您自动充值‼️</b>" +
+//                                            "\n" +
+//                                            "如果您需要人工为您充值，请点击下方“唯一充提财务”按钮，我们将1对1为您提供人工充值服务。\n")
+//                                    .parseMode("HTML")
+//                                    .replyMarkup(InlineKeyboardMarkup.builder()
+//                                            .keyboard(inlineKeyButtons)
+//                                            .build()
+//                                    ).build();
+//                            execute(sendPhoto);
+//                        } catch (Exception exception) {
+//                            exception.printStackTrace();
+//                        }
+//                    }
+//                }
+//
+//            }
+//
+            if (text.equals("USDT充值") ) {
                 SingleResponse<Address> userAddress = walletAPI.getUserAddress(user.getId());
                 currencyService.getOrCreate(user.getId(), UserType.USER);
                 String tron = userAddress.getData().getTron();
@@ -456,10 +522,8 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                     // 设置二维码参数
                     Map<EncodeHintType, Object> hints = new HashMap<>();
                     hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
-
                     // 生成二维码
                     BitMatrix bitMatrix = new MultiFormatWriter().encode(textToEncode, BarcodeFormat.QR_CODE, width, height, hints);
-
                     // 将BitMatrix转换为BufferedImage
                     BufferedImage image = MatrixToImageWriter.toBufferedImage(bitMatrix);
                     // 保存生成的二维码图片
@@ -579,7 +643,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                         .append("当月总存款: ").append(extendStatistics.getMonthAllRecharge()).append("\r\n")
                         .append("当日总提款: ").append(extendStatistics.getTodayAllWithdrawal()).append("\r\n")
                         .append("当月总提款: ").append(extendStatistics.getMonthALlWithdrawal()).append("\r\n")
-                        .append("当日总返水: ").append(extendStatistics.getTodayAllBackWater()).append("\r\n");
+                        .append("总返水: ").append(extendStatistics.getTodayAllBackWater()).append("\r\n");
 //                        .append("当日总彩金: ").append(extendStatistics.getTodayAllProfit()).append("\r\n")
 //                        .append("当月总彩金: ").append(extendStatistics.getMonthAllProfit()).append("\r\n");
                 SendMessage message7 = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
@@ -598,7 +662,7 @@ public class TelegramBot2 extends TelegramLongPollingBot {
                                 "尊贵的用户，您的推广链接为：" + link + "?start=" + user.getGameAccount()).build();
                 execute(message6);
             }
-            if(text.equals("代理申请")){
+            if (text.equals("代理申请")) {
                 InlineKeyboardMarkup build = InlineKeyboardMarkup.builder().keyboardRow(
                         Collections.singletonList(InlineKeyboardButton.builder()
                                 .url("https://t.me/cin89886").text("唯一专属客服").build())).build();
