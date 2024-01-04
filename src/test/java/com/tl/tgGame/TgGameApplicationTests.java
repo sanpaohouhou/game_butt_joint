@@ -22,14 +22,10 @@ import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.tgBot.service.BotMessageService;
 import com.tl.tgGame.util.AESUtil;
 import com.tl.tgGame.util.RedisKeyGenerator;
-import com.tl.tgGame.wallet.WalletAPI;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -40,7 +36,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 
 @SpringBootTest
 class TgGameApplicationTests {
