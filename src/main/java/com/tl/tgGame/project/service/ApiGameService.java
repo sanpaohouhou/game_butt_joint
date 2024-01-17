@@ -1,11 +1,10 @@
 package com.tl.tgGame.project.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.tl.tgGame.project.dto.*;
-import com.tl.tgGame.project.entity.Game;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -146,5 +145,77 @@ public interface ApiGameService{
      * wl获取游戏记录列表
      */
     ApiWlGameResponse wlGameRecord(LocalDateTime startTime,LocalDateTime endTime);
+
+    /**
+     * BB新增会员
+     */
+    ApiBBRes bBCreateMember(String username);
+
+
+    /**
+     * BB取得游戏试玩链接
+     */
+    List<ApiBBGetDemoUrlRes> bBGetDemoUrl(String lobby,Integer gameType);
+
+    /**
+     * BB转账
+     */
+    ApiBBRes bBTransfer(String username,Integer remitno,String action,BigDecimal remit);
+
+    /**
+     * 产生会员sessionId
+     */
+    String bBCreateSession(String username);
+
+    /**
+     * BB捕鱼达人连结
+     */
+    List<ApiBbGameUrlRes> bBGameUrlBy30(String sessionId, Integer gameType);
+
+    /**
+     * BB捕鱼大师连结
+     */
+    List<ApiBbGameUrlRes> bBGameUrlBy38(String sessionId,Integer gameType);
+
+    /**
+     * BB视讯连结
+     * tag: 旗艦厅：global、区块链：blockchain
+     */
+    List<ApiBbSXGameUrlRes> bBGameUrlBy3(String sessionId,String tag);
+
+    /**
+     * BB电子连结
+     */
+    List<ApiBbGameUrlRes> bBGameUrlBy5(String sessionId,Integer gameType);
+
+    /**
+     *New BB体育连结
+     */
+    List<ApiBbSXGameUrlRes> bBGameUrlBy31(String sessionId);
+
+    /**
+     * BB视讯下注记录
+     */
+    ApiBBRes bBWagersRecordBy3(String action,LocalDate date ,String startTime,String endTime);
+
+    /**
+     * BB电子-机率下注记录
+     */
+    ApiBBRes bBWagersRecordBy5(String action,LocalDate date,String startTime,String endTime,Integer subGameKind);
+
+    /**
+     *BB捕鱼达人下注记录
+     */
+    ApiBBRes bBWagersRecordBy30(String action, LocalDate date, String startTime,String endTime);
+
+    /**
+     * BB new体育下注记录
+     */
+    ApiBBRes bBWagersRecordBy31(String action,LocalDate date,String startTime,String endTime);
+
+    /**
+     * BB 捕鱼大师下注记录
+     */
+    ApiBBRes bBWagersRecordBy38(String action,LocalDate date,String startTime,String endTime);
 
 }

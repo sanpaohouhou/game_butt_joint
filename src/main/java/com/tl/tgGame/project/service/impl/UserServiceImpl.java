@@ -303,14 +303,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Transactional
     @Override
-    public Boolean gameRecharge(Long tgId, String gameType) {
-        String key = redisKeyGenerator.generateKey("gameRecharge", tgId);
+    public Boolean gameRecharge(User user, String gameType) {
+        String key = redisKeyGenerator.generateKey("gameRecharge", user.getTgId());
         redisLock.redissonLock(key);
         try {
-            User user = checkTgId(tgId);
-            if (user == null) {
-                return false;
-            }
+//            User user = checkTgId(tgId);
             Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
             if (currency.getRemain().compareTo(BigDecimal.ZERO) <= 0) {
                 return true;

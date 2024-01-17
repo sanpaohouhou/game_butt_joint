@@ -177,6 +177,13 @@ public class ConfigConstants {
      */
     public static final String GAME_BACK_WATER_RATE = "game_back_water_rate";
 
+    /**
+     * Bb——website
+     */
+    public static final String BB_WEB_SITE = "bb_website";
+    public static final String BB_CREATE_MEMBER_KEY_B = "bb_create_member_key_b";
+
+
 
 
 

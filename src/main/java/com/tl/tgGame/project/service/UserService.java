@@ -38,7 +38,7 @@ public interface UserService extends IService<User> {
 
     Boolean updateByHasGroup(Long tgId,String tgGroup,Boolean hasGroup);
 
-    Boolean gameRecharge(Long tgId,String gameType);
+    Boolean gameRecharge(User user,String gameType);
 
     Boolean gameWithdrawal(Long tgId,String gameType);
 

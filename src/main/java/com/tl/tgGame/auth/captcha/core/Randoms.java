@@ -2,6 +2,8 @@ package com.tl.tgGame.auth.captcha.core;
 
 import io.netty.util.internal.ThreadLocalRandom;
 
+import java.util.Random;
+
 /**
  * <p>随机工具类</p>
  *
@@ -36,5 +38,24 @@ public class Randoms {
 
     public static char alpha() {
         return ALPHA[num(0, ALPHA.length)];
+    }
+
+    public static String generateRandomString(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder randomString = new StringBuilder();
+
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            int randomIndex = random.nextInt(characters.length());
+            char randomChar = characters.charAt(randomIndex);
+            randomString.append(randomChar);
+        }
+
+        return randomString.toString();
+    }
+
+    public static void main(String[] args) {
+        String s = generateRandomString(6);
+        System.out.println(s);
     }
 }

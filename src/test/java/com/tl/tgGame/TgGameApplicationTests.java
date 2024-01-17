@@ -1,5 +1,6 @@
 package com.tl.tgGame;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.symmetric.AES;
@@ -21,11 +22,14 @@ import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.tgBot.service.BotMessageService;
 import com.tl.tgGame.util.AESUtil;
+import com.tl.tgGame.util.HttpUtil;
+import com.tl.tgGame.util.Md5Util;
 import com.tl.tgGame.util.RedisKeyGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -35,11 +39,12 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @SpringBootTest
 class TgGameApplicationTests {
@@ -204,17 +209,19 @@ class TgGameApplicationTests {
 	public void aesEn(){
 
 		try {
-			String encrypt = AESUtil.encrypt("q.)0m7%qj3gzyr$?", "U81msjdw0v486i+ol8pko+0_(m0ck-p6%om!wbkmg0_(.34&1");
-			String encrypt1 = AESUtil.encrypt("?)!!fvd*w)", "U81msjdw0v486i+ol8pko+0_(m0ck-p6%om!wbkmg0_(.34&1");
-			String tests = AESUtil.dex("d62b8b8b9b1cfea3f5e95a534f4409ed793fff1445677490dc06ca19c0853552", "gjXayH1T3Jwxt/ee4TTsvw==");
-			String testss = AESUtil.decrypt("d62b8b8b9b1cfea3f5e95a534f4409ed793fff1445677490dc06ca19c0853552", "gjXayH1T3Jwxt/ee4TTsvw==");
-			AES aes = SecureUtil.aes(tests.getBytes(StandardCharsets.UTF_8));
-
-			System.out.println(encrypt1);
-
-			System.out.println(tests);
-			System.out.println(testss);
-			System.out.println(aes.encryptBase64(tests));
+//			String encrypt = AESUtil.encrypt("q.)0m7%qj3gzyr$?", "U81msjdw0v486i+ol8pko+0_(m0ck-p6%om!wbkmg0_(.34&1");
+//			String encrypt1 = AESUtil.encrypt("?)!!fvd*w)", "U81msjdw0v486i+ol8pko+0_(m0ck-p6%om!wbkmg0_(.34&1");
+//			String tests = AESUtil.dex("d62b8b8b9b1cfea3f5e95a534f4409ed793fff1445677490dc06ca19c0853552", "gjXayH1T3Jwxt/ee4TTsvw==");
+//			String testss = AESUtil.decrypt("d62b8b8b9b1cfea3f5e95a534f4409ed793fff1445677490dc06ca19c0853552", "gjXayH1T3Jwxt/ee4TTsvw==");
+//			AES aes = SecureUtil.aes(tests.getBytes(StandardCharsets.UTF_8));
+//
+//			System.out.println(encrypt1);
+//
+//			System.out.println(tests);
+//			System.out.println(testss);
+//			System.out.println(aes.encryptBase64(tests));
+			String encrypt = AESUtil.encrypt("1710464095440769025", "U81msjdw0v486i+ol8pko+0_(m0ck-p6%om!wbkmg0_(.34&1");
+			System.out.println(encrypt);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -363,6 +370,41 @@ class TgGameApplicationTests {
 		Long gameId = 1704453532604534785L;
 		GameBet gameBet = gameBetService.getById(gameId);
 		gameBetService.loseCommission(gameBet);
+	}
+
+	public static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+	@Test
+	public void testBbGetDemoUrl(){
+		ZoneId of = ZoneId.of("America/New_York");
+		String localDate = ZonedDateTime.now(of).toLocalDate().format(dtf);
+		Map<String,Object> map = new HashMap<>();
+		String md5 = Md5Util.MD5("3898be" + "96nIslg4te" + localDate, 32);
+ 		map.put("website","3898be");
+		map.put("lang","zh-cn");
+		map.put("lobby","5");
+		map.put("key", "a"+ md5 + "mkslaa");
+		String s = HttpUtil.doGet("http://linkapi.ttg123.com/app/WebService/JSON/display.php/GetDemoUrl", map);
+		System.out.println(s);
+	}
+
+	@Test
+	public void testBbApi(){
+//		ApiBBRes apiBBRes = apiGameService.bBCreateMember("aa123456");
+//		System.out.println(apiBBRes);
+//		List<ApiBBGetDemoUrlRes> list = apiGameService.bBGetDemoUrl(String.valueOf(5), null);
+//		System.out.println(list);
+//		ApiBBRes apiBBRes = apiGameService.bBTransfer("aa123456", 123, "IN", BigDecimal.valueOf(1000));
+//		System.out.println(apiBBRes);
+		String apiBBRes = apiGameService.bBCreateSession("aa123456");
+//		System.out.println(apiBBRes);
+//		List<ApiBbBuYuGameUrlRes> apiBBRes1 = apiGameService.bBGameUrlBy30(apiBBRes, 30599);
+//		System.out.println(apiBBRes1);
+//		List<ApiBbSXGameUrlRes> global = apiGameService.bBGameUrlBy3(apiBBRes, "global");
+//		System.out.println(global);
+//		List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy38(apiBBRes);
+		List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy5(apiBBRes, 5193);
+//		List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(apiBBRes);
+		System.out.println(apiBbGameUrlRes);
 	}
 
 

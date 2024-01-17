@@ -14,7 +14,8 @@ public enum GameBusiness {
     WL_BJL("WL_BJL","WL百家乐","\uD83D\uDC9EWL百家乐"),
     WL_TY("WL_TY","WL体育","⚽\uFE0FWL体育"),
     FC_BY("FC_BY","FC捕鱼","\uD83C\uDF08FC捕鱼"),
-    EG("EG","EG电子","\uD83D\uDC21EG电子"),;
+    EG("EG","EG电子","\uD83D\uDC21EG电子"),
+    BB("BB","BB游戏","\uD83D\uDC21BB游戏"),;
     private String key;
 
     private String gameName;

@@ -161,7 +161,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                         userService.updateById(user);
                     }
                 }
-                Boolean result = userService.gameRecharge(user.getTgId(), GameBusiness.EG.getKey());
+                Boolean result = userService.gameRecharge(user, GameBusiness.EG.getKey());
                 if (result) {
                     String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                     String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
@@ -173,7 +173,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_GAME")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+                userService.gameRecharge(user, GameBusiness.WL.getKey());
                 String wlEnterGame = apiGameService.wlEnterGame(user.getId(), null, request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
@@ -182,7 +182,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_BJL")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+                userService.gameRecharge(user, GameBusiness.WL.getKey());
                 String wlEnterGame = apiGameService.wlEnterGame(user.getId(), "81", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
@@ -191,10 +191,20 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_TY")) {
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-                userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+                userService.gameRecharge(user, GameBusiness.WL.getKey());
                 String wlEnterGame = apiGameService.wlEnterGame(user.getId(), "100", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(wlEnterGame);
+                answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+                execute(answerCallbackQuery);
+            }
+            if(callbackQuery.getGameShortName()!=null && callbackQuery.getGameShortName().equals("BB_GAME")){
+                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+//                userService.gameRecharge(user,GameBusiness.BB.getKey());
+                String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
+                String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
+                AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+                answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt + "&type=" + GameBusiness.BB.getKey());
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                 execute(answerCallbackQuery);
             }
@@ -211,6 +221,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         KeyboardRow keyboardRow2 = new KeyboardRow();
 
+        KeyboardRow keyboardRow3 = new KeyboardRow();
+
         KeyboardButton keyboardButton1 = KeyboardButton.builder().text("\uD83D\uDC9EFC电子").build();
         KeyboardButton keyboardButton2 = KeyboardButton.builder().text("\uD83C\uDFB0WL棋牌").build();
         KeyboardButton keyboardButton3 = KeyboardButton.builder().text("\uD83D\uDC21EG电子").build();
@@ -222,6 +234,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         KeyboardButton keyboardButton7 = KeyboardButton.builder().text("\uD83E\uDD29充值提现\uD83C\uDF08").build();
         KeyboardButton keyboardButton8 = KeyboardButton.builder().text("\uD83E\uDD29推广\uD83C\uDF08").build();
         KeyboardButton keyboardButton9 = KeyboardButton.builder().text("\uD83D\uDC96专属客服\uD83D\uDE47\u200D♀\uFE0F").build();
+
+        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC21BB游戏").build();
 
         keyboardRow.add(keyboardButton1);
         keyboardRow.add(keyboardButton2);
@@ -235,9 +249,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         keyboardRow2.add(keyboardButton8);
         keyboardRow2.add(keyboardButton9);
 
+        keyboardRow3.add(keyboardButton10);
+
         list.add(keyboardRow);
         list.add(keyboardRow1);
         list.add(keyboardRow2);
+        list.add(keyboardRow3);
 
         ReplyKeyboardMarkup keyboardMarkup = ReplyKeyboardMarkup.builder().keyboard(list)
                 .resizeKeyboard(true).build();
@@ -350,6 +367,14 @@ public class TelegramBot extends TelegramLongPollingBot {
                                     .replyMarkup(build)
                                     .build();
                             execute(build6);
+                            break;
+                        case "\uD83D\uDC21BB游戏":
+                            SendGame build7 = SendGame.builder().chatId(update.getMessage().getChatId())
+                                    .gameShortName("BB_GAME")
+                                    .allowSendingWithoutReply(false)
+                                    .replyMarkup(build)
+                                    .build();
+                            execute(build7);
                             break;
                         case "\uD83E\uDD29充值提现\uD83C\uDF08":
                             SendMessage message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())

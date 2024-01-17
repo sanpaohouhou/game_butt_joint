@@ -66,6 +66,8 @@ game_api:
     queryOrder: queryOrderV3?
     userBalanceUrl: getBalance?
     gameRecordUrl: getRecordV2?
+  bb:
+    createMember: CreateMember?
 
 
 wallet:

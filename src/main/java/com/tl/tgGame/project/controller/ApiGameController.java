@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.tl.tgGame.auth.annotation.Uid;
 import com.tl.tgGame.auth.service.AuthTokenService;
 import com.tl.tgGame.common.dto.Response;
+import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.*;
 import com.tl.tgGame.project.entity.User;
 import com.tl.tgGame.project.enums.GameBusiness;
@@ -17,14 +18,13 @@ import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.AESUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -95,17 +95,17 @@ public class ApiGameController {
      * 获取eg游戏列表
      */
     @GetMapping("/gameList")
-    public Response apiGameList(@RequestParam(defaultValue = "FC") String type) throws IOException {
+    public Response apiGameList(@RequestParam(defaultValue = "FC") String type,
+                                @RequestParam(required = false) String gameAccount) throws IOException {
         List<ApiGameListDTO> list = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
         if (type.equals("FC")) {
             String path = "./src/fcGameList.json";
-            ObjectMapper objectMapper = new ObjectMapper();
             list = objectMapper.readValue(new File(path),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, ApiGameListDTO.class));
         }
         if (type.equals("FCBY")) {
             String path = "./src/fcByGame.json";
-            ObjectMapper objectMapper = new ObjectMapper();
             list = objectMapper.readValue(new File(path),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, ApiGameListDTO.class));
         }
@@ -124,7 +124,23 @@ public class ApiGameController {
                 list.add(gameListDTO);
             }
         }
+        return Response.success(list);
+    }
 
+    @GetMapping("/bb/gameList")
+    public Response bbGameList(@RequestParam(defaultValue = "BBDZ")String type) throws IOException {
+        List<ApiBbGameList> list = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        if(type.equals("BBBY")){
+            String path = "./src/BbBYGameList.json";
+            list = objectMapper.readValue(new File(path),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class,ApiBbGameList.class));
+        }
+        if(type.equals("BBDZ")){
+            String path = "./src/BbDZGameList.json";
+            list = objectMapper.readValue(new File(path),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class,ApiBbGameList.class));
+        }
         return Response.success(list);
     }
 
@@ -132,25 +148,66 @@ public class ApiGameController {
      * 通过游戏id获取游戏url
      */
     @GetMapping("/gameUrl")
-    public Response gameUrl(@RequestParam String gameId,
+    public Response gameUrl(@RequestParam(required = false) String gameId,
                             @RequestParam String type) {
 
         String token = authTokenService.token();
         String decrypt = AESUtil.decrypt(token, securityKey);
         User user = userService.getById(decrypt);
+        if(Objects.isNull(user)){
+            ErrorEnum.OBJECT_NOT_FOUND.throwException();
+        }
         String url = null;
         if (type.equals("FC") || type.equals("FCBY")) {
             url = apiGameService.login(ApiLoginReq.builder().MemberAccount(user.getGameAccount())
                     .GameID(Integer.valueOf(gameId)).LoginGameHall(false).LanguageID(2).build());
-            userService.gameRecharge(user.getTgId(), GameBusiness.FC.getKey());
+            userService.gameRecharge(user, GameBusiness.FC.getKey());
         }
         if (type.equals("EG")) {
-            userService.gameRecharge(user.getTgId(), GameBusiness.WL.getKey());
+            userService.gameRecharge(user, GameBusiness.WL.getKey());
             String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
             url = apiGameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
         }
+        if(type.equals("BBBY")){
+//            userService.gameRecharge(user.getTgId(),GameBusiness.BB.getKey());
+            String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
+            List<ApiBbGameUrlRes> apiBbGameUrlRes = new ArrayList<>();
+            if(Arrays.asList("38001","38002").contains(gameId)){
+                apiBbGameUrlRes = apiGameService.bBGameUrlBy38(sessionId,Integer.valueOf(gameId));
+            }else {
+                apiBbGameUrlRes = apiGameService.bBGameUrlBy30(sessionId, Integer.valueOf(gameId));
+            }
+            if(CollectionUtils.isEmpty(apiBbGameUrlRes)){
+                ErrorEnum.SYSTEM_ERROR.throwException();
+            }
+            url = apiBbGameUrlRes.get(0).getHtml5();
+        }
+        if(type.equals("BBDZ")){
+//            userService.gameRecharge(user.getTgId(),GameBusiness.BB.getKey());
+            String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
+            List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy5(sessionId, Integer.valueOf(gameId));
+            if(!CollectionUtils.isEmpty(apiBbGameUrlRes)){
+                url = apiBbGameUrlRes.get(0).getHtml5();
+            }
+        }
+        if(type.equals("BBSX")){
+            String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
+            List<ApiBbSXGameUrlRes> globals = apiGameService.bBGameUrlBy3(sessionId, "global");
+            if(!CollectionUtils.isEmpty(globals)){
+                url = globals.get(0).getMobile();
+            }
+        }
+        if(type.equals("BBTY")){
+            String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
+            List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(sessionId);
+            if(!CollectionUtils.isEmpty(apiBbGameUrlRes)){
+                url = apiBbGameUrlRes.get(0).getMobile();
+            }
+        }
         return Response.success(url);
     }
+
+
 
 
     public static void main(String[] args) {

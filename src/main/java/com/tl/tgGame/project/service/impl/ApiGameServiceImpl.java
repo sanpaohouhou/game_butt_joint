@@ -8,6 +8,9 @@ import cn.hutool.crypto.symmetric.AES;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.tl.tgGame.auth.captcha.core.Randoms;
 import com.tl.tgGame.common.IpTool;
 import com.tl.tgGame.exception.ErrorEnum;
 import com.tl.tgGame.project.dto.*;
@@ -27,9 +30,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -314,7 +320,7 @@ public class ApiGameServiceImpl implements ApiGameService {
             url = egHost + egPlatform + egDeposit + "?hash=" + hash;
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(url).body(json).contentType("application/json").execute();
             body = execute.body();
-            log.info("EG电子游戏充值请求参数:{},hash:{},返回结果:{}", json,hash,body);
+            log.info("EG电子游戏充值请求参数:{},hash:{},返回结果:{}", json, hash, body);
             return new Gson().fromJson(body, ApiEgDepositRes.class);
         } catch (Exception e) {
             log.error("EG电子游戏充值异常exception:{},request:{},response:{}", e, req, body);
@@ -335,7 +341,7 @@ public class ApiGameServiceImpl implements ApiGameService {
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(egHost + egPlatform + egWithdraw + "?hash=" + hash)
                     .body(json).contentType("application/json").execute();
             body = execute.body();
-            log.info("EG电子游戏提现请求参数:{},hash:{},返回结果:{}", json,hash,body);
+            log.info("EG电子游戏提现请求参数:{},hash:{},返回结果:{}", json, hash, body);
             return new Gson().fromJson(body, ApiEgDepositRes.class);
         } catch (Exception e) {
             log.error("EG电子游戏提现异常exception:{},request:{},response:{}", e, req, body);
@@ -356,7 +362,7 @@ public class ApiGameServiceImpl implements ApiGameService {
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(egHost + egPlatform + egLogout + "?hash=" + hash)
                     .body(json).contentType("application/json").execute();
             body = execute.body();
-            log.info("EG电子游戏登出玩家请求参数:{},hash:{},返回结果:{}", json,hash,body);
+            log.info("EG电子游戏登出玩家请求参数:{},hash:{},返回结果:{}", json, hash, body);
             return true;
         } catch (Exception e) {
             log.error("EG电子游戏登出玩家异常exception:{},request:{},response:{}", e, req, body);
@@ -392,7 +398,7 @@ public class ApiGameServiceImpl implements ApiGameService {
             HttpResponse execute = cn.hutool.http.HttpUtil.createPost(egHost + egPlatform + egEnterGame + "?hash=" + hash)
                     .body(json).contentType("application/json").execute();
             body = execute.body();
-            log.info("EG电子游戏进入游戏请求参数:{},hash:{},返回结果:{}", json,hash,body);
+            log.info("EG电子游戏进入游戏请求参数:{},hash:{},返回结果:{}", json, hash, body);
             ApiEgEnterGameRes apiEgEnterGameRes = new Gson().fromJson(body, ApiEgEnterGameRes.class);
             if (StringUtils.isEmpty(apiEgEnterGameRes.getCode())) {
                 return apiEgEnterGameRes.getUrl();
@@ -474,7 +480,6 @@ public class ApiGameServiceImpl implements ApiGameService {
             String wlHost = configService.get(ConfigConstants.WL_HOST);
             quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp(LocalDateTime.now())));
             res = HttpRequest.of(wlHost + wlEnterGameUrl + quartet, null).execute().body();
-            System.out.println(res);
             ApiWlGameRes gameRes = new Gson().fromJson(res, ApiWlGameRes.class);
             if (gameRes.getCode() != 0) {
                 if (gameRes.getMsg() != null) {
@@ -507,12 +512,270 @@ public class ApiGameServiceImpl implements ApiGameService {
 
         String startTimeStr = DateUtil.format(startTime, DatePattern.PURE_DATETIME_PATTERN);
         String engTimeStr = DateUtil.format(endTime, DatePattern.PURE_DATETIME_PATTERN);
-        String param = "from=" + startTimeStr + "&" + "until=" + engTimeStr + "&" +"detail=2" +"&"+"flag=1";
+        String param = "from=" + startTimeStr + "&" + "until=" + engTimeStr + "&" + "detail=2" + "&" + "flag=1";
         String quartet = paramGen(param, String.valueOf(TimeUtil.nowTimeStamp(LocalDateTime.now())));
         String wlHost = configService.get(ConfigConstants.WL_HOST);
         String body = HttpRequest.of(wlHost + wlGameRecordUrl + quartet, null).execute().body();
-        ApiWlGameResponse gameRes = new Gson().fromJson(body, ApiWlGameResponse.class);
-        return gameRes;
+        return new Gson().fromJson(body, ApiWlGameResponse.class);
+    }
+
+    @Override
+    public ApiBBRes bBCreateMember(String username) {
+        String keyA = Randoms.generateRandomString(6);
+        String keyC = Randoms.generateRandomString(1);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+//        String bbWebSite = configService.get(ConfigConstants.BB_WEB_SITE);
+        String bbWebSite = "3898be";
+        String bbKeyB = "yldbkxMJ7L";
+//        String bbKeyB = configService.get(ConfigConstants.BB_CREATE_MEMBER_KEY_B);
+        String signStr = bbWebSite + username + bbKeyB + localDate;
+        String key = keyA + Md5Util.MD5(signStr, 32) + keyC;
+        String params = String.format("website=%s&uppername=%s&username=%s&key=%s", "3898be", "deetestff", username, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "CreateMember?" + params, null).execute().body();
+        return new Gson().fromJson(body, ApiBBRes.class);
+    }
+
+    @Override
+    public List<ApiBBGetDemoUrlRes> bBGetDemoUrl(String lobby, Integer gameType) {
+        String keyA = Randoms.generateRandomString(1);
+        String keyC = Randoms.generateRandomString(6);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "96nIslg4te";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = null;
+        if (gameType == null) {
+            params = String.format("website=%s&lang=%s&lobby=%s&key=%s", bbWebSite, "zh-cn", lobby, key);
+        } else {
+            params = String.format("website=%s&lang=%s&lobby=%s&gametype=%s&key=%s", bbWebSite, "zh-cn", lobby, gameType, key);
+        }
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GetDemoUrl?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+
+        Type type = new TypeToken<List<ApiBBGetDemoUrlRes>>() {}.getType();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        String json = gson.toJson(apiBBRes.getData());
+        return gson.fromJson(json,type);
+    }
+
+    @Override
+    public ApiBBRes bBTransfer(String username, Integer remitno, String action, BigDecimal remit) {
+        String keyA = Randoms.generateRandomString(1);
+        String keyC = Randoms.generateRandomString(2);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "OY1aYfx";
+        String uppername = "deetestff";
+        String key = keyA + Md5Util.MD5(bbWebSite + username + remitno + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&username=%s&uppername=%s&remitno=%s&action=%s&remit=%s&key=%s"
+                , bbWebSite, username, uppername, remitno, action, remit, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php" + "/Transfer?" + params, null).execute().body();
+        return new Gson().fromJson(body,ApiBBRes.class);
+    }
+
+    @Override
+    public String bBCreateSession(String username) {
+         String keyA = Randoms.generateRandomString(4);
+        String keyC = Randoms.generateRandomString(1);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "KVd0DuGbP";
+        String uppername = "deetestff";
+        String key = keyA + Md5Util.MD5(bbWebSite + username + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&username=%s&uppername=%s&key=%s", bbWebSite, username, uppername, key);
+        System.out.println("session:" + params);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "CreateSession?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+        Type type = new TypeToken<Map<String, String>>() {}.getType();
+        Map<String,String> map = new Gson().fromJson(String.valueOf(apiBBRes.getData()),type);
+        return map.get("sessionid");
+    }
+
+    @Override
+    public List<ApiBbGameUrlRes> bBGameUrlBy30(String sessionId, Integer gameType) {
+        String keyA = Randoms.generateRandomString(1);
+        String keyC = Randoms.generateRandomString(7);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "XJxyEzq7U";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&lang=%s&sessionid=%s&gametype=%s&key=%s", bbWebSite, "zh-cn", sessionId, gameType, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy30?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {}.getType();
+        Gson gson = new Gson();
+        String json = gson.toJson(apiBBRes.getData());
+        return new Gson().fromJson(json,type);
+    }
+
+    @Override
+    public List<ApiBbGameUrlRes> bBGameUrlBy38(String sessionId,Integer gameType) {
+        String keyA = Randoms.generateRandomString(6);
+        String keyC = Randoms.generateRandomString(6);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebsite = "3898be";
+        String bbKeyB = "REFZUxCy";
+        String key = keyA + Md5Util.MD5(bbWebsite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&lang=%s&sessionid=%s&gametype=%s&key=%s", bbWebsite, "zh-cn", sessionId,gameType, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy38?" + params, null).execute().body();
+        Gson gson = new Gson();
+        ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {}.getType();
+        String json = gson.toJson(apiBBRes.getData());
+        return gson.fromJson(json,type);
+    }
+
+    @Override
+    public List<ApiBbSXGameUrlRes> bBGameUrlBy3(String sessionId, String tag) {
+        String keyA = Randoms.generateRandomString(6);
+        String keyC = Randoms.generateRandomString(4);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "f3yXsjuZ";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&lang=%s&sessionid=%s&tag=%s&key=%s", bbWebSite, "zh-cn", sessionId, tag, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy3?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+        Type type = new TypeToken<List<ApiBbSXGameUrlRes>>() {}.getType();
+        Gson gson = new Gson();
+        String json = gson.toJson(apiBBRes.getData());
+        return gson.fromJson(json,type);
+    }
+
+    @Override
+    public List<ApiBbGameUrlRes> bBGameUrlBy5(String sessionId,Integer gameType) {
+        String keyA = Randoms.generateRandomString(9);
+        String keyC = Randoms.generateRandomString(8);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "KeNSSkwR";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&lang=%s&sessionid=%s&gametype=%s&key=%s", bbWebSite, "zh-cn", sessionId, gameType,key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy5?" + params, null).execute().body();
+        Gson gson = new Gson();
+        ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {}.getType();
+        String json = gson.toJson(apiBBRes.getData());
+        return gson.fromJson(json,type);
+    }
+
+    @Override
+    public List<ApiBbSXGameUrlRes> bBGameUrlBy31(String sessionId) {
+        String keyA = Randoms.generateRandomString(4);
+        String keyC = Randoms.generateRandomString(6);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "U9o19R";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&lang=%s&sessionid=%s&key=%s", bbWebSite, "zh-cn", sessionId, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy31?" + params, null).execute().body();
+        Gson gson = new Gson();
+        ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+        Type type = new TypeToken<List<ApiBbSXGameUrlRes>>() {}.getType();
+        String json = gson.toJson(apiBBRes.getData());
+        return gson.fromJson(json,type);
+    }
+
+    @Override
+    public ApiBBRes bBWagersRecordBy3(String action, LocalDate date , String startTime, String endTime) {
+        String keyA = Randoms.generateRandomString(6);
+        String keyC = Randoms.generateRandomString(3);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "trgTgmN64";
+        String uppername = "deetestff";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&action=%s&uppername=%s&date=%s&starttime=%s&endtime=%s&key=%s",
+                bbWebSite, action, uppername, date, startTime, endTime, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "WagersRecordBy3?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+
+        return null;
+    }
+
+    @Override
+    public ApiBBRes bBWagersRecordBy5(String action,LocalDate date,String startTime,String endTime,Integer subGameKind) {
+        String keyA = Randoms.generateRandomString(1);
+        String keyC = Randoms.generateRandomString(2);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "216VB";
+        String uppername = "deetestff";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&action=%s&uppername=%s&date=%s&starttime=%s&endtime=%s&subgamekind=%s&key=%s",
+                bbWebSite, action, uppername, date, startTime, endTime, subGameKind);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "WagersRecordBy5?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        return null;
+    }
+
+    @Override
+    public ApiBBRes bBWagersRecordBy30(String action,LocalDate date,String startTime,String endTime) {
+        String keyA = Randoms.generateRandomString(3);
+        String keyC = Randoms.generateRandomString(6);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "UNYfSFx";
+        String uppername = "deetestff";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&action=%s&uppername=%s&date=%s&starttime=%s&endtime=%s&key=%s",
+                bbWebSite, action, uppername, date, startTime, endTime, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "WagersRecordBy30?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        return null;
+    }
+
+    @Override
+    public ApiBBRes bBWagersRecordBy31(String action,LocalDate date,String startTime,String endTime) {
+        String keyA = Randoms.generateRandomString(4);
+        String keyC = Randoms.generateRandomString(9);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "vl8MnDLi";
+        String uppername = "deetestff";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&action=%s&uppername=%s&date=%s&startime=%s&endtime=%s&key=%s",
+                bbWebSite, action, uppername, date, startTime, endTime);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "WagersRecordBy31?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        return null;
+    }
+
+    @Override
+    public ApiBBRes bBWagersRecordBy38(String action,LocalDate date,String startTime,String endTime) {
+        String keyA = Randoms.generateRandomString(9);
+        String keyC = Randoms.generateRandomString(1);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "YYTowffDj";
+        String uppername = "deetestff";
+        String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&action=%s&uppername=%s&date=%s&starttime=%s&endtime=%s&key=%s",
+                bbWebSite, action, uppername, date, startTime, endTime, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "WagersRecordBy38?" + params, null).execute().body();
+        ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        return null;
     }
 
     private String paramGen(String param, String unixTime) {
@@ -540,4 +803,8 @@ public class ApiGameServiceImpl implements ApiGameService {
         map.put("Sign", sign);
         return map;
     }
+
+    public static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+
 }

@@ -75,6 +75,11 @@ public class TimeUtil {
         return zonedDateTime.format(dateTimeFormatter);
     }
 
+    public static LocalDateTime zoneCharge(String zoneId){
+        ZoneId of = ZoneId.of(zoneId);
+        return ZonedDateTime.now(of).toLocalDateTime();
+    }
+
     /**
      * 美东时间转换北京时区
      *
