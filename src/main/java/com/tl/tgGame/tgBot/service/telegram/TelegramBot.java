@@ -221,10 +221,11 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         KeyboardRow keyboardRow2 = new KeyboardRow();
 
-        KeyboardRow keyboardRow3 = new KeyboardRow();
+//        KeyboardRow keyboardRow3 = new KeyboardRow();
 
         KeyboardButton keyboardButton1 = KeyboardButton.builder().text("\uD83D\uDC9EFC电子").build();
-        KeyboardButton keyboardButton2 = KeyboardButton.builder().text("\uD83C\uDFB0WL棋牌").build();
+//        KeyboardButton keyboardButton2 = KeyboardButton.builder().text("\uD83C\uDFB0WL棋牌").build();
+        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC21BB游戏").build();
         KeyboardButton keyboardButton3 = KeyboardButton.builder().text("\uD83D\uDC21EG电子").build();
 
         KeyboardButton keyboardButton4 = KeyboardButton.builder().text("\uD83D\uDC9EWL百家乐").build();
@@ -235,10 +236,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         KeyboardButton keyboardButton8 = KeyboardButton.builder().text("\uD83E\uDD29推广\uD83C\uDF08").build();
         KeyboardButton keyboardButton9 = KeyboardButton.builder().text("\uD83D\uDC96专属客服\uD83D\uDE47\u200D♀\uFE0F").build();
 
-        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC21BB游戏").build();
-
+//        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC21BB游戏").build();
+//
         keyboardRow.add(keyboardButton1);
-        keyboardRow.add(keyboardButton2);
+        keyboardRow.add(keyboardButton10);
         keyboardRow.add(keyboardButton3);
 
         keyboardRow1.add(keyboardButton4);
@@ -249,12 +250,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         keyboardRow2.add(keyboardButton8);
         keyboardRow2.add(keyboardButton9);
 
-        keyboardRow3.add(keyboardButton10);
+//        keyboardRow3.add(keyboardButton10);
 
         list.add(keyboardRow);
         list.add(keyboardRow1);
         list.add(keyboardRow2);
-        list.add(keyboardRow3);
+//        list.add(keyboardRow3);
 
         ReplyKeyboardMarkup keyboardMarkup = ReplyKeyboardMarkup.builder().keyboard(list)
                 .resizeKeyboard(true).build();
@@ -328,14 +329,14 @@ public class TelegramBot extends TelegramLongPollingBot {
                                     .build();
                             execute(build1);
                             break;
-                        case "\uD83C\uDFB0WL棋牌":
-                            SendGame build2 = SendGame.builder().chatId(update.getMessage().getChatId())
-                                    .gameShortName("WL_GAME")
-                                    .allowSendingWithoutReply(false)
-                                    .replyMarkup(build)
-                                    .build();
-                            execute(build2);
-                            break;
+//                        case "\uD83C\uDFB0WL棋牌":
+//                            SendGame build2 = SendGame.builder().chatId(update.getMessage().getChatId())
+//                                    .gameShortName("WL_GAME")
+//                                    .allowSendingWithoutReply(false)
+//                                    .replyMarkup(build)
+//                                    .build();
+//                            execute(build2);
+//                            break;
                         case "\uD83D\uDC21EG电子":
                             SendGame build3 = SendGame.builder().chatId(update.getMessage().getChatId())
                                     .gameShortName("EG_GAME")
