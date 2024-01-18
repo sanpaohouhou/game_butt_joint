@@ -589,6 +589,7 @@ public class ApiGameServiceImpl implements ApiGameService {
         System.out.println("session:" + params);
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "CreateSession?" + params, null).execute().body();
         ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
+        log.info("bBCreateSession_RESPONSE:{}",new Gson().toJson(apiBBRes));
         if(!apiBBRes.getResult()){
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
@@ -689,6 +690,7 @@ public class ApiGameServiceImpl implements ApiGameService {
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy31?" + params, null).execute().body();
         Gson gson = new Gson();
         ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
+        log.info("bBGameUrlBy31_RESPONSE:{}",gson.toJson(apiBBRes));
         if(!apiBBRes.getResult()){
             ErrorEnum.SYSTEM_ERROR.throwException();
         }

@@ -16,6 +16,7 @@ import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.AESUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/game")
+@Slf4j
 public class ApiGameController {
 
     @Autowired
@@ -200,6 +202,7 @@ public class ApiGameController {
         if(type.equals("BBTY")){
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
             List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(sessionId);
+            log.info("BBTY_RESPONSE:{}",new Gson().toJson(apiBbGameUrlRes));
             if(!CollectionUtils.isEmpty(apiBbGameUrlRes)){
                 url = apiBbGameUrlRes.get(0).getMobile();
             }

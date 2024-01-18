@@ -395,15 +395,15 @@ class TgGameApplicationTests {
 //		System.out.println(list);
 //		ApiBBRes apiBBRes = apiGameService.bBTransfer("aa123456", 123, "IN", BigDecimal.valueOf(1000));
 //		System.out.println(apiBBRes);
-		String apiBBRes = apiGameService.bBCreateSession("aa123456");
+		String apiBBRes = apiGameService.bBCreateSession("qu6227478984");
 //		System.out.println(apiBBRes);
 //		List<ApiBbBuYuGameUrlRes> apiBBRes1 = apiGameService.bBGameUrlBy30(apiBBRes, 30599);
 //		System.out.println(apiBBRes1);
 //		List<ApiBbSXGameUrlRes> global = apiGameService.bBGameUrlBy3(apiBBRes, "global");
 //		System.out.println(global);
 //		List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy38(apiBBRes);
-		List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy5(apiBBRes, 5193);
-//		List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(apiBBRes);
+//		List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy5(apiBBRes, 5193);
+		List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(apiBBRes);
 		System.out.println(apiBbGameUrlRes);
 	}
 
