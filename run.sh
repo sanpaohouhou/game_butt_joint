@@ -1,4 +1,4 @@
-mvn clean install -DskipTests
+#mvn clean install -DskipTests
 
 ps -ef |grep java |grep ROOT  |grep -v 'grep'|awk '{print $2}'  | xargs kill -9
 
