@@ -578,7 +578,8 @@ public class ApiGameServiceImpl implements ApiGameService {
 
     @Override
     public String bBCreateSession(String username) {
-         String keyA = Randoms.generateRandomString(4);
+        log.debug("bBCreateSession_start:{}",username);
+        String keyA = Randoms.generateRandomString(4);
         String keyC = Randoms.generateRandomString(1);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
         String bbWebSite = "3898be";
@@ -590,6 +591,7 @@ public class ApiGameServiceImpl implements ApiGameService {
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "CreateSession?" + params, null).execute().body();
         ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
         log.info("bBCreateSession_RESPONSE:{}",new Gson().toJson(apiBBRes));
+        log.debug("bBCreateSession_RESPONSE_DEBUG:{}",new Gson().toJson(apiBBRes));
         if(!apiBBRes.getResult()){
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
@@ -680,6 +682,7 @@ public class ApiGameServiceImpl implements ApiGameService {
 
     @Override
     public List<ApiBbSXGameUrlRes> bBGameUrlBy31(String sessionId) {
+        log.debug("bBGameUrlBy31_start:{}",sessionId);
         String keyA = Randoms.generateRandomString(4);
         String keyC = Randoms.generateRandomString(6);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -691,6 +694,7 @@ public class ApiGameServiceImpl implements ApiGameService {
         Gson gson = new Gson();
         ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
         log.info("bBGameUrlBy31_RESPONSE:{}",gson.toJson(apiBBRes));
+        log.debug("bBGameUrlBy31_RESPONSE:{}",gson.toJson(apiBBRes));
         if(!apiBBRes.getResult()){
             ErrorEnum.SYSTEM_ERROR.throwException();
         }

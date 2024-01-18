@@ -200,7 +200,9 @@ public class ApiGameController {
             }
         }
         if(type.equals("BBTY")){
+            log.info("BBTY_START:{}",type);
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
+            log.info("BBTY_SESSIONID:{}",sessionId);
             List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(sessionId);
             log.info("BBTY_RESPONSE:{}",new Gson().toJson(apiBbGameUrlRes));
             if(!CollectionUtils.isEmpty(apiBbGameUrlRes)){
