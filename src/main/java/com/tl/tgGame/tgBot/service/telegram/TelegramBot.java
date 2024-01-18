@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class TelegramBot extends TelegramLongPollingBot {
@@ -128,7 +129,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             if (!StringUtils.isEmpty(value)) {
                 if (!(value.contains("EG") && callbackQuery.getGameShortName().equals("EG_GAME")) &&
                         !(value.contains("WL") && Arrays.asList("WL_GAME", "WL_BJL", "WL_TY").contains(callbackQuery.getGameShortName()))
-                        && !(value.contains("FC") && Arrays.asList("FC_GAME", "FC_BY").contains(callbackQuery.getGameShortName()))) {
+                        && !(value.contains("FC") && Arrays.asList("FC_GAME", "FC_BY").contains(callbackQuery.getGameShortName()))
+                        && !(value.contains("BB") && Objects.equals("BB", callbackQuery.getGameShortName()))) {
                     userService.gameWithdrawal(from.getId(), value);
                 }
             }
@@ -200,7 +202,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             if(callbackQuery.getGameShortName()!=null && callbackQuery.getGameShortName().equals("BB_GAME")){
                 com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-//                userService.gameRecharge(user,GameBusiness.BB.getKey());
                 String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                 String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();

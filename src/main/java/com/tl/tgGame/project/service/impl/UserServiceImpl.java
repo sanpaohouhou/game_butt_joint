@@ -20,6 +20,7 @@ import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.RedisKeyGenerator;
 import com.tl.tgGame.util.TimeUtil;
+import com.tl.tgGame.wallet.RandomStringGeneral;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -307,7 +308,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String key = redisKeyGenerator.generateKey("gameRecharge", user.getTgId());
         redisLock.redissonLock(key);
         try {
-//            User user = checkTgId(tgId);
             Currency currency = currencyService.getOrCreate(user.getId(), UserType.USER);
             if (currency.getRemain().compareTo(BigDecimal.ZERO) <= 0) {
                 return true;
@@ -348,6 +348,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                             BusinessEnum.EG_RECHARGE, currency.getRemain(), transactionId, gameType + "电子用户充值");
                     ApiEgDepositRes apiEgDepositRes = apiGameService.egDeposit(req);
                     if (!StringUtils.isEmpty(apiEgDepositRes.getCode())) {
+                        ErrorEnum.GAME_RECHARGE_FAIL.throwException();
+                    }
+                    result = true;
+                    break;
+                case "BB":
+                    currencyService.withdraw(user.getId(),UserType.USER,
+                            BusinessEnum.RECHARGE,currency.getRemain(),"",gameType + "电子用户充值");
+                    Long remitNo = RandomStringGeneral.randomLong();
+                    Boolean transfer = apiGameService.bBTransfer(user.getGameAccount(), remitNo, "IN", currency.getRemain());
+                    if(!transfer){
                         ErrorEnum.GAME_RECHARGE_FAIL.throwException();
                     }
                     result = true;
@@ -434,6 +444,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         result = true;
                     }
                     break;
+                case "BB":
+                    ApiBbCheckUsrBalanceRes apiBbCheckUsrBalanceRes = apiGameService.bBCheckUsrBalance(user.getGameAccount()).get(0);
+                    if(apiBbCheckUsrBalanceRes.getBalance().compareTo(BigDecimal.ZERO) > 0){
+                        Long remitNo = RandomStringGeneral.randomLong();
+                        Boolean transferResult = apiGameService.bBTransfer(user.getGameAccount(), remitNo, "OUT", apiBbCheckUsrBalanceRes.getBalance());
+                        if(transferResult){
+                            log.info("BB提现余额增加RemitNo:{},amount:{}", remitNo, apiBbCheckUsrBalanceRes.getBalance());
+                            currencyService.increase(user.getId(), UserType.USER, BusinessEnum.BB_WITHDRAWAL, apiBbCheckUsrBalanceRes.getBalance()
+                                    , remitNo, "BB电子提现之前金额:" + apiBbCheckUsrBalanceRes.getBalance());
+                            log.info("EG提现余额增加RemitNo:{},amount:{}", remitNo, apiBbCheckUsrBalanceRes.getBalance());
+                            afterAmount = apiBbCheckUsrBalanceRes.getBalance();
+                            businessEnum = BusinessEnum.BB_BET;
+                            sn = remitNo.toString();
+                            result = true;
+                        }
+                    }
+
             }
             if(result){
                 BigDecimal beforeAmount = new BigDecimal(split[1]);

@@ -171,7 +171,7 @@ public class ApiGameController {
             url = apiGameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
         }
         if(type.equals("BBBY")){
-//            userService.gameRecharge(user.getTgId(),GameBusiness.BB.getKey());
+            userService.gameRecharge(user,GameBusiness.BB.getKey());
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
             List<ApiBbGameUrlRes> apiBbGameUrlRes = new ArrayList<>();
             if(Arrays.asList("38001","38002").contains(gameId)){
@@ -185,7 +185,7 @@ public class ApiGameController {
             url = apiBbGameUrlRes.get(0).getHtml5();
         }
         if(type.equals("BBDZ")){
-//            userService.gameRecharge(user.getTgId(),GameBusiness.BB.getKey());
+            userService.gameRecharge(user,GameBusiness.BB.getKey());
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
             List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy5(sessionId, Integer.valueOf(gameId));
             if(!CollectionUtils.isEmpty(apiBbGameUrlRes)){
@@ -193,6 +193,7 @@ public class ApiGameController {
             }
         }
         if(type.equals("BBSX")){
+            userService.gameRecharge(user,GameBusiness.BB.getKey());
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
             List<ApiBbSXGameUrlRes> globals = apiGameService.bBGameUrlBy3(sessionId, "global");
             if(!CollectionUtils.isEmpty(globals)){
@@ -200,11 +201,9 @@ public class ApiGameController {
             }
         }
         if(type.equals("BBTY")){
-            log.info("BBTY_START:{}",type);
+            userService.gameRecharge(user,GameBusiness.BB.getKey());
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
-            log.info("BBTY_SESSIONID:{}",sessionId);
             List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(sessionId);
-            log.info("BBTY_RESPONSE:{}",new Gson().toJson(apiBbGameUrlRes));
             if(!CollectionUtils.isEmpty(apiBbGameUrlRes)){
                 url = apiBbGameUrlRes.get(0).getMobile();
             }

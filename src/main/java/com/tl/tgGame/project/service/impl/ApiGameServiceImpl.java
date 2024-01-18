@@ -562,7 +562,7 @@ public class ApiGameServiceImpl implements ApiGameService {
     }
 
     @Override
-    public ApiBBRes bBTransfer(String username, Integer remitno, String action, BigDecimal remit) {
+    public Boolean bBTransfer(String username, Long remitno, String action, BigDecimal remit) {
         String keyA = Randoms.generateRandomString(1);
         String keyC = Randoms.generateRandomString(2);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -573,7 +573,18 @@ public class ApiGameServiceImpl implements ApiGameService {
         String params = String.format("website=%s&username=%s&uppername=%s&remitno=%s&action=%s&remit=%s&key=%s"
                 , bbWebSite, username, uppername, remitno, action, remit, key);
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php" + "/Transfer?" + params, null).execute().body();
-        return new Gson().fromJson(body,ApiBBRes.class);
+        Gson gson = new Gson();
+        ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        Map<String,String> map =  gson.fromJson(String.valueOf(apiBBRes.getData()),type);
+        if(map.get("Code").equals("11100")){
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -782,6 +793,27 @@ public class ApiGameServiceImpl implements ApiGameService {
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "WagersRecordBy38?" + params, null).execute().body();
         ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
         return null;
+    }
+
+    @Override
+    public List<ApiBbCheckUsrBalanceRes> bBCheckUsrBalance(String username) {
+        String keyA = Randoms.generateRandomString(9);
+        String keyC = Randoms.generateRandomString(4);
+        String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
+        String bbWebSite = "3898be";
+        String bbKeyB = "D6XpahQ";
+        String uppername = "deetestff";
+        String key = keyA + Md5Util.MD5(bbWebSite + username + bbKeyB + localDate, 32) + keyC;
+        String params = String.format("website=%s&username=%s&uppername=%s&key=%s", bbWebSite, username, uppername, key);
+        String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "CheckUsrBalance?" + params, null).execute().body();
+        Gson gson = new Gson();
+        ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
+        if(!apiBBRes.getResult()){
+            ErrorEnum.SYSTEM_ERROR.throwException();
+        }
+        Type type = new TypeToken<List<ApiBbCheckUsrBalanceRes>>() {
+        }.getType();
+        return gson.fromJson(String.valueOf(apiBBRes.getData()),type);
     }
 
     private String paramGen(String param, String unixTime) {

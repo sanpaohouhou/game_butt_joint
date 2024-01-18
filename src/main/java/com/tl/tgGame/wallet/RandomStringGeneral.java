@@ -1,6 +1,10 @@
 package com.tl.tgGame.wallet;
 
+import cn.hutool.core.util.RandomUtil;
+
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomStringGeneral {
@@ -28,8 +32,16 @@ public class RandomStringGeneral {
         return String.format("%06d", ThreadLocalRandom.current().nextInt(0, 1000000));
     }
 
+
+    public static Long randomLong(){
+        String params = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        int anInt = RandomUtil.randomInt(1,99999);
+        return Long.parseLong(params + anInt);
+    }
     public static void main(String[] args) {
-        System.out.println(randomint());
+//        System.out.println(randomint());
+//        int anInt = RandomUtil.randomInt(1,99999);
+        System.out.println(randomLong());
     }
 
 }

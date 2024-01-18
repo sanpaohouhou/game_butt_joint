@@ -160,7 +160,7 @@ public interface ApiGameService{
     /**
      * BB转账
      */
-    ApiBBRes bBTransfer(String username,Integer remitno,String action,BigDecimal remit);
+    Boolean bBTransfer(String username,Long remitno,String action,BigDecimal remit);
 
     /**
      * 产生会员sessionId
@@ -217,5 +217,7 @@ public interface ApiGameService{
      * BB 捕鱼大师下注记录
      */
     ApiBBRes bBWagersRecordBy38(String action,LocalDate date,String startTime,String endTime);
+
+    List<ApiBbCheckUsrBalanceRes> bBCheckUsrBalance(String username);
 
 }
