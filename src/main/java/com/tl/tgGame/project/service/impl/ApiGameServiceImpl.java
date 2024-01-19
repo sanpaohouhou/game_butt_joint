@@ -578,11 +578,17 @@ public class ApiGameServiceImpl implements ApiGameService {
         if(!apiBBRes.getResult()){
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
-        Type type = new TypeToken<Map<String, String>>() {
-        }.getType();
-        Map<String,String> map =  gson.fromJson(String.valueOf(apiBBRes.getData()),type);
-        if(map.get("Code").equals("11100")){
-            return true;
+        try{
+            Type type = new TypeToken<Map<String, String>>() {
+            }.getType();
+            String json = gson.toJson(apiBBRes.getData());
+            Map<String,String> map =  gson.fromJson(json,type);
+            if(map.get("Code").equals("11100")){
+                return true;
+            }
+            return false;
+        }catch (Exception e){
+            log.info("BB_TRANSFER_EXCEPTION:{}",e);
         }
         return false;
     }

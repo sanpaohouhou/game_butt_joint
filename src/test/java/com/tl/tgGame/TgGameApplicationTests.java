@@ -393,8 +393,8 @@ class TgGameApplicationTests {
 //		System.out.println(apiBBRes);
 //		List<ApiBBGetDemoUrlRes> list = apiGameService.bBGetDemoUrl(String.valueOf(5), null);
 //		System.out.println(list);
-//		ApiBBRes apiBBRes = apiGameService.bBTransfer("aa123456", 123, "IN", BigDecimal.valueOf(1000));
-//		System.out.println(apiBBRes);
+		Boolean apiBBRes = apiGameService.bBTransfer("aa123456", 46151L, "OUT", BigDecimal.valueOf(1000));
+		System.out.println(apiBBRes);
 //		String apiBBRes = apiGameService.bBCreateSession("qu6227478984");
 //		System.out.println(apiBBRes);
 //		List<ApiBbBuYuGameUrlRes> apiBBRes1 = apiGameService.bBGameUrlBy30(apiBBRes, 30599);
@@ -404,8 +404,8 @@ class TgGameApplicationTests {
 //		List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy38(apiBBRes);
 //		List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy5(apiBBRes, 5193);
 //		List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(apiBBRes);
-		List<ApiBbCheckUsrBalanceRes> apiBbGameUrlRes = apiGameService.bBCheckUsrBalance("aa123456");
-		System.out.println(apiBbGameUrlRes);
+//		List<ApiBbCheckUsrBalanceRes> apiBbGameUrlRes = apiGameService.bBCheckUsrBalance("aa123456");
+//		System.out.println(apiBbGameUrlRes);
 	}
 
 
