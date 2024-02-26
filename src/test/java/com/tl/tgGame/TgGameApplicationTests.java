@@ -393,8 +393,8 @@ class TgGameApplicationTests {
 //		System.out.println(apiBBRes);
 //		List<ApiBBGetDemoUrlRes> list = apiGameService.bBGetDemoUrl(String.valueOf(5), null);
 //		System.out.println(list);
-		Boolean apiBBRes = apiGameService.bBTransfer("aa123456", 46151L, "OUT", BigDecimal.valueOf(1000));
-		System.out.println(apiBBRes);
+//		Boolean apiBBRes = apiGameService.bBTransfer("aa123456", 46151L, "OUT", BigDecimal.valueOf(1000));
+//		System.out.println(apiBBRes);
 //		String apiBBRes = apiGameService.bBCreateSession("qu6227478984");
 //		System.out.println(apiBBRes);
 //		List<ApiBbBuYuGameUrlRes> apiBBRes1 = apiGameService.bBGameUrlBy30(apiBBRes, 30599);
@@ -406,6 +406,19 @@ class TgGameApplicationTests {
 //		List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(apiBBRes);
 //		List<ApiBbCheckUsrBalanceRes> apiBbGameUrlRes = apiGameService.bBCheckUsrBalance("aa123456");
 //		System.out.println(apiBbGameUrlRes);
+	}
+
+	@Test
+	public void testAgApi(){
+//		Boolean aBoolean = apiGameService.agJdbCreateUser("77c4b98d6f5ae14e9ba24abe1dff0d34",
+//                "d1d94fdfee9408152404ef4ba5fcac18", "qu2337591991");
+//		System.out.println(aBoolean);
+		String url = apiGameService.agJdbGameLaunch("","77c4b98d6f5ae14e9ba24abe1dff0d34", "d1d94fdfee9408152404ef4ba5fcac18",
+				"qu2337591991", "jdb_lobby");
+		System.out.println(url);
+//		List<ApiAgJdbGameListRes> list = apiGameService.agJdbGameList("77c4b98d6f5ae14e9ba24abe1dff0d34", "d1d94fdfee9408152404ef4ba5fcac18",
+//				"jdb", "zh", "CNY", 1, 100, "online");
+//		System.out.println(list);
 	}
 
 

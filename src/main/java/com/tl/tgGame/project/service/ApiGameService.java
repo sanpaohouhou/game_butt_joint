@@ -218,6 +218,76 @@ public interface ApiGameService{
      */
     ApiBBRes bBWagersRecordBy38(String action,LocalDate date,String startTime,String endTime);
 
+    /**
+     * BB获取用户余额
+     * @param username
+     * @return
+     */
     List<ApiBbCheckUsrBalanceRes> bBCheckUsrBalance(String username);
+
+    /**
+     * PG查询用户余额
+     */
+    ApiPgUserWalletDTO pGGetPlayerWallet(String traceId,String operatorToken,String secretKey,String playerName);
+    /**
+     * PG充值
+     */
+    ApiPgTransferDTO pGRechargeTransferIn(String traceId,String operatorToken,String secretKey,
+                              String playerName,BigDecimal amount,String transferReference,
+                              String currency);
+    /**
+     * pG提现
+     */
+    ApiPgTransferDTO pGWithdrawalTransferOut(String traceId,String operatorToken,String secretKey,
+                                             String playerName,BigDecimal amount,String transferReference,
+                                             String currency);
+    /**
+     * PG获取进入大厅链接
+     */
+    String pGWebLobby(String urlType,String ot,String ops);
+    /**
+     * PG获取历史下注记录
+     */
+    List<ApiPgBetHistoryDTO> pGGetHistory(Long rowVersion);
+
+
+    /**
+     * AG-JDB 创建用户
+     */
+    Boolean agJdbCreateUser(String host,String operatorToken,String secretKey,String playerName);
+
+    /**
+     * Ag-JDB启动游戏
+     */
+    String agJdbGameLaunch(String host,String operatorToken,String secretKey,String playerName,String gameCode);
+
+    /**
+     * Ag-JDB 查询钱包余额(转账钱包使用)
+     */
+    ApiAgJdbBalanceRes agJdbPlayerBalance(String host,String operatorToken,String secretKey,String playerName,String walletCode);
+    /**
+     * Ag-JDB玩家上分(转账钱包使用)
+     */
+     ApiAgJdbTransferRes agJdbTransfer(String host,String operatorToken,String secretKey,String playerName,String walletCode,BigDecimal amount,String traceId,Integer transferType);
+    /**
+     * Ag-Jdb交易单据查询(转账钱包使用)
+     */
+    ApiAgJdbQueryOrderRes agJdbQueryOrder(String host,String operatorToken,String secretKey,String playerName,String traceId);
+    /**
+     * Ag-JDB投注记录
+     */
+    void agJdbBetList(String host,String operatorToken,String secretKey,Integer rowVersion,Integer pageSize);
+    /**
+     * Ag-JDB游戏清单
+     */
+    ApiAgJdbGameListPageRes agJdbGameList(String host, String operatorToken, String secretKey,
+                                          String vendorCode, String language, String currency, Integer pageNum,
+                                          Integer itemsPerPage, String status);
+
+
+
+
+
+
 
 }

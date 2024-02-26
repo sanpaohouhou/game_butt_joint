@@ -209,6 +209,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                 execute(answerCallbackQuery);
             }
+            if(callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("JDB_DZ")){
+                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+
+            }
+            if(callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("AG_DZ")){
+                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+            }
         } catch (Exception e) {
             log.error("电子开始游戏异常exception:{},callBackQuery:{}", e, callbackQuery.getGameShortName() + ":" + callbackQuery.getFrom().getId());
         }
@@ -224,21 +231,22 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 //        KeyboardRow keyboardRow3 = new KeyboardRow();
 
-        KeyboardButton keyboardButton1 = KeyboardButton.builder().text("\uD83D\uDC9EFC电子").build();
+//        KeyboardButton keyboardButton1 = KeyboardButton.builder().text("\uD83D\uDC9EFC电子").build();
 //        KeyboardButton keyboardButton2 = KeyboardButton.builder().text("\uD83C\uDFB0WL棋牌").build();
-        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC21BB游戏").build();
+//        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC21BB游戏").build();
+        KeyboardButton keyboardButton1 = KeyboardButton.builder().text("\uD83D\uDC21JDB电子").build();
+        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC21AG电子").build();
         KeyboardButton keyboardButton3 = KeyboardButton.builder().text("\uD83D\uDC21EG电子").build();
 
         KeyboardButton keyboardButton4 = KeyboardButton.builder().text("\uD83D\uDC9EWL百家乐").build();
-        KeyboardButton keyboardButton5 = KeyboardButton.builder().text("⚽\uFE0FWL体育").build();
+//        KeyboardButton keyboardButton5 = KeyboardButton.builder().text("⚽\uFE0FWL体育").build();
+        KeyboardButton keyboardButton5 = KeyboardButton.builder().text("\uD83D\uDC9EPG游戏").build();
         KeyboardButton keyboardButton6 = KeyboardButton.builder().text("\uD83C\uDF08FC捕鱼").build();
 
         KeyboardButton keyboardButton7 = KeyboardButton.builder().text("\uD83E\uDD29充值提现\uD83C\uDF08").build();
         KeyboardButton keyboardButton8 = KeyboardButton.builder().text("\uD83E\uDD29推广\uD83C\uDF08").build();
         KeyboardButton keyboardButton9 = KeyboardButton.builder().text("\uD83D\uDC96专属客服\uD83D\uDE47\u200D♀\uFE0F").build();
 
-//        KeyboardButton keyboardButton10 = KeyboardButton.builder().text("\uD83D\uDC21BB游戏").build();
-//
         keyboardRow.add(keyboardButton1);
         keyboardRow.add(keyboardButton10);
         keyboardRow.add(keyboardButton3);
@@ -323,13 +331,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
 
                     switch (message2.getText()) {
-                        case "\uD83D\uDC9EFC电子":
-                            SendGame build1 = SendGame.builder().chatId(update.getMessage().getChatId())
-                                    .gameShortName("FC_GAME")
-                                    .replyMarkup(build)
-                                    .build();
-                            execute(build1);
-                            break;
+//                        case "\uD83D\uDC9EFC电子":
+//                            SendGame build1 = SendGame.builder().chatId(update.getMessage().getChatId())
+//                                    .gameShortName("FC_GAME")
+//                                    .replyMarkup(build)
+//                                    .build();
+//                            execute(build1);
+//                            break;
 //                        case "\uD83C\uDFB0WL棋牌":
 //                            SendGame build2 = SendGame.builder().chatId(update.getMessage().getChatId())
 //                                    .gameShortName("WL_GAME")
@@ -338,6 +346,20 @@ public class TelegramBot extends TelegramLongPollingBot {
 //                                    .build();
 //                            execute(build2);
 //                            break;
+                        case "\uD83D\uDC21AG电子":
+                            SendGame agDz = SendGame.builder().chatId(update.getMessage().getChatId())
+                                    .gameShortName("AG_DZ")
+                                    .replyMarkup(build)
+                                    .build();
+                            execute(agDz);
+                            break;
+                        case "\uD83D\uDC21JDB电子":
+                            SendGame jdbDz = SendGame.builder().chatId(update.getMessage().getChatId())
+                                    .gameShortName("JDB_DZ")
+                                    .replyMarkup(build)
+                                    .build();
+                            execute(jdbDz);
+                            break;
                         case "\uD83D\uDC21EG电子":
                             SendGame build3 = SendGame.builder().chatId(update.getMessage().getChatId())
                                     .gameShortName("EG_GAME")
@@ -354,9 +376,17 @@ public class TelegramBot extends TelegramLongPollingBot {
                                     .build();
                             execute(build4);
                             break;
-                        case "⚽\uFE0FWL体育":
+//                        case "⚽\uFE0FWL体育":
+//                            SendGame build5 = SendGame.builder().chatId(update.getMessage().getChatId())
+//                                    .gameShortName("WL_TY")
+//                                    .allowSendingWithoutReply(false)
+//                                    .replyMarkup(build)
+//                                    .build();
+//                            execute(build5);
+//                            break;
+                        case "\uD83D\uDC9EPG游戏":
                             SendGame build5 = SendGame.builder().chatId(update.getMessage().getChatId())
-                                    .gameShortName("WL_TY")
+                                    .gameShortName("PG_GAME")
                                     .allowSendingWithoutReply(false)
                                     .replyMarkup(build)
                                     .build();
@@ -370,14 +400,14 @@ public class TelegramBot extends TelegramLongPollingBot {
                                     .build();
                             execute(build6);
                             break;
-                        case "\uD83D\uDC21BB游戏":
-                            SendGame build7 = SendGame.builder().chatId(update.getMessage().getChatId())
-                                    .gameShortName("BB_GAME")
-                                    .allowSendingWithoutReply(false)
-                                    .replyMarkup(build)
-                                    .build();
-                            execute(build7);
-                            break;
+//                        case "\uD83D\uDC21BB游戏":
+//                            SendGame build7 = SendGame.builder().chatId(update.getMessage().getChatId())
+//                                    .gameShortName("BB_GAME")
+//                                    .allowSendingWithoutReply(false)
+//                                    .replyMarkup(build)
+//                                    .build();
+//                            execute(build7);
+//                            break;
                         case "\uD83E\uDD29充值提现\uD83C\uDF08":
                             SendMessage message = SendMessage.builder().chatId(update.getMessage().getChatId().toString())
                                     .text("\uD83D\uDC9E \uD83D\uDC9E \uD83D\uDC9E您好，请进入个人中心进行充值提现！！！")

@@ -21,10 +21,12 @@ import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.HttpUtil;
 import com.tl.tgGame.util.Md5Util;
 import com.tl.tgGame.util.TimeUtil;
+import com.tl.tgGame.util.UrlEncoderUtil;
 import com.tl.tgGame.util.crypto.Crypto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.crypto.util.DigestFactory;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -551,14 +553,15 @@ public class ApiGameServiceImpl implements ApiGameService {
         }
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GetDemoUrl?" + params, null).execute().body();
         ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
-        if(!apiBBRes.getResult()){
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
 
-        Type type = new TypeToken<List<ApiBBGetDemoUrlRes>>() {}.getType();
+        Type type = new TypeToken<List<ApiBBGetDemoUrlRes>>() {
+        }.getType();
         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         String json = gson.toJson(apiBBRes.getData());
-        return gson.fromJson(json,type);
+        return gson.fromJson(json, type);
     }
 
     @Override
@@ -575,27 +578,27 @@ public class ApiGameServiceImpl implements ApiGameService {
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php" + "/Transfer?" + params, null).execute().body();
         Gson gson = new Gson();
         ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
-        if(!apiBBRes.getResult()){
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
-        try{
+        try {
             Type type = new TypeToken<Map<String, String>>() {
             }.getType();
             String json = gson.toJson(apiBBRes.getData());
-            Map<String,String> map =  gson.fromJson(json,type);
-            if(map.get("Code").equals("11100")){
+            Map<String, String> map = gson.fromJson(json, type);
+            if (map.get("Code").equals("11100")) {
                 return true;
             }
             return false;
-        }catch (Exception e){
-            log.info("BB_TRANSFER_EXCEPTION:{}",e);
+        } catch (Exception e) {
+            log.info("BB_TRANSFER_EXCEPTION:{}", e);
         }
         return false;
     }
 
     @Override
     public String bBCreateSession(String username) {
-        log.debug("bBCreateSession_start:{}",username);
+        log.debug("bBCreateSession_start:{}", username);
         String keyA = Randoms.generateRandomString(4);
         String keyC = Randoms.generateRandomString(1);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -607,13 +610,14 @@ public class ApiGameServiceImpl implements ApiGameService {
         System.out.println("session:" + params);
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "CreateSession?" + params, null).execute().body();
         ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
-        log.info("bBCreateSession_RESPONSE:{}",new Gson().toJson(apiBBRes));
-        log.debug("bBCreateSession_RESPONSE_DEBUG:{}",new Gson().toJson(apiBBRes));
-        if(!apiBBRes.getResult()){
+        log.info("bBCreateSession_RESPONSE:{}", new Gson().toJson(apiBBRes));
+        log.debug("bBCreateSession_RESPONSE_DEBUG:{}", new Gson().toJson(apiBBRes));
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
-        Type type = new TypeToken<Map<String, String>>() {}.getType();
-        Map<String,String> map = new Gson().fromJson(String.valueOf(apiBBRes.getData()),type);
+        Type type = new TypeToken<Map<String, String>>() {
+        }.getType();
+        Map<String, String> map = new Gson().fromJson(String.valueOf(apiBBRes.getData()), type);
         return map.get("sessionid");
     }
 
@@ -628,33 +632,35 @@ public class ApiGameServiceImpl implements ApiGameService {
         String params = String.format("website=%s&lang=%s&sessionid=%s&gametype=%s&key=%s", bbWebSite, "zh-cn", sessionId, gameType, key);
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy30?" + params, null).execute().body();
         ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
-        if(!apiBBRes.getResult()){
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
-        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {}.getType();
+        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {
+        }.getType();
         Gson gson = new Gson();
         String json = gson.toJson(apiBBRes.getData());
-        return new Gson().fromJson(json,type);
+        return new Gson().fromJson(json, type);
     }
 
     @Override
-    public List<ApiBbGameUrlRes> bBGameUrlBy38(String sessionId,Integer gameType) {
+    public List<ApiBbGameUrlRes> bBGameUrlBy38(String sessionId, Integer gameType) {
         String keyA = Randoms.generateRandomString(6);
         String keyC = Randoms.generateRandomString(6);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
         String bbWebsite = "3898be";
         String bbKeyB = "REFZUxCy";
         String key = keyA + Md5Util.MD5(bbWebsite + bbKeyB + localDate, 32) + keyC;
-        String params = String.format("website=%s&lang=%s&sessionid=%s&gametype=%s&key=%s", bbWebsite, "zh-cn", sessionId,gameType, key);
+        String params = String.format("website=%s&lang=%s&sessionid=%s&gametype=%s&key=%s", bbWebsite, "zh-cn", sessionId, gameType, key);
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy38?" + params, null).execute().body();
         Gson gson = new Gson();
         ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
-        if(!apiBBRes.getResult()){
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
-        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {}.getType();
+        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {
+        }.getType();
         String json = gson.toJson(apiBBRes.getData());
-        return gson.fromJson(json,type);
+        return gson.fromJson(json, type);
     }
 
     @Override
@@ -668,38 +674,40 @@ public class ApiGameServiceImpl implements ApiGameService {
         String params = String.format("website=%s&lang=%s&sessionid=%s&tag=%s&key=%s", bbWebSite, "zh-cn", sessionId, tag, key);
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy3?" + params, null).execute().body();
         ApiBBRes apiBBRes = new Gson().fromJson(body, ApiBBRes.class);
-        if(!apiBBRes.getResult()){
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
-        Type type = new TypeToken<List<ApiBbSXGameUrlRes>>() {}.getType();
+        Type type = new TypeToken<List<ApiBbSXGameUrlRes>>() {
+        }.getType();
         Gson gson = new Gson();
         String json = gson.toJson(apiBBRes.getData());
-        return gson.fromJson(json,type);
+        return gson.fromJson(json, type);
     }
 
     @Override
-    public List<ApiBbGameUrlRes> bBGameUrlBy5(String sessionId,Integer gameType) {
+    public List<ApiBbGameUrlRes> bBGameUrlBy5(String sessionId, Integer gameType) {
         String keyA = Randoms.generateRandomString(9);
         String keyC = Randoms.generateRandomString(8);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
         String bbWebSite = "3898be";
         String bbKeyB = "KeNSSkwR";
         String key = keyA + Md5Util.MD5(bbWebSite + bbKeyB + localDate, 32) + keyC;
-        String params = String.format("website=%s&lang=%s&sessionid=%s&gametype=%s&key=%s", bbWebSite, "zh-cn", sessionId, gameType,key);
+        String params = String.format("website=%s&lang=%s&sessionid=%s&gametype=%s&key=%s", bbWebSite, "zh-cn", sessionId, gameType, key);
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy5?" + params, null).execute().body();
         Gson gson = new Gson();
         ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
-        if(!apiBBRes.getResult()){
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
-        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {}.getType();
+        Type type = new TypeToken<List<ApiBbGameUrlRes>>() {
+        }.getType();
         String json = gson.toJson(apiBBRes.getData());
-        return gson.fromJson(json,type);
+        return gson.fromJson(json, type);
     }
 
     @Override
     public List<ApiBbSXGameUrlRes> bBGameUrlBy31(String sessionId) {
-        log.debug("bBGameUrlBy31_start:{}",sessionId);
+        log.debug("bBGameUrlBy31_start:{}", sessionId);
         String keyA = Randoms.generateRandomString(4);
         String keyC = Randoms.generateRandomString(6);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -710,18 +718,19 @@ public class ApiGameServiceImpl implements ApiGameService {
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "GameUrlBy31?" + params, null).execute().body();
         Gson gson = new Gson();
         ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
-        log.info("bBGameUrlBy31_RESPONSE:{}",gson.toJson(apiBBRes));
-        log.debug("bBGameUrlBy31_RESPONSE:{}",gson.toJson(apiBBRes));
-        if(!apiBBRes.getResult()){
+        log.info("bBGameUrlBy31_RESPONSE:{}", gson.toJson(apiBBRes));
+        log.debug("bBGameUrlBy31_RESPONSE:{}", gson.toJson(apiBBRes));
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
-        Type type = new TypeToken<List<ApiBbSXGameUrlRes>>() {}.getType();
+        Type type = new TypeToken<List<ApiBbSXGameUrlRes>>() {
+        }.getType();
         String json = gson.toJson(apiBBRes.getData());
-        return gson.fromJson(json,type);
+        return gson.fromJson(json, type);
     }
 
     @Override
-    public ApiBBRes bBWagersRecordBy3(String action, LocalDate date , String startTime, String endTime) {
+    public ApiBBRes bBWagersRecordBy3(String action, LocalDate date, String startTime, String endTime) {
         String keyA = Randoms.generateRandomString(6);
         String keyC = Randoms.generateRandomString(3);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -738,7 +747,7 @@ public class ApiGameServiceImpl implements ApiGameService {
     }
 
     @Override
-    public ApiBBRes bBWagersRecordBy5(String action,LocalDate date,String startTime,String endTime,Integer subGameKind) {
+    public ApiBBRes bBWagersRecordBy5(String action, LocalDate date, String startTime, String endTime, Integer subGameKind) {
         String keyA = Randoms.generateRandomString(1);
         String keyC = Randoms.generateRandomString(2);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -754,7 +763,7 @@ public class ApiGameServiceImpl implements ApiGameService {
     }
 
     @Override
-    public ApiBBRes bBWagersRecordBy30(String action,LocalDate date,String startTime,String endTime) {
+    public ApiBBRes bBWagersRecordBy30(String action, LocalDate date, String startTime, String endTime) {
         String keyA = Randoms.generateRandomString(3);
         String keyC = Randoms.generateRandomString(6);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -770,7 +779,7 @@ public class ApiGameServiceImpl implements ApiGameService {
     }
 
     @Override
-    public ApiBBRes bBWagersRecordBy31(String action,LocalDate date,String startTime,String endTime) {
+    public ApiBBRes bBWagersRecordBy31(String action, LocalDate date, String startTime, String endTime) {
         String keyA = Randoms.generateRandomString(4);
         String keyC = Randoms.generateRandomString(9);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -786,7 +795,7 @@ public class ApiGameServiceImpl implements ApiGameService {
     }
 
     @Override
-    public ApiBBRes bBWagersRecordBy38(String action,LocalDate date,String startTime,String endTime) {
+    public ApiBBRes bBWagersRecordBy38(String action, LocalDate date, String startTime, String endTime) {
         String keyA = Randoms.generateRandomString(9);
         String keyC = Randoms.generateRandomString(1);
         String localDate = TimeUtil.zoneCharge("America/New_York").toLocalDate().format(dtf);
@@ -814,12 +823,200 @@ public class ApiGameServiceImpl implements ApiGameService {
         String body = HttpRequest.of("http://linkapi.ttg123.com/app/WebService/JSON/display.php/" + "CheckUsrBalance?" + params, null).execute().body();
         Gson gson = new Gson();
         ApiBBRes apiBBRes = gson.fromJson(body, ApiBBRes.class);
-        if(!apiBBRes.getResult()){
+        if (!apiBBRes.getResult()) {
             ErrorEnum.SYSTEM_ERROR.throwException();
         }
         Type type = new TypeToken<List<ApiBbCheckUsrBalanceRes>>() {
         }.getType();
-        return gson.fromJson(String.valueOf(apiBBRes.getData()),type);
+        return gson.fromJson(String.valueOf(apiBBRes.getData()), type);
+    }
+
+    @Override
+    public ApiPgUserWalletDTO pGGetPlayerWallet(String traceId, String operatorToken, String secretKey, String playerName) {
+        String params = String.format("trace_id=%s&operator_token=%s&secret_key=%s&player_name=%s",
+                traceId, operatorToken, secretKey, playerName);
+        String body = HttpRequest.post("/Cash/v3/GetPlayerWall?" + params).execute().body();
+        return null;
+    }
+
+    @Override
+    public ApiPgTransferDTO pGRechargeTransferIn(String traceId, String operatorToken, String secretKey, String playerName, BigDecimal amount, String transferReference, String currency) {
+        String params = String.format("trace_id=%s&operator_token=%s&secret_key=%s&player_name=%s&amount=%s&transfer_reference=%s",
+                traceId, operatorToken, secretKey, playerName, amount, transferReference, currency);
+        String body = HttpRequest.post("/Cash/v3/TransferIn?" + params).execute().body();
+        return null;
+    }
+
+    @Override
+    public ApiPgTransferDTO pGWithdrawalTransferOut(String traceId, String operatorToken, String secretKey, String playerName, BigDecimal amount, String transferReference, String currency) {
+        String params = String.format("trace_id=%s&operator_token=%s&secret_key=%s&player_name=%s&amount=%s&transfer_reference=%s&currency=%s",
+                traceId, operatorToken, secretKey, playerName, amount, transferReference, currency);
+        String body = HttpRequest.post("/Cash/v3/TransferOut?" + params).execute().body();
+        return null;
+    }
+
+    @Override
+    public String pGWebLobby(String urlType, String ot, String ops) {
+        String extraArgs = String.format("ops=%s", ops);
+        String encode = UrlEncoderUtil.encode(extraArgs);
+        String traceId = "";
+        String operatorToken = "";
+        String path = "";
+        String clientIp = ipTool.getIp();
+        String params = String.format("trace_id=%s&operator_token=%s&path=%s&extra_args=%s&url_type=%s&client_ip=%s",
+                traceId, operatorToken, path, encode, urlType, clientIp);
+        String body = HttpRequest.of("" + params, null).execute().body();
+        return null;
+    }
+
+    @Override
+    public List<ApiPgBetHistoryDTO> pGGetHistory(Long rowVersion) {
+        String traceId = "";
+        String operatorToken = "";
+        String secretKey = "";
+        String params = String.format("trace_id=%s&operator_token=%s&secret_key=%s&count=%s&bet_type=%s&row_version=%s",
+                traceId, operatorToken, secretKey, 5000, 1, rowVersion);
+        String body = HttpRequest.of("" + params, null).execute().body();
+
+        return null;
+    }
+
+    @Override
+    public Boolean agJdbCreateUser(String host,String operatorToken, String secretKey, String playerName) {
+        String url = host + "/api/v1/operator/player/create";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("operator_token", operatorToken);
+        jsonObject.put("secret_key", secretKey);
+        jsonObject.put("player_name", playerName);
+        String body = HttpRequest.post(url).body(jsonObject.toString()).header("Content-Type", "application/json").execute().body();
+        Gson gson = new Gson();
+        AgJdbResponse agJdbResponse = gson.fromJson(body, AgJdbResponse.class);
+        if (agJdbResponse.getStatus().equals(1)) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public String agJdbGameLaunch(String host,String operatorToken, String secretKey, String playerName, String gameCode) {
+        String url = host + "/api/v1/operator/game/launch";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("operator_token", operatorToken);
+        jsonObject.put("secret_key", secretKey);
+        jsonObject.put("player_name", playerName);
+        jsonObject.put("game_code", gameCode);
+        String body = HttpRequest.post(url).body(jsonObject.toString()).header("Content-Type", "application/json").execute().body();
+        Gson gson = new Gson();
+        AgJdbResponse agJdbResponse = gson.fromJson(body, AgJdbResponse.class);
+        if (agJdbResponse.getStatus().equals(1)) {
+            ApiAgJdbLaunchRes apiAgJdbLaunchRes = gson.fromJson(gson.toJson(agJdbResponse.getData()), ApiAgJdbLaunchRes.class);
+            return apiAgJdbLaunchRes.getUrl();
+        }
+        return null;
+    }
+
+    @Override
+    public ApiAgJdbBalanceRes agJdbPlayerBalance(String host,String operatorToken, String secretKey, String playerName, String walletCode) {
+        String url = host + "/api/v1/operator/player/balance";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("operator_token", operatorToken);
+        jsonObject.put("secret_key", secretKey);
+        jsonObject.put("player_name", playerName);
+        jsonObject.put("wallet_code", walletCode);
+        String body = HttpRequest.post(url).body(jsonObject.toString()).header("Content-Type", "application/json").execute().body();
+        Gson gson = new Gson();
+        AgJdbResponse agJdbResponse = gson.fromJson(body, AgJdbResponse.class);
+        if (agJdbResponse.getStatus().equals(1)) {
+            return gson.fromJson(agJdbResponse.getData().toString(), ApiAgJdbBalanceRes.class);
+        }
+        return null;
+    }
+
+    @Override
+    public ApiAgJdbTransferRes agJdbTransfer(String host,String operatorToken, String secretKey, String playerName, String walletCode, BigDecimal amount, String traceId, Integer transferType) {
+        String url = host;
+        if (transferType.equals(1)) {
+            url = url + "/api/v1/operator/transaction/transfer_in";
+        } else {
+            url = url + "/api/v1/operator/transaction/transfer_out";
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("operator_token", operatorToken);
+        jsonObject.put("secret_key", secretKey);
+        jsonObject.put("player_name", playerName);
+        jsonObject.put("wallet_code", walletCode);
+        jsonObject.put("amount", amount);
+        jsonObject.put("trace_id", traceId);
+        String body = HttpRequest.post(url).body(jsonObject.toString()).header("Content-Type", "application/json").execute().body();
+        Gson gson = new Gson();
+        AgJdbResponse agJdbResponse = gson.fromJson(body, AgJdbResponse.class);
+        if (agJdbResponse.getStatus().equals(1)) {
+            return gson.fromJson(agJdbResponse.getData().toString(), ApiAgJdbTransferRes.class);
+        }
+        return null;
+    }
+
+    @Override
+    public ApiAgJdbQueryOrderRes agJdbQueryOrder(String host,String operatorToken, String secretKey, String playerName, String traceId) {
+        String url = host + "/api/v1/operator/transaction/query_order";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("operator_token", operatorToken);
+        jsonObject.put("secret_key", secretKey);
+        jsonObject.put("player_name", playerName);
+        jsonObject.put("trace_id", traceId);
+        String body = HttpRequest.post(url).body(jsonObject.toString()).header("Content-Type", "application/json").execute().body();
+        Gson gson = new Gson();
+        AgJdbResponse agJdbResponse = gson.fromJson(body, AgJdbResponse.class);
+        if (agJdbResponse.getStatus().equals(1)) {
+            return gson.fromJson(agJdbResponse.getData().toString(), ApiAgJdbQueryOrderRes.class);
+        }
+        return null;
+    }
+
+    @Override
+    public void agJdbBetList(String host,String operatorToken, String secretKey, Integer rowVersion, Integer pageSize) {
+        String url = host + "/api/v1/operator/record/bet_list";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("operator_token", operatorToken);
+        jsonObject.put("secret_key", secretKey);
+        jsonObject.put("row_version", rowVersion);
+        jsonObject.put("page_size", pageSize);
+        String body = HttpRequest.post(url).body(jsonObject.toString()).header("Content-Type", "application/json").execute().body();
+        Gson gson = new Gson();
+        AgJdbResponse agJdbResponse = gson.fromJson(body, AgJdbResponse.class);
+        if (agJdbResponse.getStatus().equals(1)) {
+
+        }
+    }
+
+    @Override
+    public ApiAgJdbGameListPageRes agJdbGameList(String host, String operatorToken, String secretKey, String vendorCode,
+                                                 String language, String currency, Integer pageNum,
+                                                 Integer itemsPerPage, String status) {
+        String url = host + "/api/v1/operator/game/list";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("operator_token",operatorToken);
+        jsonObject.put("secret_key",secretKey);
+        jsonObject.put("vendor_code",vendorCode);
+        jsonObject.put("language",language);
+        jsonObject.put("currency",currency);
+        jsonObject.put("page_num",pageNum);
+        jsonObject.put("items_per_page",itemsPerPage);
+        jsonObject.put("status",status);
+        String body = HttpRequest.post(url).body(jsonObject.toString()).header("Content-Type", "application/json").execute().body();
+        System.out.println(body);
+        Gson gson = new Gson();
+        AgJdbResponse agJdbResponse = gson.fromJson(body, AgJdbResponse.class);
+        if(agJdbResponse.getStatus().equals(1)){
+//            Type type1 = new TypeToken<Map<String, Object>>() {}.getType();
+            String json1 = gson.toJson(agJdbResponse.getData());
+//            Map<String,Object> map = gson.fromJson(json1,type1);
+//            String json = gson.toJson(map.get("list"));
+//            Type type = new TypeToken<List<ApiAgJdbGameListRes>>(){}.getType();
+//            return gson.fromJson(json,type);
+            return gson.fromJson(json1, ApiAgJdbGameListPageRes.class);
+        }
+        return null;
     }
 
     private String paramGen(String param, String unixTime) {

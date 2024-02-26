@@ -9,6 +9,9 @@ spring:
 #    url: jdbc:mysql://18.182.49.51:29831/game_butt_joint?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
 #    username: admin
 #    password: tianli123456TL
+#    url: jdbc:mysql://production.ceezehox1xag.ap-northeast-1.rds.amazonaws.com/game_butt_joint?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+#    username: niuniu
+#    password: tianli123456TL
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
@@ -16,6 +19,7 @@ spring:
     enabled: true
   redis:
     host: 127.0.0.1
+#    host: production.hej4hw.ng.0001.apne1.cache.amazonaws.com
     database: 9
   cache:
     redis:

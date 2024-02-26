@@ -353,10 +353,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     result = true;
                     break;
                 case "BB":
+                    String gupBB = StrUtil.emptyToDefault(configService.get(ConfigConstants.WL_GAME_USDT_POINT), "7.00");
+                    BigDecimal pointBB = currency.getRemain().multiply(new BigDecimal(gupBB)).setScale(2, RoundingMode.HALF_DOWN);
                     currencyService.withdraw(user.getId(),UserType.USER,
-                            BusinessEnum.RECHARGE,currency.getRemain(),"",gameType + "电子用户充值");
+                            BusinessEnum.RECHARGE,pointBB,"",gameType + "电子用户充值");
                     Long remitNo = RandomStringGeneral.randomLong();
-                    Boolean transfer = apiGameService.bBTransfer(user.getGameAccount(), remitNo, "IN", currency.getRemain());
+                    Boolean transfer = apiGameService.bBTransfer(user.getGameAccount(), remitNo, "IN", pointBB);
                     if(!transfer){
                         ErrorEnum.GAME_RECHARGE_FAIL.throwException();
                     }
@@ -450,11 +452,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         Long remitNo = RandomStringGeneral.randomLong();
                         Boolean transferResult = apiGameService.bBTransfer(user.getGameAccount(), remitNo, "OUT", apiBbCheckUsrBalanceRes.getBalance());
                         if(transferResult){
-                            log.info("BB提现余额增加RemitNo:{},amount:{}", remitNo, apiBbCheckUsrBalanceRes.getBalance());
-                            currencyService.increase(user.getId(), UserType.USER, BusinessEnum.BB_WITHDRAWAL, apiBbCheckUsrBalanceRes.getBalance()
+                            BigDecimal gupBB = configService.getDecimal(ConfigConstants.WL_GAME_USDT_POINT);
+                            BigDecimal gupAmountBB = apiBbCheckUsrBalanceRes.getBalance().divide(gupBB, 2, RoundingMode.HALF_DOWN);
+                            log.info("BB提现余额增加RemitNo:{},amount:{}", remitNo, gupAmountBB);
+                            currencyService.increase(user.getId(), UserType.USER, BusinessEnum.BB_WITHDRAWAL, gupAmountBB
                                     , remitNo, "BB电子提现之前金额:" + apiBbCheckUsrBalanceRes.getBalance());
-                            log.info("EG提现余额增加RemitNo:{},amount:{}", remitNo, apiBbCheckUsrBalanceRes.getBalance());
-                            afterAmount = apiBbCheckUsrBalanceRes.getBalance();
+                            log.info("EG提现余额增加RemitNo:{},amount:{}", remitNo, gupAmountBB);
+                            afterAmount = gupAmountBB;
                             businessEnum = BusinessEnum.BB_BET;
                             sn = remitNo.toString();
                             result = true;

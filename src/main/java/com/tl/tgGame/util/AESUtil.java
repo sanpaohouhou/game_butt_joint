@@ -115,7 +115,7 @@ public class AESUtil {
 
     public static void main(String[] args) throws Exception {
         String key = "U81msjdw0v486i+ol8pko+0_(m0ck-p6%om!wbkmg0_(.34&1";
-        String decrypt = encrypt("1698218972392947714", key);
+        String decrypt = encrypt("1706563708589608961", key);
         String encrypt = decrypt(decrypt, key);
         System.out.println(decrypt);
         System.out.println(encrypt);

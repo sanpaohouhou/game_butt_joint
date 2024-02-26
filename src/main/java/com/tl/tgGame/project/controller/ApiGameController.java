@@ -16,6 +16,7 @@ import com.tl.tgGame.project.service.UserService;
 import com.tl.tgGame.system.ConfigConstants;
 import com.tl.tgGame.system.ConfigService;
 import com.tl.tgGame.util.AESUtil;
+import com.tl.tgGame.wallet.dto.PageResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -126,24 +127,74 @@ public class ApiGameController {
                 list.add(gameListDTO);
             }
         }
+        if (type.equals("JDB_DZ")) {
+
+        }
         return Response.success(list);
     }
 
     @GetMapping("/bb/gameList")
-    public Response bbGameList(@RequestParam(defaultValue = "BBDZ")String type) throws IOException {
+    public Response bbGameList(@RequestParam(defaultValue = "BBDZ") String type) throws IOException {
         List<ApiBbGameList> list = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        if(type.equals("BBBY")){
+        if (type.equals("BBBY")) {
             String path = "./src/BbBYGameList.json";
             list = objectMapper.readValue(new File(path),
-                    objectMapper.getTypeFactory().constructCollectionType(List.class,ApiBbGameList.class));
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, ApiBbGameList.class));
         }
-        if(type.equals("BBDZ")){
+        if (type.equals("BBDZ")) {
             String path = "./src/BbDZGameList.json";
             list = objectMapper.readValue(new File(path),
-                    objectMapper.getTypeFactory().constructCollectionType(List.class,ApiBbGameList.class));
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, ApiBbGameList.class));
         }
         return Response.success(list);
+    }
+
+    @GetMapping("/ag/gameList")
+    public PageResponse agJdbGameList(@RequestParam(defaultValue = "JDB_DZ") String type,
+                                  @RequestParam(defaultValue = "1", value = "page") Integer page,
+                                  @RequestParam(defaultValue = "100", value = "size") Integer size) {
+        PageResponse pageResponse = new PageResponse();
+        List<AgJdbGameList> list = new ArrayList<>();
+        if (type.equals("JDB_DZ")) {
+            ApiAgJdbGameListPageRes pageRes = apiGameService.
+                    agJdbGameList("http://389e.gf2-test.gfclub.site", "77c4b98d6f5ae14e9ba24abe1dff0d34", "d1d94fdfee9408152404ef4ba5fcac18",
+                            "jdb", "zh", "CNY",
+                            page, size, "online");
+            for (ApiAgJdbGameListRes res : pageRes.getList()) {
+                AgJdbGameList build = AgJdbGameList.builder()
+                        .gameType(res.getGame_type())
+                        .image(res.getPic_url().get("en"))
+                        .gameCode(res.getGame_code())
+                        .name(res.getName().get("zh"))
+                        .build();
+                list.add(build);
+            }
+            pageResponse.setPage(pageRes.getCurrentPage().longValue());
+            pageResponse.setTotal(pageRes.getTotalCount().longValue());
+            pageResponse.setItems(list);
+        }
+        if(Arrays.asList("ag","agslot","agtw").contains(type)){
+            ApiAgJdbGameListPageRes pageRes = apiGameService.
+                    agJdbGameList("https://389e.site2.goldenf.io", "77c4b98d6f5ae14e9ba24abe1dff0d34",
+                            "d1d94fdfee9408152404ef4ba5fcac18",
+                            type, "zh", "CNY",
+                            page, size, "online");
+            for (ApiAgJdbGameListRes res : pageRes.getList()) {
+                AgJdbGameList build = AgJdbGameList.builder()
+                        .gameType(res.getGame_type())
+                        .image(res.getPic_url().get("en"))
+                        .gameCode(res.getGame_code())
+                        .name(res.getName().get("zh"))
+                        .build();
+                list.add(build);
+            }
+            pageResponse.setPage(pageRes.getCurrentPage().longValue());
+            pageResponse.setTotal(pageRes.getTotalCount().longValue());
+            pageResponse.setItems(list);
+        }
+
+        return pageResponse;
     }
 
     /**
@@ -156,7 +207,7 @@ public class ApiGameController {
         String token = authTokenService.token();
         String decrypt = AESUtil.decrypt(token, securityKey);
         User user = userService.getById(decrypt);
-        if(Objects.isNull(user)){
+        if (Objects.isNull(user)) {
             ErrorEnum.OBJECT_NOT_FOUND.throwException();
         }
         String url = null;
@@ -170,48 +221,56 @@ public class ApiGameController {
             String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
             url = apiGameService.egEnterGame(ApiEgEnterGameReq.builder().merch(merch).gameId(gameId).lang("zh_CN").playerId(user.getGameAccount()).build());
         }
-        if(type.equals("BBBY")){
-            userService.gameRecharge(user,GameBusiness.BB.getKey());
+        if (type.equals("BBBY")) {
+            userService.gameRecharge(user, GameBusiness.BB.getKey());
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
             List<ApiBbGameUrlRes> apiBbGameUrlRes = new ArrayList<>();
-            if(Arrays.asList("38001","38002").contains(gameId)){
-                apiBbGameUrlRes = apiGameService.bBGameUrlBy38(sessionId,Integer.valueOf(gameId));
-            }else {
+            if (Arrays.asList("38001", "38002").contains(gameId)) {
+                apiBbGameUrlRes = apiGameService.bBGameUrlBy38(sessionId, Integer.valueOf(gameId));
+            } else {
                 apiBbGameUrlRes = apiGameService.bBGameUrlBy30(sessionId, Integer.valueOf(gameId));
             }
-            if(CollectionUtils.isEmpty(apiBbGameUrlRes)){
+            if (CollectionUtils.isEmpty(apiBbGameUrlRes)) {
                 ErrorEnum.SYSTEM_ERROR.throwException();
             }
             url = apiBbGameUrlRes.get(0).getHtml5();
         }
-        if(type.equals("BBDZ")){
-            userService.gameRecharge(user,GameBusiness.BB.getKey());
+        if (type.equals("BBDZ")) {
+            userService.gameRecharge(user, GameBusiness.BB.getKey());
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
             List<ApiBbGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy5(sessionId, Integer.valueOf(gameId));
-            if(!CollectionUtils.isEmpty(apiBbGameUrlRes)){
+            if (!CollectionUtils.isEmpty(apiBbGameUrlRes)) {
                 url = apiBbGameUrlRes.get(0).getHtml5();
             }
         }
-        if(type.equals("BBSX")){
-            userService.gameRecharge(user,GameBusiness.BB.getKey());
+        if (type.equals("BBSX")) {
+            userService.gameRecharge(user, GameBusiness.BB.getKey());
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
             List<ApiBbSXGameUrlRes> globals = apiGameService.bBGameUrlBy3(sessionId, "global");
-            if(!CollectionUtils.isEmpty(globals)){
+            if (!CollectionUtils.isEmpty(globals)) {
                 url = globals.get(0).getMobile();
             }
         }
-        if(type.equals("BBTY")){
-            userService.gameRecharge(user,GameBusiness.BB.getKey());
+        if (type.equals("BBTY")) {
+            userService.gameRecharge(user, GameBusiness.BB.getKey());
             String sessionId = apiGameService.bBCreateSession(user.getGameAccount());
             List<ApiBbSXGameUrlRes> apiBbGameUrlRes = apiGameService.bBGameUrlBy31(sessionId);
-            if(!CollectionUtils.isEmpty(apiBbGameUrlRes)){
+            if (!CollectionUtils.isEmpty(apiBbGameUrlRes)) {
                 url = apiBbGameUrlRes.get(0).getMobile();
             }
         }
+        if(type.equals("JDB_DZ")){
+//            userService.gameRecharge(user,GameBusiness.JDB.getKey());
+            url = apiGameService.agJdbGameLaunch("http://389e.gf2-test.gfclub.site",
+                    "77c4b98d6f5ae14e9ba24abe1dff0d34","d1d94fdfee9408152404ef4ba5fcac18",user.getGameAccount(),gameId);
+        }
+        if(Arrays.asList("ag","agslot","agtw").contains(type)){
+//            userService.gameRecharge(user,GameBusiness.AG.getKey());
+            url = apiGameService.agJdbGameLaunch("https://389e.site2.goldenf.io",
+                    "77c4b98d6f5ae14e9ba24abe1dff0d34","d1d94fdfee9408152404ef4ba5fcac18",user.getGameAccount(),gameId);
+        }
         return Response.success(url);
     }
-
-
 
 
     public static void main(String[] args) {
