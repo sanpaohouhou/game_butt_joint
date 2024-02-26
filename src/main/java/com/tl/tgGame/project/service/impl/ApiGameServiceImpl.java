@@ -906,6 +906,7 @@ public class ApiGameServiceImpl implements ApiGameService {
         jsonObject.put("player_name", playerName);
         jsonObject.put("game_code", gameCode);
         String body = HttpRequest.post(url).body(jsonObject.toString()).header("Content-Type", "application/json").execute().body();
+        log.info("ag-jdb获取url:{}",body);
         Gson gson = new Gson();
         AgJdbResponse agJdbResponse = gson.fromJson(body, AgJdbResponse.class);
         if (agJdbResponse.getStatus().equals(1)) {
