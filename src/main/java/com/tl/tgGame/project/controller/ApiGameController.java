@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -162,13 +163,15 @@ public class ApiGameController {
                             "jdb", "zh", "CNY",
                             page, size, "online");
             for (ApiAgJdbGameListRes res : pageRes.getList()) {
-                AgJdbGameList build = AgJdbGameList.builder()
-                        .gameType(res.getGame_type())
-                        .image(res.getPic_url().get("en"))
-                        .gameCode(res.getGame_code())
-                        .name(res.getName().get("zh"))
-                        .build();
-                list.add(build);
+                if(!StringUtils.isEmpty(res.getPic_url().get("en"))) {
+                    AgJdbGameList build = AgJdbGameList.builder()
+                            .gameType(res.getGame_type())
+                            .image(res.getPic_url().get("en"))
+                            .gameCode(res.getGame_code())
+                            .name(res.getName().get("zh"))
+                            .build();
+                    list.add(build);
+                }
             }
             pageResponse.setPage(pageRes.getCurrentPage().longValue());
             pageResponse.setTotal(pageRes.getTotalCount().longValue());

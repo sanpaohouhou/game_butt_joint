@@ -410,8 +410,8 @@ class TgGameApplicationTests {
 
 	@Test
 	public void testAgApi(){
-//		Boolean aBoolean = apiGameService.agJdbCreateUser("77c4b98d6f5ae14e9ba24abe1dff0d34",
-//                "d1d94fdfee9408152404ef4ba5fcac18", "qu2337591991");
+		Boolean aBoolean = apiGameService.agJdbCreateUser("http://389e.gf2-test.gfclub.site","77c4b98d6f5ae14e9ba24abe1dff0d34",
+                "d1d94fdfee9408152404ef4ba5fcac18", "qu6227478984");
 //		System.out.println(aBoolean);
 //		String url = apiGameService.agJdbGameLaunch("","77c4b98d6f5ae14e9ba24abe1dff0d34", "d1d94fdfee9408152404ef4ba5fcac18",
 //				"qu2337591991", "jdb_lobby");

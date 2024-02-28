@@ -183,6 +183,20 @@ public class ConfigConstants {
     public static final String BB_WEB_SITE = "bb_website";
     public static final String BB_CREATE_MEMBER_KEY_B = "bb_create_member_key_b";
 
+    /**
+     * Ag_JDB_域名
+     */
+    public static final String AG_JDB_HOST = "ag_jdb_host";
+    /**
+     * AG_JDB_OPERATOR_TOKEN
+     */
+    public static final String AG_JDB_OPERATOR_TOKEN = "ag_jdb_operator_token";
+    /**
+     * AG_JDB_SECRET_KEY
+     */
+    public static final String AG_JDB_SECRET_KEY = "ag_jdb_secret_key";
+
+
 
 
 

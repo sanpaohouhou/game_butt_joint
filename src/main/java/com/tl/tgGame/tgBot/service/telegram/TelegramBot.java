@@ -122,10 +122,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     public void sendCallBackQuery(Update update) {
         CallbackQuery callbackQuery = update.getCallbackQuery();
+        User from = callbackQuery.getFrom();
+        com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
         try {
-            User from = callbackQuery.getFrom();
             String gameRechargeKey = redisKeyGenerator.generateKey("GAME_RECHARGE", from.getId());
             String value = stringRedisTemplate.boundValueOps(gameRechargeKey).get();
+
             if (!StringUtils.isEmpty(value)) {
                 if (!(value.contains("EG") && callbackQuery.getGameShortName().equals("EG_GAME")) &&
                         !(value.contains("WL") && Arrays.asList("WL_GAME", "WL_BJL", "WL_TY").contains(callbackQuery.getGameShortName()))
@@ -135,7 +137,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("FC_GAME")) {
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+
                 String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                 String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
@@ -144,7 +146,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(answerCallbackQuery);
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("FC_BY")) {
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+//                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                 String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
@@ -153,7 +155,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(answerCallbackQuery);
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("EG_GAME")) {
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+//                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 if (!user.getHasJoinEg()) {
                     String merch = configService.get(ConfigConstants.EG_AGENT_CODE);
                     Boolean createUser = apiGameService.egCreateUser(ApiEgCreateUserReq.builder().isBot(user.getIsBot()).playerId(user.getGameAccount()).merch(merch)
@@ -174,7 +176,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_GAME")) {
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+//                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 userService.gameRecharge(user, GameBusiness.WL.getKey());
                 String wlEnterGame = apiGameService.wlEnterGame(user.getId(), null, request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
@@ -183,7 +185,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(answerCallbackQuery);
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_BJL")) {
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+//                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 userService.gameRecharge(user, GameBusiness.WL.getKey());
                 String wlEnterGame = apiGameService.wlEnterGame(user.getId(), "81", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
@@ -192,7 +194,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(answerCallbackQuery);
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("WL_TY")) {
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+//                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 userService.gameRecharge(user, GameBusiness.WL.getKey());
                 String wlEnterGame = apiGameService.wlEnterGame(user.getId(), "100", request);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
@@ -201,7 +203,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(answerCallbackQuery);
             }
             if(callbackQuery.getGameShortName()!=null && callbackQuery.getGameShortName().equals("BB_GAME")){
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+//                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
                 String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                 String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
@@ -210,14 +212,44 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(answerCallbackQuery);
             }
             if(callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("JDB_DZ")){
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
-
+                if(StringUtils.isEmpty(user.getPlayGameType()) || !user.getPlayGameType().contains(callbackQuery.getGameShortName())){
+                    String host = configService.get(ConfigConstants.AG_JDB_HOST);
+                    String operatorToken = configService.get(ConfigConstants.AG_JDB_OPERATOR_TOKEN);
+                    String secretKey = configService.get(ConfigConstants.AG_JDB_SECRET_KEY);
+                    apiGameService.agJdbCreateUser(host, operatorToken,secretKey, user.getGameAccount());
+                }
+                String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
+                String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
+                AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+                answerCallbackQuery.setUrl(h5Url + "/agland?token=" + decrypt + "&type=" + GameBusiness.JDB.getKey());
+                answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+                execute(answerCallbackQuery);
             }
             if(callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("AG_DZ")){
-                com.tl.tgGame.project.entity.User user = userService.checkTgId(from.getId());
+                if(StringUtils.isEmpty(user.getPlayGameType()) ||
+                        !user.getPlayGameType().contains(callbackQuery.getGameShortName())){
+                    String host = configService.get(ConfigConstants.AG_JDB_HOST);
+                    String operatorToken = configService.get(ConfigConstants.AG_JDB_OPERATOR_TOKEN);
+                    String secretKey = configService.get(ConfigConstants.AG_JDB_SECRET_KEY);
+                    apiGameService.agJdbCreateUser(host, operatorToken,secretKey, user.getGameAccount());
+                }
+                String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
+                String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
+                AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+                answerCallbackQuery.setUrl(h5Url + "/agland?token=" + decrypt + "&type=" + GameBusiness.AG.getKey());
+                answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+                execute(answerCallbackQuery);
             }
         } catch (Exception e) {
             log.error("电子开始游戏异常exception:{},callBackQuery:{}", e, callbackQuery.getGameShortName() + ":" + callbackQuery.getFrom().getId());
+        }finally {
+            if(StringUtils.isEmpty(user.getPlayGameType())){
+                user.setPlayGameType(callbackQuery.getGameShortName());
+                userService.updateById(user);
+            }else if(!user.getPlayGameType().contains(callbackQuery.getGameShortName())){
+                user.setPlayGameType(user.getPlayGameType() +"," + callbackQuery.getGameShortName());
+                userService.updateById(user);
+            }
         }
     }
 

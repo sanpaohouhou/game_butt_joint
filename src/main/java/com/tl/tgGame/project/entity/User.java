@@ -63,6 +63,9 @@ public class User {
     //是否是代理,true是,false不是
     private Boolean hasAgent;
 
+    //试玩游戏种类
+    private String playGameType;
+
     @JsonSerialize(using = ToStringSerializer.class)
     private Long agentId;
 
