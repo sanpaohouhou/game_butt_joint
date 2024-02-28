@@ -157,7 +157,7 @@ public class ApiGameController {
                                   @RequestParam(defaultValue = "100", value = "size") Integer size) {
         PageResponse pageResponse = new PageResponse();
         List<AgJdbGameList> list = new ArrayList<>();
-        if (type.equals("JDB_DZ")) {
+        if (type.equals("JDB")) {
             ApiAgJdbGameListPageRes pageRes = apiGameService.
                     agJdbGameList("http://389e.gf2-test.gfclub.site", "77c4b98d6f5ae14e9ba24abe1dff0d34", "d1d94fdfee9408152404ef4ba5fcac18",
                             "jdb", "zh", "CNY",
