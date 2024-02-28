@@ -157,10 +157,12 @@ public class ApiGameController {
                                   @RequestParam(defaultValue = "100", value = "size") Integer size) {
         PageResponse pageResponse = new PageResponse();
         List<AgJdbGameList> list = new ArrayList<>();
+        String host = configService.get(ConfigConstants.AG_JDB_HOST);
+        String operatorToken = configService.get(ConfigConstants.AG_JDB_OPERATOR_TOKEN);
+        String secretKey = configService.get(ConfigConstants.AG_JDB_SECRET_KEY);
         if (type.equals("JDB")) {
             ApiAgJdbGameListPageRes pageRes = apiGameService.
-                    agJdbGameList("http://389e.gf2-test.gfclub.site", "77c4b98d6f5ae14e9ba24abe1dff0d34", "d1d94fdfee9408152404ef4ba5fcac18",
-                            "jdb", "zh", "CNY",
+                    agJdbGameList(host, operatorToken, secretKey, "jdb", "zh", "CNY",
                             page, size, "online");
             for (ApiAgJdbGameListRes res : pageRes.getList()) {
                 if(!StringUtils.isEmpty(res.getPic_url().get("en"))) {
@@ -184,13 +186,15 @@ public class ApiGameController {
                             type, "zh", "CNY",
                             page, size, "online");
             for (ApiAgJdbGameListRes res : pageRes.getList()) {
-                AgJdbGameList build = AgJdbGameList.builder()
-                        .gameType(res.getGame_type())
-                        .image(res.getPic_url().get("en"))
-                        .gameCode(res.getGame_code())
-                        .name(res.getName().get("zh"))
-                        .build();
-                list.add(build);
+                if(!StringUtils.isEmpty(res.getPic_url().get("en"))){
+                    AgJdbGameList build = AgJdbGameList.builder()
+                            .gameType(res.getGame_type())
+                            .image(res.getPic_url().get("en"))
+                            .gameCode(res.getGame_code())
+                            .name(res.getName().get("zh"))
+                            .build();
+                    list.add(build);
+                }
             }
             pageResponse.setPage(pageRes.getCurrentPage().longValue());
             pageResponse.setTotal(pageRes.getTotalCount().longValue());
@@ -262,7 +266,7 @@ public class ApiGameController {
                 url = apiBbGameUrlRes.get(0).getMobile();
             }
         }
-        if(type.equals("JDB_DZ")){
+        if(type.equals("JDB")){
 //            userService.gameRecharge(user,GameBusiness.JDB.getKey());
             url = apiGameService.agJdbGameLaunch("http://389e.gf2-test.gfclub.site",
                     "77c4b98d6f5ae14e9ba24abe1dff0d34","d1d94fdfee9408152404ef4ba5fcac18",user.getGameAccount(),gameId);
