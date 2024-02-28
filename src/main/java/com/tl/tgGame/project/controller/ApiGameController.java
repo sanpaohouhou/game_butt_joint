@@ -181,9 +181,7 @@ public class ApiGameController {
         }
         if(Arrays.asList("ag","agslot","agtw").contains(type)){
             ApiAgJdbGameListPageRes pageRes = apiGameService.
-                    agJdbGameList("https://389e.site2.goldenf.io", "77c4b98d6f5ae14e9ba24abe1dff0d34",
-                            "d1d94fdfee9408152404ef4ba5fcac18",
-                            type, "zh", "CNY",
+                    agJdbGameList(host,operatorToken,secretKey, type, "zh", "CNY",
                             page, size, "online");
             for (ApiAgJdbGameListRes res : pageRes.getList()) {
                 if(!StringUtils.isEmpty(res.getPic_url().get("en"))){
@@ -266,16 +264,18 @@ public class ApiGameController {
                 url = apiBbGameUrlRes.get(0).getMobile();
             }
         }
-        if(type.equals("JDB")){
+        if(type.equals("JDB") || Arrays.asList("ag","agslot","agtw").contains(type)){
 //            userService.gameRecharge(user,GameBusiness.JDB.getKey());
-            url = apiGameService.agJdbGameLaunch("http://389e.gf2-test.gfclub.site",
-                    "77c4b98d6f5ae14e9ba24abe1dff0d34","d1d94fdfee9408152404ef4ba5fcac18",user.getGameAccount(),gameId);
+            String host = configService.get(ConfigConstants.AG_JDB_HOST);
+            String operatorToken = configService.get(ConfigConstants.AG_JDB_OPERATOR_TOKEN);
+            String secretKey = configService.get(ConfigConstants.AG_JDB_SECRET_KEY);
+            url = apiGameService.agJdbGameLaunch(host,operatorToken,secretKey,user.getGameAccount(),gameId);
         }
-        if(Arrays.asList("ag","agslot","agtw").contains(type)){
+//        if(Arrays.asList("ag","agslot","agtw").contains(type)){
 //            userService.gameRecharge(user,GameBusiness.AG.getKey());
-            url = apiGameService.agJdbGameLaunch("https://389e.site2.goldenf.io",
-                    "77c4b98d6f5ae14e9ba24abe1dff0d34","d1d94fdfee9408152404ef4ba5fcac18",user.getGameAccount(),gameId);
-        }
+//            url = apiGameService.agJdbGameLaunch("https://389e.site2.goldenf.io",
+//                    "77c4b98d6f5ae14e9ba24abe1dff0d34","d1d94fdfee9408152404ef4ba5fcac18",user.getGameAccount(),gameId);
+//        }
         return Response.success(url);
     }
 
