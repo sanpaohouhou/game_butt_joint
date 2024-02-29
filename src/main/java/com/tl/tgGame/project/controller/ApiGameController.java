@@ -124,12 +124,11 @@ public class ApiGameController {
             List<ApiGameListDTO> apiGameListDTOS = new Gson().fromJson(egGameList, type1);
             Map<String, ApiGameListDTO> map = apiGameListDTOS.stream().collect(Collectors.toMap(ApiGameListDTO::getGameId, o -> o));
             for (ApiEgGameNameRes res : apiEgGameListRes.getData()) {
-                ApiGameListDTO gameListDTO = map.get(res.getGameId());
-                list.add(gameListDTO);
+                if(map.containsKey(res.getGameId())){
+                    ApiGameListDTO gameListDTO = map.get(res.getGameId());
+                    list.add(gameListDTO);
+                }
             }
-        }
-        if (type.equals("JDB_DZ")) {
-
         }
         return Response.success(list);
     }
