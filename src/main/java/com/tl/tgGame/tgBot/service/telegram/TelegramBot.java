@@ -150,7 +150,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                 String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt + "&type=" + "FCBY");
+//                answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt + "&type=" + "FCBY");
+                answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt + "&type=" + GameBusiness.FC.getKey());
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                 execute(answerCallbackQuery);
             }
@@ -221,7 +222,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String decrypt = AESUtil.encrypt(String.valueOf(user.getId()), securityKey);
                 String h5Url = configService.get(ConfigConstants.BOT_TG_GAME_H5_URL);
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-                answerCallbackQuery.setUrl(h5Url + "/agland?token=" + decrypt + "&type=" + GameBusiness.JDB.getKey());
+                answerCallbackQuery.setUrl(h5Url + "/agland?token=" + decrypt + "&type=" + GameBusiness.AG.getKey());
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
                 execute(answerCallbackQuery);
             }
