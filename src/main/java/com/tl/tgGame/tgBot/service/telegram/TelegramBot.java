@@ -152,6 +152,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
                 answerCallbackQuery.setUrl(h5Url + "?token=" + decrypt + "&type=" + "FCBY");
                 answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+                answerCallbackQuery.setCacheTime(5);
                 execute(answerCallbackQuery);
             }
             if (callbackQuery.getGameShortName() != null && callbackQuery.getGameShortName().equals("EG_GAME")) {
